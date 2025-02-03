@@ -1,16 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
+import { toast } from "@/hooks/use-toast";
 
 // Only create the client if the environment variables are available
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Supabase configuration is missing. Please connect to Supabase first.');
+  toast({
+    title: "Supabase Connection Required",
+    description: "Please connect to Supabase using the Supabase menu in the top right corner.",
+    variant: "destructive",
+  });
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl || '', supabaseKey || '');
 
 async function getOpenAIKey() {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Please connect to Supabase first using the Supabase menu in the top right corner.');
+  }
+
   const { data, error } = await supabase
     .from('secrets')
     .select('value')
@@ -18,6 +27,14 @@ async function getOpenAIKey() {
     .single();
   
   if (error) throw error;
+  if (!data?.value) {
+    toast({
+      title: "OpenAI API Key Required",
+      description: "Please add your OpenAI API key in the project settings.",
+      variant: "destructive",
+    });
+    throw new Error('OpenAI API key not found. Please add it in the project settings.');
+  }
   return data.value;
 }
 
