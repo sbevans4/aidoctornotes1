@@ -1,9 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+// Only create the client if the environment variables are available
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Supabase configuration is missing. Please connect to Supabase first.');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function getOpenAIKey() {
   const { data, error } = await supabase
