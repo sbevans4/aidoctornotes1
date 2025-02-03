@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Mic, Square, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
-import { transcribeAudio, generateSoapNote } from "@/services/openaiService";
+import { generateSoapNote } from "@/services/openaiService";
 import TranscriptDisplay from "./TranscriptDisplay";
 import SoapNoteDisplay from "./SoapNoteDisplay";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SoapNote {
   subjective: string;
@@ -15,9 +16,24 @@ interface SoapNote {
   plan: string;
 }
 
+interface Speaker {
+  id: string;
+  name: string;
+}
+
+interface Segment {
+  start: number;
+  end: number;
+  text: string;
+  speaker?: string;
+}
+
 const VoiceRecorder = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState("");
+  const [recordingId, setRecordingId] = useState<string | null>(null);
+  const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const [segments, setSegments] = useState<Segment[]>([]);
   const [soapNote, setSoapNote] = useState<SoapNote>({
     subjective: "",
     objective: "",
@@ -38,25 +54,53 @@ const VoiceRecorder = () => {
         description: "Transcribing conversation...",
       });
 
-      const codes = Array.from(document.querySelectorAll('input[placeholder^="Code"]'))
-        .map((input) => (input as HTMLInputElement).value)
-        .filter(Boolean);
+      // Convert blob to base64
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      
+      reader.onloadend = async () => {
+        const base64Audio = reader.result?.toString().split(',')[1];
+        
+        if (!base64Audio) {
+          throw new Error('Failed to convert audio to base64');
+        }
 
-      const transcription = await transcribeAudio(audioBlob);
-      setTranscript(transcription);
+        const response = await fetch('/functions/transcribe-audio', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-id': (await supabase.auth.getUser()).data.user?.id || '',
+          },
+          body: JSON.stringify({ audio: base64Audio }),
+        });
 
-      toast({
-        title: "Generating SOAP Note",
-        description: "Analyzing conversation and codes...",
-      });
+        if (!response.ok) {
+          throw new Error('Transcription failed');
+        }
 
-      const generatedNote = await generateSoapNote(transcription, codes);
-      setSoapNote(generatedNote);
+        const data = await response.json();
+        setTranscript(data.text);
+        setRecordingId(data.recordingId);
+        setSpeakers(data.speakers);
+        setSegments(data.segments);
 
-      toast({
-        title: "Complete",
-        description: "SOAP note has been generated.",
-      });
+        toast({
+          title: "Generating SOAP Note",
+          description: "Analyzing conversation...",
+        });
+
+        const codes = Array.from(document.querySelectorAll('input[placeholder^="Code"]'))
+          .map((input) => (input as HTMLInputElement).value)
+          .filter(Boolean);
+
+        const generatedNote = await generateSoapNote(data.text, codes);
+        setSoapNote(generatedNote);
+
+        toast({
+          title: "Complete",
+          description: "SOAP note has been generated.",
+        });
+      };
     } catch (error) {
       toast({
         title: "Error",
@@ -97,7 +141,11 @@ const VoiceRecorder = () => {
           )}
         </div>
 
-        <TranscriptDisplay transcript={transcript} />
+        <TranscriptDisplay 
+          transcript={transcript} 
+          speakers={speakers}
+          segments={segments}
+        />
         <SoapNoteDisplay soapNote={soapNote} />
       </div>
     </Card>
