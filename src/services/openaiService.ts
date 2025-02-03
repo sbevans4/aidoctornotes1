@@ -1,0 +1,92 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+async function getOpenAIKey() {
+  const { data, error } = await supabase
+    .from('secrets')
+    .select('value')
+    .eq('name', 'OPENAI_API_KEY')
+    .single();
+  
+  if (error) throw error;
+  return data.value;
+}
+
+export async function transcribeAudio(audioBlob: Blob): Promise<string> {
+  const apiKey = await getOpenAIKey();
+  const formData = new FormData();
+  formData.append('file', audioBlob, 'audio.webm');
+  formData.append('model', 'whisper-1');
+
+  const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error('Transcription failed');
+  }
+
+  const data = await response.json();
+  return data.text;
+}
+
+export async function generateSoapNote(transcript: string, procedureCodes: string[]): Promise<{
+  subjective: string;
+  objective: string;
+  assessment: string;
+  plan: string;
+}> {
+  const apiKey = await getOpenAIKey();
+  
+  const prompt = `
+    Based on the following medical conversation transcript and procedure codes, generate a detailed SOAP note.
+    
+    Transcript: ${transcript}
+    Procedure Codes: ${procedureCodes.join(', ')}
+    
+    Generate a detailed SOAP note with the following sections:
+    - Subjective (patient's symptoms and history)
+    - Objective (clinical findings)
+    - Assessment (diagnosis)
+    - Plan (treatment plan)
+    
+    Format the response as JSON with these exact keys: subjective, objective, assessment, plan
+  `;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a medical professional assistant that creates detailed SOAP notes based on conversations and procedure codes.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to generate SOAP note');
+  }
+
+  const data = await response.json();
+  return JSON.parse(data.choices[0].message.content);
+}

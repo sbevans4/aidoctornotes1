@@ -4,29 +4,38 @@ import { Card } from "@/components/ui/card";
 import { Mic, Square, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Textarea } from "@/components/ui/textarea";
+import { transcribeAudio, generateSoapNote } from "@/services/openaiService";
+
+interface SoapNote {
+  subjective: string;
+  objective: string;
+  assessment: string;
+  plan: string;
+}
 
 const VoiceRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const [soapNote, setSoapNote] = useState({
+  const [soapNote, setSoapNote] = useState<SoapNote>({
     subjective: "",
     objective: "",
     assessment: "",
     plan: "",
   });
   const mediaRecorder = useRef<MediaRecorder | null>(null);
+  const audioChunks = useRef<Blob[]>([]);
   const { toast } = useToast();
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorder.current = new MediaRecorder(stream);
+      audioChunks.current = [];
       
-      mediaRecorder.current.ondataavailable = async (event) => {
+      mediaRecorder.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          // Here we'll handle the audio data and transcription
-          setTranscript("Sample transcription: Patient presents with...");
-          generateSoapNote("Sample transcription: Patient presents with...");
+          audioChunks.current.push(event.data);
         }
       };
 
@@ -46,57 +55,94 @@ const VoiceRecorder = () => {
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorder.current && isRecording) {
+  const stopRecording = async () => {
+    if (!mediaRecorder.current || !isRecording) return;
+
+    return new Promise<void>((resolve) => {
+      if (!mediaRecorder.current) return;
+
+      mediaRecorder.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
+        resolve();
+      };
+
       mediaRecorder.current.stop();
       mediaRecorder.current.stream.getTracks().forEach(track => track.stop());
       setIsRecording(false);
-      
-      toast({
-        title: "Recording Stopped",
-        description: "Processing conversation...",
-      });
-    }
+    });
   };
 
-  const generateSoapNote = (transcription: string) => {
-    // This is a placeholder for the SOAP note generation logic
-    // In a real implementation, this would analyze the transcription
-    // and procedure codes to generate appropriate notes
-    setSoapNote({
-      subjective: "Patient reports...",
-      objective: "Clinical examination reveals...",
-      assessment: "Based on the findings...",
-      plan: "Treatment plan includes...",
-    });
+  const processRecording = async () => {
+    try {
+      setIsProcessing(true);
+      await stopRecording();
+
+      const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
+      
+      toast({
+        title: "Processing",
+        description: "Transcribing conversation...",
+      });
+
+      // Get procedure codes from parent component or context
+      const codes = Array.from(document.querySelectorAll('input[placeholder^="Code"]'))
+        .map((input) => (input as HTMLInputElement).value)
+        .filter(Boolean);
+
+      const transcription = await transcribeAudio(audioBlob);
+      setTranscript(transcription);
+
+      toast({
+        title: "Generating SOAP Note",
+        description: "Analyzing conversation and codes...",
+      });
+
+      const generatedNote = await generateSoapNote(transcription, codes);
+      setSoapNote(generatedNote);
+
+      toast({
+        title: "Complete",
+        description: "SOAP note has been generated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <Card className="p-6 max-w-4xl mx-auto">
       <div className="space-y-6">
         <div className="flex justify-center">
-          <Button
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`w-16 h-16 rounded-full ${
-              isRecording 
-                ? "bg-red-500 hover:bg-red-600" 
-                : "bg-medical-primary hover:bg-medical-secondary"
-            }`}
-          >
-            {isRecording ? (
-              <Square className="h-6 w-6" />
-            ) : (
-              <Mic className="h-6 w-6" />
-            )}
-          </Button>
+          {!isProcessing && (
+            <Button
+              onClick={isRecording ? processRecording : startRecording}
+              className={`w-16 h-16 rounded-full ${
+                isRecording 
+                  ? "bg-red-500 hover:bg-red-600" 
+                  : "bg-medical-primary hover:bg-medical-secondary"
+              }`}
+            >
+              {isRecording ? (
+                <Square className="h-6 w-6" />
+              ) : (
+                <Mic className="h-6 w-6" />
+              )}
+            </Button>
+          )}
+          
+          {isProcessing && (
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2">Processing...</span>
+            </div>
+          )}
         </div>
-        
-        {isRecording && (
-          <div className="flex items-center justify-center text-medical-primary">
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            <span className="animate-pulse-recording">Recording...</span>
-          </div>
-        )}
 
         {transcript && (
           <div className="mt-6">
@@ -107,7 +153,7 @@ const VoiceRecorder = () => {
           </div>
         )}
 
-        {transcript && (
+        {soapNote.subjective && (
           <div className="mt-6 space-y-4">
             <h3 className="text-lg font-semibold">SOAP Note</h3>
             <div className="space-y-4">
