@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Mic, Square, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { generateSoapNote } from "@/services/openaiService";
 import TranscriptDisplay from "./TranscriptDisplay";
 import SoapNoteDisplay from "./SoapNoteDisplay";
+import RecordingControls from "./RecordingControls";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SoapNote {
@@ -54,7 +53,6 @@ const VoiceRecorder = () => {
         description: "Transcribing conversation...",
       });
 
-      // Convert blob to base64
       const reader = new FileReader();
       reader.readAsDataURL(audioBlob);
       
@@ -115,32 +113,12 @@ const VoiceRecorder = () => {
   return (
     <Card className="p-6 max-w-4xl mx-auto">
       <div className="space-y-6">
-        <div className="flex justify-center">
-          {!isProcessing && (
-            <Button
-              onClick={isRecording ? processRecording : startRecording}
-              className={`w-16 h-16 rounded-full ${
-                isRecording 
-                  ? "bg-red-500 hover:bg-red-600" 
-                  : "bg-medical-primary hover:bg-medical-secondary"
-              }`}
-            >
-              {isRecording ? (
-                <Square className="h-6 w-6" />
-              ) : (
-                <Mic className="h-6 w-6" />
-              )}
-            </Button>
-          )}
-          
-          {isProcessing && (
-            <div className="flex items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin" />
-              <span className="ml-2">Processing...</span>
-            </div>
-          )}
-        </div>
-
+        <RecordingControls
+          isRecording={isRecording}
+          isProcessing={isProcessing}
+          onStartRecording={startRecording}
+          onStopRecording={processRecording}
+        />
         <TranscriptDisplay 
           transcript={transcript} 
           speakers={speakers}
