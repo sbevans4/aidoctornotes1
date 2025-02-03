@@ -5,18 +5,29 @@ import { toast } from "@/hooks/use-toast";
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
+let supabase: ReturnType<typeof createClient> | null = null;
+
+try {
+  if (!supabaseUrl || !supabaseKey) {
+    toast({
+      title: "Supabase Connection Required",
+      description: "Please connect to Supabase using the Supabase menu in the top right corner.",
+      variant: "destructive",
+    });
+  } else {
+    supabase = createClient(supabaseUrl, supabaseKey);
+  }
+} catch (error) {
+  console.error('Error initializing Supabase client:', error);
   toast({
-    title: "Supabase Connection Required",
-    description: "Please connect to Supabase using the Supabase menu in the top right corner.",
+    title: "Supabase Connection Error",
+    description: "There was an error connecting to Supabase. Please try reconnecting.",
     variant: "destructive",
   });
 }
 
-const supabase = createClient(supabaseUrl || '', supabaseKey || '');
-
 async function getOpenAIKey() {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabase) {
     throw new Error('Please connect to Supabase first using the Supabase menu in the top right corner.');
   }
 
