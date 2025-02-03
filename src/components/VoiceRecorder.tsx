@@ -3,10 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Mic, Square, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 const VoiceRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
+  const [soapNote, setSoapNote] = useState({
+    subjective: "",
+    objective: "",
+    assessment: "",
+    plan: "",
+  });
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const { toast } = useToast();
 
@@ -17,9 +24,9 @@ const VoiceRecorder = () => {
       
       mediaRecorder.current.ondataavailable = async (event) => {
         if (event.data.size > 0) {
-          // Here we'll handle the audio data
-          // For now, we're just showing a placeholder response
+          // Here we'll handle the audio data and transcription
           setTranscript("Sample transcription: Patient presents with...");
+          generateSoapNote("Sample transcription: Patient presents with...");
         }
       };
 
@@ -52,8 +59,20 @@ const VoiceRecorder = () => {
     }
   };
 
+  const generateSoapNote = (transcription: string) => {
+    // This is a placeholder for the SOAP note generation logic
+    // In a real implementation, this would analyze the transcription
+    // and procedure codes to generate appropriate notes
+    setSoapNote({
+      subjective: "Patient reports...",
+      objective: "Clinical examination reveals...",
+      assessment: "Based on the findings...",
+      plan: "Treatment plan includes...",
+    });
+  };
+
   return (
-    <Card className="p-6 max-w-2xl mx-auto mt-10">
+    <Card className="p-6 max-w-4xl mx-auto">
       <div className="space-y-6">
         <div className="flex justify-center">
           <Button
@@ -82,8 +101,32 @@ const VoiceRecorder = () => {
         {transcript && (
           <div className="mt-6">
             <h3 className="text-lg font-semibold mb-2">Transcript</h3>
-            <div className="bg-medical-light p-4 rounded-lg">
+            <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-gray-700">{transcript}</p>
+            </div>
+          </div>
+        )}
+
+        {transcript && (
+          <div className="mt-6 space-y-4">
+            <h3 className="text-lg font-semibold">SOAP Note</h3>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-2">Subjective</h4>
+                <Textarea value={soapNote.subjective} readOnly className="w-full" />
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Objective</h4>
+                <Textarea value={soapNote.objective} readOnly className="w-full" />
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Assessment</h4>
+                <Textarea value={soapNote.assessment} readOnly className="w-full" />
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Plan</h4>
+                <Textarea value={soapNote.plan} readOnly className="w-full" />
+              </div>
             </div>
           </div>
         )}
