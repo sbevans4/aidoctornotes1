@@ -174,13 +174,23 @@ const Index = () => {
             <p className="text-xl mb-8">
               Transform your medical conversations into accurate, structured clinical notes with AI-powered transcription
             </p>
-            <Button
-              size="lg"
-              onClick={handleLogin}
-              className="bg-white text-medical-primary hover:bg-gray-100"
-            >
-              Get Started Now
-            </Button>
+            <div className="space-x-4">
+              <Button
+                size="lg"
+                onClick={handleLogin}
+                className="bg-white text-medical-primary hover:bg-gray-100"
+              >
+                Get Started Now
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate("/medical-documentation")}
+                className="text-white border-white hover:bg-white/10"
+              >
+                Learn More About Documentation
+              </Button>
+            </div>
           </div>
         </div>
       </header>
