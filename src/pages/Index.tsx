@@ -2,9 +2,10 @@ import { useState } from "react";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import ProcedureCodes from "@/components/ProcedureCodes";
 import RoleSelection from "@/components/RoleSelection";
+import PersonalizationSettings from "@/components/PersonalizationSettings";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mic, Settings } from "lucide-react";
+import { Mic } from "lucide-react";
 
 const Index = () => {
   const [hasSelectedRole, setHasSelectedRole] = useState(false);
@@ -31,10 +32,7 @@ const Index = () => {
                     <Mic className="w-4 h-4" />
                     Start New Recording
                   </Button>
-                  <Button className="w-full flex items-center justify-center gap-2" variant="outline">
-                    <Settings className="w-4 h-4" />
-                    Personalization Settings
-                  </Button>
+                  <PersonalizationSettings />
                 </div>
               </Card>
               <Card className="p-6">
