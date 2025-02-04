@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { generateSoapNote } from "@/services/openaiService";
+import { processAudioBlob } from "@/utils/audioProcessing";
+import ProcedureCodeValidator from "./ProcedureCodeValidator";
+import SoapNoteGenerator from "./SoapNoteGenerator";
 
 interface Speaker {
   id: string;
@@ -33,72 +33,43 @@ const TranscriptionProcessor = ({
   onSoapNoteGenerated,
   onProcessingStateChange,
 }: TranscriptionProcessorProps) => {
-  const { toast } = useToast();
-  const [recordingId, setRecordingId] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<string>("");
+  const [procedureCodes, setProcedureCodes] = useState<string[]>([]);
 
-  const processAudioBlob = async (audioBlob: Blob) => {
-    try {
-      onProcessingStateChange(true);
-      
-      toast({
-        title: "Processing",
-        description: "Transcribing conversation...",
-      });
+  const handleTranscriptionComplete = (text: string, speakers: Speaker[], segments: Segment[]) => {
+    setTranscript(text);
+    onTranscriptionComplete(text, speakers, segments);
+  };
 
-      const reader = new FileReader();
-      reader.readAsDataURL(audioBlob);
-      
-      reader.onloadend = async () => {
-        const base64Audio = reader.result?.toString().split(',')[1];
-        
-        if (!base64Audio) {
-          throw new Error('Failed to convert audio to base64');
-        }
+  const handleProcedureCodes = (codes: string[]) => {
+    setProcedureCodes(codes);
+  };
 
-        const response = await fetch('/functions/transcribe-audio', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-user-id': (await supabase.auth.getUser()).data.user?.id || '',
-          },
-          body: JSON.stringify({ audio: base64Audio }),
-        });
+  const processAudio = async (audioBlob: Blob) => {
+    const data = await processAudioBlob(
+      audioBlob,
+      handleTranscriptionComplete,
+      onSoapNoteGenerated,
+      onProcessingStateChange
+    );
 
-        if (!response.ok) {
-          throw new Error('Transcription failed');
-        }
-
-        const data = await response.json();
-        setRecordingId(data.recordingId);
-        onTranscriptionComplete(data.text, data.speakers, data.segments);
-
-        const codes = Array.from(document.querySelectorAll('input[placeholder^="Code"]'))
-          .map((input) => (input as HTMLInputElement).value)
-          .filter(Boolean);
-
-        if (codes.length === 0) {
-          toast({
-            title: "Warning",
-            description: "No procedure codes entered. This may affect documentation compliance.",
-            variant: "destructive",
-          });
-        }
-
-        const generatedNote = await generateSoapNote(data.text, codes);
-        onSoapNoteGenerated(generatedNote);
-      };
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      onProcessingStateChange(false);
+    if (data) {
+      handleTranscriptionComplete(data.text, data.speakers, data.segments);
     }
   };
 
-  return null; // This is a logic-only component
+  return (
+    <>
+      <ProcedureCodeValidator onValidate={handleProcedureCodes} />
+      {transcript && (
+        <SoapNoteGenerator
+          transcript={transcript}
+          procedureCodes={procedureCodes}
+          onSoapNoteGenerated={onSoapNoteGenerated}
+        />
+      )}
+    </>
+  );
 };
 
 export default TranscriptionProcessor;
