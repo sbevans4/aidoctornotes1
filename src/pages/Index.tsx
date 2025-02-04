@@ -5,10 +5,11 @@ import RoleSelection from "@/components/RoleSelection";
 import PersonalizationSettings from "@/components/PersonalizationSettings";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mic, FileText } from "lucide-react";
+import { Mic, FileText, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Json } from "@/integrations/supabase/types";
+import { useNavigate } from "react-router-dom";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface ClinicalNote {
   id: string;
@@ -25,6 +26,8 @@ interface ClinicalNote {
 const Index = () => {
   const [hasSelectedRole, setHasSelectedRole] = useState(false);
   const [recentNotes, setRecentNotes] = useState<ClinicalNote[]>([]);
+  const navigate = useNavigate();
+  const { currentSubscription } = useSubscription();
 
   useEffect(() => {
     const fetchRecentNotes = async () => {
@@ -43,7 +46,6 @@ const Index = () => {
         return;
       }
 
-      // Transform the data to match the ClinicalNote interface
       const transformedNotes = (data || []).map(note => ({
         ...note,
         content: note.content as ClinicalNote['content']
@@ -80,6 +82,14 @@ const Index = () => {
                     Start New Recording
                   </Button>
                   <PersonalizationSettings />
+                  <Button
+                    className="w-full flex items-center justify-center gap-2"
+                    variant="outline"
+                    onClick={() => navigate("/subscription-plans")}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    {currentSubscription ? "Manage Subscription" : "Choose a Plan"}
+                  </Button>
                 </div>
               </Card>
               <Card className="p-6">
