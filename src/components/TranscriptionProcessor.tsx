@@ -72,11 +72,6 @@ const TranscriptionProcessor = ({
         setRecordingId(data.recordingId);
         onTranscriptionComplete(data.text, data.speakers, data.segments);
 
-        toast({
-          title: "Generating SOAP Note",
-          description: "Analyzing conversation and validating against procedure codes...",
-        });
-
         const codes = Array.from(document.querySelectorAll('input[placeholder^="Code"]'))
           .map((input) => (input as HTMLInputElement).value)
           .filter(Boolean);
