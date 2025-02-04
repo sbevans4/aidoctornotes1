@@ -15,48 +15,39 @@ const SoapNoteGenerator = async ({
 }: SoapNoteGeneratorProps) => {
   try {
     const generatedNote = await generateSoapNote(transcript, procedureCodes);
-    onSoapNoteGenerated(generatedNote);
-
-    // Get the latest clinical note for this transcript
-    const { data: notes, error: notesError } = await supabase
+    
+    // Save the note to the database
+    const { data: noteData, error: saveError } = await supabase
       .from('clinical_notes')
-      .select('id')
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .insert([{
+        content: generatedNote,
+        suggested_codes: procedureCodes,
+        status: 'completed'
+      }])
+      .select()
+      .single();
 
-    if (notesError) {
-      console.error("Error fetching clinical note:", notesError);
+    if (saveError) {
+      console.error("Error saving clinical note:", saveError);
+      toast({
+        title: "Error",
+        description: "Failed to save the note. Please try again.",
+        variant: "destructive",
+      });
       return;
     }
 
-    if (notes && notes.length > 0) {
-      // Trigger anonymization
-      const response = await fetch('/functions/anonymize-note', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({
-          noteId: notes[0].id,
-          soapNote: generatedNote,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to anonymize note');
-      }
-
-      toast({
-        title: "Note Anonymized",
-        description: "The SOAP note has been anonymized and stored securely.",
-      });
-    }
+    onSoapNoteGenerated(generatedNote);
+    
+    toast({
+      title: "Note Generated",
+      description: "The SOAP note has been generated and saved.",
+    });
   } catch (error) {
-    console.error("Error generating or anonymizing SOAP note:", error);
+    console.error("Error generating SOAP note:", error);
     toast({
       title: "Error",
-      description: "Failed to process the SOAP note. Please try again.",
+      description: "Failed to generate the note. Please try again.",
       variant: "destructive",
     });
   }

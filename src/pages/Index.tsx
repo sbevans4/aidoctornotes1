@@ -5,20 +5,20 @@ import RoleSelection from "@/components/RoleSelection";
 import PersonalizationSettings from "@/components/PersonalizationSettings";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mic, FileText, Download } from "lucide-react";
+import { Mic, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 interface ClinicalNote {
   id: string;
   created_at: string;
-  anonymized_file_path: string | null;
   content: {
     subjective: string;
     objective: string;
     assessment: string;
     plan: string;
   };
+  status: string;
 }
 
 const Index = () => {
@@ -29,7 +29,7 @@ const Index = () => {
     const fetchRecentNotes = async () => {
       const { data, error } = await supabase
         .from('clinical_notes')
-        .select('*')
+        .select('id, created_at, content, status')
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -42,44 +42,13 @@ const Index = () => {
         return;
       }
 
-      setRecentNotes(data);
+      setRecentNotes(data || []);
     };
 
     if (hasSelectedRole) {
       fetchRecentNotes();
     }
   }, [hasSelectedRole]);
-
-  const handleDownload = async (filePath: string) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('anonymized-notes')
-        .download(filePath);
-      
-      if (error) throw error;
-
-      // Create a download link
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filePath.split('/').pop() || 'anonymized-note.txt';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast({
-        title: "Success",
-        description: "File downloaded successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to download file",
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -123,22 +92,14 @@ const Index = () => {
                             </p>
                           </div>
                         </div>
-                        {note.anonymized_file_path && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDownload(note.anonymized_file_path!)}
-                            className="flex items-center gap-2"
-                          >
-                            <Download className="w-4 h-4" />
-                            Download
-                          </Button>
-                        )}
+                        <span className="text-xs text-gray-500 capitalize">
+                          {note.status}
+                        </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500">No recent recordings found</p>
+                  <p className="text-gray-500">No recent notes found</p>
                 )}
               </Card>
             </div>
