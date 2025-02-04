@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Mic, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Json } from "@/integrations/supabase/types";
 
 interface ClinicalNote {
   id: string;
@@ -42,7 +43,13 @@ const Index = () => {
         return;
       }
 
-      setRecentNotes(data || []);
+      // Transform the data to match the ClinicalNote interface
+      const transformedNotes = (data || []).map(note => ({
+        ...note,
+        content: note.content as ClinicalNote['content']
+      }));
+
+      setRecentNotes(transformedNotes);
     };
 
     if (hasSelectedRole) {

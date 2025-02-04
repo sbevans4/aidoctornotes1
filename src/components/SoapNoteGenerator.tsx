@@ -1,6 +1,7 @@
 import { generateSoapNote } from "@/services/openaiService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Json } from "@/integrations/supabase/types";
 
 interface SoapNoteGeneratorProps {
   transcript: string;
@@ -16,14 +17,23 @@ const SoapNoteGenerator = async ({
   try {
     const generatedNote = await generateSoapNote(transcript, procedureCodes);
     
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
     // Save the note to the database
     const { data: noteData, error: saveError } = await supabase
       .from('clinical_notes')
-      .insert([{
-        content: generatedNote,
-        suggested_codes: procedureCodes,
-        status: 'completed'
-      }])
+      .insert({
+        content: generatedNote as Json,
+        suggested_codes: procedureCodes as Json,
+        status: 'completed',
+        user_id: user.id
+      })
       .select()
       .single();
 
