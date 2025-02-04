@@ -43,6 +43,7 @@ export type Database = {
       }
       clinical_notes: {
         Row: {
+          anonymized_file_path: string | null
           content: Json
           created_at: string
           id: string
@@ -53,6 +54,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          anonymized_file_path?: string | null
           content: Json
           created_at?: string
           id?: string
@@ -63,6 +65,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          anonymized_file_path?: string | null
           content?: Json
           created_at?: string
           id?: string
