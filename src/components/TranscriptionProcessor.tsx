@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { processAudioBlob } from "@/utils/audioProcessing";
 import ProcedureCodeValidator from "./ProcedureCodeValidator";
 import SoapNoteGenerator from "./SoapNoteGenerator";
@@ -35,6 +35,7 @@ const TranscriptionProcessor = ({
 }: TranscriptionProcessorProps) => {
   const [transcript, setTranscript] = useState<string>("");
   const [procedureCodes, setProcedureCodes] = useState<string[]>([]);
+  const [isGeneratingSoapNote, setIsGeneratingSoapNote] = useState(false);
 
   const handleTranscriptionComplete = (text: string, speakers: Speaker[], segments: Segment[]) => {
     setTranscript(text);
@@ -46,28 +47,40 @@ const TranscriptionProcessor = ({
   };
 
   const processAudio = async (audioBlob: Blob) => {
-    const data = await processAudioBlob(
-      audioBlob,
-      handleTranscriptionComplete,
-      onSoapNoteGenerated,
-      onProcessingStateChange
-    );
-
-    if (data) {
-      handleTranscriptionComplete(data.text, data.speakers, data.segments);
+    try {
+      const data = await processAudioBlob(
+        audioBlob,
+        handleTranscriptionComplete,
+        onSoapNoteGenerated,
+        onProcessingStateChange
+      );
+      
+      if (data && 'text' in data) {
+        handleTranscriptionComplete(data.text, data.speakers, data.segments);
+      }
+    } catch (error) {
+      console.error("Error processing audio:", error);
     }
   };
+
+  useEffect(() => {
+    if (transcript && procedureCodes.length > 0 && !isGeneratingSoapNote) {
+      setIsGeneratingSoapNote(true);
+      const generateNote = async () => {
+        await SoapNoteGenerator({
+          transcript,
+          procedureCodes,
+          onSoapNoteGenerated,
+        });
+        setIsGeneratingSoapNote(false);
+      };
+      generateNote();
+    }
+  }, [transcript, procedureCodes, onSoapNoteGenerated]);
 
   return (
     <>
       <ProcedureCodeValidator onValidate={handleProcedureCodes} />
-      {transcript && (
-        <SoapNoteGenerator
-          transcript={transcript}
-          procedureCodes={procedureCodes}
-          onSoapNoteGenerated={onSoapNoteGenerated}
-        />
-      )}
     </>
   );
 };

@@ -17,8 +17,6 @@ const SoapNoteGenerator = async ({
   } catch (error) {
     console.error("Error generating SOAP note:", error);
   }
-
-  return null; // This is a logic-only component
 };
 
 export default SoapNoteGenerator;
