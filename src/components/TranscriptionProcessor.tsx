@@ -74,20 +74,23 @@ const TranscriptionProcessor = ({
 
         toast({
           title: "Generating SOAP Note",
-          description: "Analyzing conversation...",
+          description: "Analyzing conversation and validating against procedure codes...",
         });
 
         const codes = Array.from(document.querySelectorAll('input[placeholder^="Code"]'))
           .map((input) => (input as HTMLInputElement).value)
           .filter(Boolean);
 
+        if (codes.length === 0) {
+          toast({
+            title: "Warning",
+            description: "No procedure codes entered. This may affect documentation compliance.",
+            variant: "destructive",
+          });
+        }
+
         const generatedNote = await generateSoapNote(data.text, codes);
         onSoapNoteGenerated(generatedNote);
-
-        toast({
-          title: "Complete",
-          description: "SOAP note has been generated.",
-        });
       };
     } catch (error) {
       toast({
