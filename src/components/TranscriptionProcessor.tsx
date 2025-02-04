@@ -48,15 +48,15 @@ const TranscriptionProcessor = ({
 
   const processAudio = async (audioBlob: Blob) => {
     try {
-      const data = await processAudioBlob(
+      const result = await processAudioBlob(
         audioBlob,
         handleTranscriptionComplete,
         onSoapNoteGenerated,
         onProcessingStateChange
       );
       
-      if (data && 'text' in data) {
-        handleTranscriptionComplete(data.text, data.speakers, data.segments);
+      if (result) {
+        handleTranscriptionComplete(result.text, result.speakers, result.segments);
       }
     } catch (error) {
       console.error("Error processing audio:", error);
