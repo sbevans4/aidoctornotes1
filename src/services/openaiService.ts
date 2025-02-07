@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { toast } from "@/hooks/use-toast";
 import { generateSoapNotePrompt, handleSoapNoteValidation } from '@/utils/soapGeneration';
@@ -66,7 +67,7 @@ export async function generateSoapNote(transcript: string, procedureCodes: strin
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o',
+      model: 'gpt-4',  // Fixed typo from 'gpt-4o' to 'gpt-4'
       messages: [
         {
           role: 'system',
