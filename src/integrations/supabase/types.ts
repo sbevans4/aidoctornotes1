@@ -91,6 +91,8 @@ export type Database = {
           created_at: string
           id: string
           last_4: string | null
+          paypal_order_id: string | null
+          paypal_subscription_id: string | null
           square_payment_method_id: string | null
           type: string
           updated_at: string
@@ -101,6 +103,8 @@ export type Database = {
           created_at?: string
           id?: string
           last_4?: string | null
+          paypal_order_id?: string | null
+          paypal_subscription_id?: string | null
           square_payment_method_id?: string | null
           type: string
           updated_at?: string
@@ -111,6 +115,8 @@ export type Database = {
           created_at?: string
           id?: string
           last_4?: string | null
+          paypal_order_id?: string | null
+          paypal_subscription_id?: string | null
           square_payment_method_id?: string | null
           type?: string
           updated_at?: string
@@ -188,6 +194,7 @@ export type Database = {
           current_period_start: string
           id: string
           payment_method_id: string | null
+          paypal_subscription_id: string | null
           plan_id: string
           square_subscription_id: string | null
           status: string
@@ -200,6 +207,7 @@ export type Database = {
           current_period_start: string
           id?: string
           payment_method_id?: string | null
+          paypal_subscription_id?: string | null
           plan_id: string
           square_subscription_id?: string | null
           status?: string
@@ -212,6 +220,7 @@ export type Database = {
           current_period_start?: string
           id?: string
           payment_method_id?: string | null
+          paypal_subscription_id?: string | null
           plan_id?: string
           square_subscription_id?: string | null
           status?: string
