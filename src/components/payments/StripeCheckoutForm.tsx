@@ -22,20 +22,6 @@ export const StripeCheckoutForm = ({ planId, onSuccess }: StripeCheckoutFormProp
     setIsLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
-      const { data: response, error } = await supabase.functions.invoke('stripe', {
-        body: {
-          action: 'create_subscription',
-          userId: user.id,
-          planId,
-          email: user.email,
-        },
-      });
-
-      if (error) throw error;
-
       const { error: stripeError } = await stripe.confirmPayment({
         elements,
         confirmParams: {
