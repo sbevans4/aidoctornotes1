@@ -85,6 +85,36 @@ export type Database = {
           },
         ]
       }
+      payment_methods: {
+        Row: {
+          created_at: string
+          id: string
+          last_four: string | null
+          stripe_payment_method_id: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_four?: string | null
+          stripe_payment_method_id?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_four?: string | null
+          stripe_payment_method_id?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       recordings: {
         Row: {
           created_at: string
@@ -151,8 +181,10 @@ export type Database = {
           current_period_end: string
           current_period_start: string
           id: string
+          payment_method_id: string | null
           plan_id: string
           status: string
+          stripe_subscription_id: string | null
           updated_at: string
           user_id: string
         }
@@ -161,8 +193,10 @@ export type Database = {
           current_period_end: string
           current_period_start: string
           id?: string
+          payment_method_id?: string | null
           plan_id: string
           status?: string
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -171,12 +205,21 @@ export type Database = {
           current_period_end?: string
           current_period_start?: string
           id?: string
+          payment_method_id?: string | null
           plan_id?: string
           status?: string
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_subscriptions_plan_id_fkey"
             columns: ["plan_id"]
