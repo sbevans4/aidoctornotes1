@@ -149,6 +149,7 @@ export type Database = {
           id: string
           name: string
           price: number
+          stripe_price_id: string | null
           tier: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit: number | null
           updated_at: string
@@ -159,6 +160,7 @@ export type Database = {
           id?: string
           name: string
           price: number
+          stripe_price_id?: string | null
           tier: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit?: number | null
           updated_at?: string
@@ -169,6 +171,7 @@ export type Database = {
           id?: string
           name?: string
           price?: number
+          stripe_price_id?: string | null
           tier?: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit?: number | null
           updated_at?: string

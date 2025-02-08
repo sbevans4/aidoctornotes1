@@ -6,6 +6,7 @@ import { Check } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PaymentForm } from "@/components/PaymentForm";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PricingSectionProps {
   handleLogin: () => Promise<void>;
