@@ -1,6 +1,6 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { Client, Environment } from 'https://sdk.squareup.com/square.js';
+import { ApiError, Client, Environment } from 'https://esm.sh/square@25.1.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -94,8 +94,12 @@ Deno.serve(async (req) => {
     throw new Error(`Unknown action: ${action}`);
   } catch (error) {
     console.error('Square function error:', error);
+    let errorMessage = error instanceof ApiError 
+      ? error.result?.errors?.[0]?.detail || error.message
+      : error.message;
+      
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
