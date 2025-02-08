@@ -87,28 +87,31 @@ export type Database = {
       }
       payment_methods: {
         Row: {
+          card_brand: string | null
           created_at: string
           id: string
-          last_four: string | null
-          stripe_payment_method_id: string | null
+          last_4: string | null
+          square_payment_method_id: string | null
           type: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          card_brand?: string | null
           created_at?: string
           id?: string
-          last_four?: string | null
-          stripe_payment_method_id?: string | null
+          last_4?: string | null
+          square_payment_method_id?: string | null
           type: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          card_brand?: string | null
           created_at?: string
           id?: string
-          last_four?: string | null
-          stripe_payment_method_id?: string | null
+          last_4?: string | null
+          square_payment_method_id?: string | null
           type?: string
           updated_at?: string
           user_id?: string
@@ -149,7 +152,7 @@ export type Database = {
           id: string
           name: string
           price: number
-          stripe_price_id: string | null
+          square_plan_id: string | null
           tier: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit: number | null
           updated_at: string
@@ -160,7 +163,7 @@ export type Database = {
           id?: string
           name: string
           price: number
-          stripe_price_id?: string | null
+          square_plan_id?: string | null
           tier: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit?: number | null
           updated_at?: string
@@ -171,7 +174,7 @@ export type Database = {
           id?: string
           name?: string
           price?: number
-          stripe_price_id?: string | null
+          square_plan_id?: string | null
           tier?: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit?: number | null
           updated_at?: string
@@ -186,8 +189,8 @@ export type Database = {
           id: string
           payment_method_id: string | null
           plan_id: string
+          square_subscription_id: string | null
           status: string
-          stripe_subscription_id: string | null
           updated_at: string
           user_id: string
         }
@@ -198,8 +201,8 @@ export type Database = {
           id?: string
           payment_method_id?: string | null
           plan_id: string
+          square_subscription_id?: string | null
           status?: string
-          stripe_subscription_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -210,8 +213,8 @@ export type Database = {
           id?: string
           payment_method_id?: string | null
           plan_id?: string
+          square_subscription_id?: string | null
           status?: string
-          stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string
         }
