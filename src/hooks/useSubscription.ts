@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -40,14 +41,14 @@ export const useSubscription = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      const { error } = await supabase
-        .from("user_subscriptions")
-        .upsert({
-          user_id: user.id,
-          plan_id: planId,
-          current_period_start: new Date().toISOString(),
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        });
+      const { error } = await supabase.functions.invoke('square', {
+        body: {
+          action: 'create_subscription',
+          userId: user.id,
+          planId,
+          email: user.email,
+        },
+      });
 
       if (error) throw error;
     },
