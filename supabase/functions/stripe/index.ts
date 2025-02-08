@@ -27,7 +27,6 @@ serve(async (req) => {
 
     switch (action) {
       case 'get_publishable_key': {
-        // Return the publishable key from environment
         return new Response(
           JSON.stringify({ 
             publishableKey: Deno.env.get('STRIPE_PUBLISHABLE_KEY') 
@@ -54,6 +53,7 @@ serve(async (req) => {
             type: 'credit_card',
             stripe_payment_method_id: paymentMethodId,
             last_four: paymentMethod.card?.last4,
+            card_brand: paymentMethod.card?.brand,
           })
 
         if (error) throw error
@@ -65,7 +65,7 @@ serve(async (req) => {
       }
 
       case 'create_subscription': {
-        const { paymentMethodId, userId, planId } = body
+        const { userId, planId, email } = body
 
         // Get plan details from database
         const { data: plan, error: planError } = await supabaseClient
@@ -78,11 +78,7 @@ serve(async (req) => {
 
         // Create a customer in Stripe
         const customer = await stripe.customers.create({
-          payment_method: paymentMethodId,
-          email: body.email,
-          invoice_settings: {
-            default_payment_method: paymentMethodId,
-          },
+          email,
         })
 
         // Create the subscription
@@ -96,15 +92,17 @@ serve(async (req) => {
           expand: ['latest_invoice.payment_intent'],
         })
 
-        // Update the subscription in our database
+        // Create or update the subscription in our database
         const { error: subError } = await supabaseClient
           .from('user_subscriptions')
-          .update({
+          .upsert({
+            user_id: userId,
+            plan_id: planId,
             stripe_subscription_id: subscription.id,
             status: subscription.status,
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
           })
-          .eq('user_id', userId)
-          .eq('plan_id', planId)
 
         if (subError) throw subError
 

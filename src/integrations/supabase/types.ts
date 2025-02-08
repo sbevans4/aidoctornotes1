@@ -94,6 +94,7 @@ export type Database = {
           paypal_order_id: string | null
           paypal_subscription_id: string | null
           square_payment_method_id: string | null
+          stripe_payment_method_id: string | null
           type: string
           updated_at: string
           user_id: string
@@ -106,6 +107,7 @@ export type Database = {
           paypal_order_id?: string | null
           paypal_subscription_id?: string | null
           square_payment_method_id?: string | null
+          stripe_payment_method_id?: string | null
           type: string
           updated_at?: string
           user_id: string
@@ -118,6 +120,7 @@ export type Database = {
           paypal_order_id?: string | null
           paypal_subscription_id?: string | null
           square_payment_method_id?: string | null
+          stripe_payment_method_id?: string | null
           type?: string
           updated_at?: string
           user_id?: string
@@ -159,6 +162,7 @@ export type Database = {
           name: string
           price: number
           square_plan_id: string | null
+          stripe_price_id: string | null
           tier: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit: number | null
           updated_at: string
@@ -170,6 +174,7 @@ export type Database = {
           name: string
           price: number
           square_plan_id?: string | null
+          stripe_price_id?: string | null
           tier: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit?: number | null
           updated_at?: string
@@ -181,6 +186,7 @@ export type Database = {
           name?: string
           price?: number
           square_plan_id?: string | null
+          stripe_price_id?: string | null
           tier?: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit?: number | null
           updated_at?: string
@@ -198,6 +204,7 @@ export type Database = {
           plan_id: string
           square_subscription_id: string | null
           status: string
+          stripe_subscription_id: string | null
           updated_at: string
           user_id: string
         }
@@ -211,6 +218,7 @@ export type Database = {
           plan_id: string
           square_subscription_id?: string | null
           status?: string
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -224,6 +232,7 @@ export type Database = {
           plan_id?: string
           square_subscription_id?: string | null
           status?: string
+          stripe_subscription_id?: string | null
           updated_at?: string
           user_id?: string
         }
