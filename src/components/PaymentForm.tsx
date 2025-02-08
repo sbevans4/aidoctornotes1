@@ -25,7 +25,7 @@ export const PaymentForm = ({ planId, onSuccess, onCancel }: PaymentFormProps) =
           });
 
         if (SQUARE_SANDBOX_APP_ID) {
-          const paymentsInstance = await (window as any).Square.payments(SQUARE_SANDBOX_APP_ID, '12345');
+          const paymentsInstance = await (window as any).Square.payments(SQUARE_SANDBOX_APP_ID);
           const card = await paymentsInstance.card();
           await card.attach('#square-payment-form');
           setSquarePayments(paymentsInstance);
