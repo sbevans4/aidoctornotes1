@@ -13,10 +13,34 @@ interface StripePaymentProps {
   onSuccess: () => void;
 }
 
-const stripePromise = loadStripe(process.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
-
 export const StripePayment = ({ planId, onSuccess }: StripePaymentProps) => {
   const [clientSecret, setClientSecret] = useState<string>();
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null>>();
+
+  // Initialize Stripe and payment when component mounts
+  useEffect(() => {
+    const initializeStripe = async () => {
+      try {
+        const { data: response, error } = await supabase.functions.invoke('stripe', {
+          body: {
+            action: 'get_publishable_key',
+          },
+        });
+
+        if (error) throw error;
+        setStripePromise(loadStripe(response.publishableKey));
+      } catch (error) {
+        console.error('Failed to initialize Stripe:', error);
+        toast({
+          title: "Error",
+          description: "Failed to initialize Stripe",
+          variant: "destructive",
+        });
+      }
+    };
+
+    initializeStripe();
+  }, []);
 
   // Initialize payment when component mounts
   useEffect(() => {
@@ -49,7 +73,7 @@ export const StripePayment = ({ planId, onSuccess }: StripePaymentProps) => {
     initializePayment();
   }, [planId]);
 
-  if (!clientSecret) {
+  if (!clientSecret || !stripePromise) {
     return <div>Loading...</div>;
   }
 

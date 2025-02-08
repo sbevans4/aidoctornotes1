@@ -26,6 +26,16 @@ serve(async (req) => {
     )
 
     switch (action) {
+      case 'get_publishable_key': {
+        // Return the publishable key from environment
+        return new Response(
+          JSON.stringify({ 
+            publishableKey: Deno.env.get('STRIPE_PUBLISHABLE_KEY') 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
       case 'create_payment_method': {
         const { paymentMethodId, userId } = body
         
