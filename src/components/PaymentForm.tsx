@@ -1,9 +1,12 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/stripe-js";
 
 interface PaymentFormProps {
   planId: string;
@@ -11,9 +14,74 @@ interface PaymentFormProps {
   onCancel: () => void;
 }
 
+const StripeCheckoutForm = ({ planId, onSuccess }: { planId: string; onSuccess: () => void }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setIsLoading(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const { data: response, error } = await supabase.functions.invoke('stripe', {
+        body: {
+          action: 'create_subscription',
+          userId: user.id,
+          planId,
+          email: user.email,
+        },
+      });
+
+      if (error) throw error;
+
+      const { error: stripeError } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: window.location.href,
+        },
+        redirect: 'if_required',
+      });
+
+      if (stripeError) throw stripeError;
+
+      toast({
+        title: "Success",
+        description: "Your subscription has been activated",
+      });
+      
+      onSuccess();
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to process payment",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <PaymentElement />
+      <Button type="submit" disabled={isLoading || !stripe}>
+        {isLoading ? "Processing..." : "Subscribe with Stripe"}
+      </Button>
+    </form>
+  );
+};
+
 export const PaymentForm = ({ planId, onSuccess, onCancel }: PaymentFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [squarePayments, setSquarePayments] = useState<any>(null);
+  const [stripePromise] = useState(() => loadStripe(process.env.VITE_STRIPE_PUBLISHABLE_KEY || ''));
 
   useEffect(() => {
     const initializePaymentSystems = async () => {
@@ -147,8 +215,9 @@ export const PaymentForm = ({ planId, onSuccess, onCancel }: PaymentFormProps) =
   return (
     <Card className="p-6">
       <Tabs defaultValue="card" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="card">Credit Card</TabsTrigger>
+          <TabsTrigger value="stripe">Stripe</TabsTrigger>
           <TabsTrigger value="paypal">PayPal</TabsTrigger>
           <TabsTrigger value="qr">QR Code</TabsTrigger>
         </TabsList>
@@ -168,10 +237,16 @@ export const PaymentForm = ({ planId, onSuccess, onCancel }: PaymentFormProps) =
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading || !squarePayments}>
-                {isLoading ? "Processing..." : "Subscribe"}
+                {isLoading ? "Processing..." : "Subscribe with Square"}
               </Button>
             </div>
           </form>
+        </TabsContent>
+
+        <TabsContent value="stripe">
+          <Elements stripe={stripePromise}>
+            <StripeCheckoutForm planId={planId} onSuccess={onSuccess} />
+          </Elements>
         </TabsContent>
         
         <TabsContent value="paypal">
