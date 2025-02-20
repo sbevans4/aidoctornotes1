@@ -38,9 +38,10 @@ export function SignUpForm() {
             id: (await supabase.auth.getUser()).data.user?.id,
             email,
             full_name: fullName,
-            trial_start_date: new Date().toISOString(),
-            trial_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-            trial_status: 'active'
+            has_used_trial: false,
+            purchase_date: null,
+            refund_requested: false,
+            refund_request_date: null
           }
         ]);
 
@@ -93,8 +94,11 @@ export function SignUpForm() {
         />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Loading..." : "Start Free Trial"}
+        {loading ? "Loading..." : "Start Your One-Time Trial"}
       </Button>
+      <p className="text-sm text-gray-600 text-center mt-2">
+        100% Money-Back Guarantee - Try Risk-Free
+      </p>
     </form>
   );
 }

@@ -132,30 +132,33 @@ export type Database = {
           created_at: string
           email: string
           full_name: string | null
+          has_used_trial: boolean | null
           id: string
-          trial_end_date: string | null
-          trial_start_date: string | null
-          trial_status: string | null
+          purchase_date: string | null
+          refund_request_date: string | null
+          refund_requested: boolean | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           email: string
           full_name?: string | null
+          has_used_trial?: boolean | null
           id: string
-          trial_end_date?: string | null
-          trial_start_date?: string | null
-          trial_status?: string | null
+          purchase_date?: string | null
+          refund_request_date?: string | null
+          refund_requested?: boolean | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           email?: string
           full_name?: string | null
+          has_used_trial?: boolean | null
           id?: string
-          trial_end_date?: string | null
-          trial_start_date?: string | null
-          trial_status?: string | null
+          purchase_date?: string | null
+          refund_request_date?: string | null
+          refund_requested?: boolean | null
           updated_at?: string
         }
         Relationships: []
