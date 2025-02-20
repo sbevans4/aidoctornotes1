@@ -14,25 +14,27 @@ export default function Auth() {
           <p className="mt-2 text-gray-600">Start your free trial today</p>
         </div>
 
-        <GoogleSignInButton />
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-gray-50 px-2 text-gray-500">Or continue with</span>
-          </div>
-        </div>
-
-        <Tabs defaultValue="signin" className="w-full">
+        <Tabs defaultValue="signup" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
 
           <TabsContent value="signin">
-            <SignInForm />
+            <div className="space-y-6">
+              <GoogleSignInButton />
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                </div>
+              </div>
+
+              <SignInForm />
+            </div>
           </TabsContent>
 
           <TabsContent value="signup">
