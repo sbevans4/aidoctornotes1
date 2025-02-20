@@ -41,7 +41,17 @@ export default function Auth() {
 
         <div className="grid md:grid-cols-3 gap-8">
           {plans?.map((plan) => (
-            <Card key={plan.id} className="p-6 flex flex-col">
+            <Card 
+              key={plan.id} 
+              className={`p-6 flex flex-col ${plan.name === 'Pro' ? 'border-2 border-primary relative' : ''}`}
+            >
+              {plan.name === 'Pro' && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-primary text-primary-foreground text-sm font-semibold px-3 py-1 rounded-full">
+                    Most Popular
+                  </span>
+                </div>
+              )}
               <div className="mb-4">
                 <h3 className="text-xl font-semibold">{plan.name}</h3>
                 <div className="mt-2">
@@ -61,9 +71,10 @@ export default function Auth() {
 
               <Button 
                 className="w-full mt-auto"
+                variant={plan.name === 'Pro' ? 'default' : 'outline'}
                 onClick={() => setSelectedPlanId(plan.id)}
               >
-                Get Started
+                {plan.name === 'Trial' ? 'Start Trial' : 'Get Started'}
               </Button>
             </Card>
           ))}
@@ -137,7 +148,7 @@ export default function Auth() {
 
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Start your free trial today - No credit card required for trial
+            14-day money-back guarantee • Cancel anytime
           </p>
         </div>
       </div>
