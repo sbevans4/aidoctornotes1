@@ -1,10 +1,14 @@
+
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface CTASectionProps {
   handleLogin: () => Promise<void>;
 }
 
-export const CTASection = ({ handleLogin }: CTASectionProps) => {
+export const CTASection = ({ handleLogin: _ }: CTASectionProps) => {
+  const navigate = useNavigate();
+  
   return (
     <section className="py-16 bg-medical-primary text-white">
       <div className="container mx-auto px-4 text-center">
@@ -16,7 +20,7 @@ export const CTASection = ({ handleLogin }: CTASectionProps) => {
         </p>
         <Button
           size="lg"
-          onClick={handleLogin}
+          onClick={() => navigate("/auth")}
           className="bg-white text-medical-primary hover:bg-gray-100"
         >
           Start Your Free Trial

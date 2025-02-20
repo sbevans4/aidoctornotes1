@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -5,7 +6,7 @@ interface HeroSectionProps {
   handleLogin: () => Promise<void>;
 }
 
-export const HeroSection = ({ handleLogin }: HeroSectionProps) => {
+export const HeroSection = ({ handleLogin: _ }: HeroSectionProps) => {
   const navigate = useNavigate();
 
   return (
@@ -21,7 +22,7 @@ export const HeroSection = ({ handleLogin }: HeroSectionProps) => {
           <div className="space-x-4">
             <Button
               size="lg"
-              onClick={handleLogin}
+              onClick={() => navigate("/auth")}
               className="bg-white text-medical-primary hover:bg-gray-100"
             >
               Get Started Now
