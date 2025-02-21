@@ -39,12 +39,18 @@ export const HeroSection = ({ handleLogin: _ }: HeroSectionProps) => {
           </div>
           
           <div className="relative w-full max-w-2xl mx-auto mb-12 rounded-lg overflow-hidden shadow-xl">
-            <img 
-              src="/placeholder.svg" 
-              alt="Record → Summarize → SOAP Workflow"
+            <video 
               className="w-full h-auto"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-medical-primary/20 to-transparent" />
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls
+            >
+              <source src="/workflow-demo.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+            <div className="absolute inset-0 bg-gradient-to-t from-medical-primary/20 to-transparent pointer-events-none" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto text-center">
