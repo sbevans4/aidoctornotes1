@@ -7,17 +7,17 @@ import { ChevronDown, Check, Building2 } from "lucide-react";
 import { PaymentForm } from "@/components/PaymentForm";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { useReferral } from "@/hooks/useReferral";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Label, Input } from "@/components/ui/input";
 
 export default function Auth() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { plans, isLoading } = useSubscription();
+  const { applyReferral } = useReferral();
+  const [referralCode, setReferralCode] = useState("");
 
   if (isLoading) {
     return (
@@ -218,16 +218,33 @@ export default function Auth() {
 
       <Dialog open={!!selectedPlanId} onOpenChange={() => setSelectedPlanId(null)}>
         <DialogContent className="sm:max-w-[500px]">
-          {selectedPlanId && (
-            <PaymentForm
-              planId={selectedPlanId}
-              onSuccess={() => {
-                setSelectedPlanId(null);
-                navigate("/medical-documentation");
-              }}
-              onCancel={() => setSelectedPlanId(null)}
-            />
-          )}
+          <div className="space-y-4">
+            {selectedPlanId && (
+              <>
+                <PaymentForm
+                  planId={selectedPlanId}
+                  onSuccess={() => {
+                    if (referralCode) {
+                      applyReferral.mutate(referralCode);
+                    }
+                    setSelectedPlanId(null);
+                    navigate("/medical-documentation");
+                  }}
+                  onCancel={() => setSelectedPlanId(null)}
+                />
+                <div className="mt-4">
+                  <Label htmlFor="referralCode">Have a referral code?</Label>
+                  <Input
+                    id="referralCode"
+                    placeholder="Enter referral code"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                    className="mt-1"
+                  />
+                </div>
+              </>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
