@@ -2,6 +2,23 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Json } from "@/integrations/supabase/types";
+
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  features: string[];
+  type: string;
+}
+
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: number;
+  features: Json;
+  type: string;
+}
 
 export const useSubscription = () => {
   const queryClient = useQueryClient();
@@ -15,7 +32,15 @@ export const useSubscription = () => {
         .order("price");
 
       if (error) throw error;
-      return data;
+
+      // Transform the data to ensure features is string[]
+      return data.map((plan: SubscriptionPlan): Plan => ({
+        id: plan.id,
+        name: plan.name,
+        price: plan.price,
+        features: Array.isArray(plan.features) ? plan.features as string[] : [],
+        type: plan.type,
+      }));
     },
     staleTime: 0,
     gcTime: 0,
