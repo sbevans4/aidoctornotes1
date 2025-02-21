@@ -25,44 +25,27 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
     setSelectedPlanId(planId);
   };
 
-  const getFormattedPrice = (plan: any) => {
-    if (plan.type === 'transcription' && plan.price > 0) {
-      return "0.50";
-    }
-    if (plan.name === 'Trial') {
-      return "9.99";
-    }
-    return plan.price > 0 ? plan.price.toString() : "0";
-  };
-
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12">Flexible Plans for Every Practice</h2>
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {plans?.slice(0, 3).map((plan) => {
+        <h2 className="text-3xl font-bold text-center mb-12">Choose Your Plan</h2>
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {plans?.filter(plan => plan.name !== "Enterprise").map((plan) => {
             const isCurrentPlan = currentSubscription?.plan_id === plan.id;
-            const priceDisplay = getFormattedPrice(plan);
-            const isFree = plan.price === 0;
             return (
-              <Card key={plan.id} className="p-6">
+              <Card key={plan.id} className={`p-6 ${plan.name === "Professional" ? "border-2 border-primary" : ""}`}>
+                {plan.name === "Professional" && (
+                  <div className="text-sm font-medium text-center text-primary mb-4">Most Popular</div>
+                )}
                 <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                 <div className="text-3xl font-bold mb-4">
-                  {isFree ? (
-                    "Free"
-                  ) : (
-                    <>
-                      ${priceDisplay}
-                      <span className="text-sm font-normal text-gray-600">
-                        {plan.type === 'transcription' ? "/minute" : "/month"}
-                      </span>
-                    </>
-                  )}
+                  ${plan.price}
+                  <span className="text-sm font-normal text-gray-600">/month</span>
                 </div>
-                <ul className="space-y-3 mb-6">
-                  {(plan.features as string[]).slice(0, 4).map((feature, index) => (
+                <ul className="space-y-3 mb-6 min-h-[320px]">
+                  {(plan.features as string[]).map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <Check className="w-5 h-5 text-green-500 shrink-0" />
+                      <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                       <span className="text-gray-600">{feature}</span>
                     </li>
                   ))}
@@ -73,11 +56,18 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
                   disabled={isCurrentPlan}
                   onClick={() => handleSubscribe(plan.id)}
                 >
-                  {isCurrentPlan ? "Current Plan" : "Subscribe"}
+                  {isCurrentPlan ? "Current Plan" : "Get Started"}
                 </Button>
               </Card>
             );
           })}
+        </div>
+        <div className="text-center mt-12">
+          <h3 className="text-2xl font-bold mb-4">Need Enterprise Features?</h3>
+          <p className="text-gray-600 mb-6">Get in touch for custom pricing and features tailored to your organization.</p>
+          <Button variant="outline" size="lg" onClick={() => window.location.href = "/enterprise"}>
+            Contact Sales
+          </Button>
         </div>
       </div>
 

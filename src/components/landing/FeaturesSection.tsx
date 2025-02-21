@@ -10,53 +10,53 @@ export const FeaturesSection = () => {
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">Pay-As-You-Go</h3>
+            <h3 className="text-xl font-bold">Standard Plan</h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span className="text-gray-600">Only $0.50 per minute</span>
+                <span className="text-gray-600">200 minutes/month transcription</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span className="text-gray-600">No monthly commitment</span>
+                <span className="text-gray-600">Full summary + key highlights</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span className="text-gray-600">High-quality transcription</span>
+                <span className="text-gray-600">Up to 20 SOAP notes/month</span>
               </li>
             </ul>
           </div>
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">Trial Plan</h3>
+            <h3 className="text-xl font-bold">Professional Plan</h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span className="text-gray-600">Only $9.99 per month</span>
+                <span className="text-gray-600">500 minutes/month transcription</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span className="text-gray-600">Basic features included</span>
+                <span className="text-gray-600">Direct EHR integration</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span className="text-gray-600">Try before committing</span>
+                <span className="text-gray-600">Priority support</span>
               </li>
             </ul>
           </div>
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">AI-Powered Summaries</h3>
+            <h3 className="text-xl font-bold">Enterprise Plan</h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span className="text-gray-600">Concise meeting summaries</span>
+                <span className="text-gray-600">Unlimited team transcription</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span className="text-gray-600">Key insights extraction</span>
+                <span className="text-gray-600">Custom code libraries</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span className="text-gray-600">Improved decision-making</span>
+                <span className="text-gray-600">Dedicated account manager</span>
               </li>
             </ul>
           </div>
