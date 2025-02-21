@@ -17,6 +17,8 @@ export const useSubscription = () => {
       if (error) throw error;
       return data;
     },
+    staleTime: 0,
+    cacheTime: 0,
   });
 
   const { data: currentSubscription, isLoading: isLoadingSubscription } = useQuery({
