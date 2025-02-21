@@ -1,12 +1,17 @@
-
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, PlayCircle } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function DocumentationExample() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleTryExample = () => {
+    navigate("/auth?trial=true");
+  };
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
@@ -19,7 +24,16 @@ export function DocumentationExample() {
       <CollapsibleContent className="mt-4">
         <Card className="p-4 space-y-4">
           <div>
-            <h3 className="font-semibold mb-2">Example 1: Orthopedic Case</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Example 1: Orthopedic Case</h3>
+              <Button 
+                onClick={handleTryExample}
+                className="flex items-center gap-2"
+              >
+                <PlayCircle className="w-4 h-4" />
+                Try This Example
+              </Button>
+            </div>
             <div className="space-y-2 text-sm">
               <p><strong>Doctor:</strong> "Hello Mrs. Smith, how are you feeling today?"</p>
               <p><strong>Patient:</strong> "Hi Doctor, I've been experiencing some shoulder pain for the past week, especially when reaching overhead."</p>
@@ -46,7 +60,16 @@ export function DocumentationExample() {
           </div>
 
           <div className="mt-8">
-            <h3 className="font-semibold mb-2">Example 2: Dental Case</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Example 2: Dental Case</h3>
+              <Button 
+                onClick={handleTryExample}
+                className="flex items-center gap-2"
+              >
+                <PlayCircle className="w-4 h-4" />
+                Try This Example
+              </Button>
+            </div>
             <div className="space-y-2 text-sm">
               <p><strong>Dentist:</strong> "What brings you in today?"</p>
               <p><strong>Patient:</strong> "I was eating Jordan almonds yesterday and I heard a crack in my tooth. It doesn't hurt at all, but I can feel the broken part with my tongue."</p>
@@ -76,4 +99,3 @@ export function DocumentationExample() {
     </Collapsible>
   );
 }
-
