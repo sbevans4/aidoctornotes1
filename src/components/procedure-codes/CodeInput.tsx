@@ -1,78 +1,69 @@
 
-import React from 'react';
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Loader2, Check, X } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CodeInputProps {
   code: string;
-  index: number;
-  isValid: boolean;
-  isFocused: boolean;
+  onChange: (value: string) => void;
+  isLoading: boolean;
+  error: string | null;
+  validationResult: {
+    isValid: boolean;
+    message?: string;
+  } | null;
   showValidation: boolean;
-  onChange: (index: number, value: string) => void;
-  onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>, index: number) => void;
-  onFocus: (index: number) => void;
-  onBlur: () => void;
 }
 
-const CodeInput = ({
+export function CodeInput({
   code,
-  index,
-  isValid,
-  isFocused,
-  showValidation,
   onChange,
-  onKeyDown,
-  onFocus,
-  onBlur,
-}: CodeInputProps) => {
+  isLoading,
+  error,
+  validationResult,
+  showValidation,
+}: CodeInputProps) {
   return (
-    <div className="space-y-2">
-      <Label htmlFor={`code-${index}`} className="sr-only">
-        Procedure Code {index + 1}
-      </Label>
-      <div className="relative">
+    <div className="space-y-4">
+      <div className="flex gap-2">
         <Input
-          id={`code-${index}`}
-          placeholder={`Code ${index + 1}`}
+          placeholder="Enter procedure code"
           value={code}
-          onChange={(e) => onChange(index, e.target.value)}
-          onKeyDown={(e) => onKeyDown(e, index)}
-          onFocus={() => onFocus(index)}
-          onBlur={onBlur}
-          className={`w-full pr-8 ${
-            !isValid && code && showValidation ? 'border-red-500 focus-visible:ring-red-500' : 
-            code && isValid && showValidation ? 'border-green-500 focus-visible:ring-green-500' : ''
-          } ${isFocused ? 'ring-2 ring-offset-2' : ''}`}
-          aria-invalid={!isValid && showValidation}
-          aria-describedby={!isValid && showValidation ? `error-${index}` : undefined}
-          maxLength={6}
+          onChange={(e) => onChange(e.target.value.toUpperCase())}
+          disabled={isLoading}
+          className="font-mono"
         />
-        {code && showValidation && (
-          <div 
-            className="absolute right-2 top-1/2 -translate-y-1/2"
-            aria-hidden="true"
-          >
-            {isValid ? (
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-            ) : (
-              <AlertCircle className="h-4 w-4 text-red-500" />
-            )}
-          </div>
-        )}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            "Validate"
+          )}
+        </Button>
       </div>
-      {!isValid && code && showValidation && (
-        <p 
-          id={`error-${index}`} 
-          className="text-sm text-red-500"
-          role="alert"
+
+      {showValidation && validationResult && (
+        <Alert
+          variant={validationResult.isValid ? "default" : "destructive"}
+          className="flex items-center"
         >
-          Invalid format: must be one letter followed by 4-5 digits
-        </p>
+          {validationResult.isValid ? (
+            <Check className="h-4 w-4 text-green-500" />
+          ) : (
+            <X className="h-4 w-4 text-red-500" />
+          )}
+          <AlertDescription className="ml-2">
+            {validationResult.message}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
     </div>
   );
-};
-
-export default CodeInput;
+}
