@@ -11,6 +11,7 @@ import { TranscriptionPlans } from "@/components/auth/TranscriptionPlans";
 import { AINotesPlans } from "@/components/auth/AINotesPlans";
 import { EnterpriseCTA } from "@/components/auth/EnterpriseCTA";
 import { DocumentationExample } from "@/components/auth/DocumentationExample";
+import { OnboardingTour } from "@/components/auth/OnboardingTour";
 
 export default function Auth() {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -96,7 +97,8 @@ export default function Auth() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <OnboardingTour />
     </div>
   );
 }
-
