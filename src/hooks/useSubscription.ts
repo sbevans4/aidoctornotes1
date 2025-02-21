@@ -4,13 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Json } from "@/integrations/supabase/types";
 
+export type SubscriptionTier = 'trial' | 'basic' | 'standard' | 'professional' | 'unlimited' | 'enterprise';
+
 interface Plan {
   id: string;
   name: string;
   price: number;
   features: string[];
   type: string;
-  tier: string;
+  tier: SubscriptionTier;
 }
 
 interface SubscriptionPlan {
@@ -19,7 +21,7 @@ interface SubscriptionPlan {
   price: number;
   features: Json;
   type: string;
-  tier: string;
+  tier: SubscriptionTier;
 }
 
 export const useSubscription = () => {
@@ -35,7 +37,6 @@ export const useSubscription = () => {
 
       if (error) throw error;
 
-      // Transform the data to ensure features is string[]
       return data.map((plan: SubscriptionPlan): Plan => ({
         id: plan.id,
         name: plan.name,
@@ -45,8 +46,6 @@ export const useSubscription = () => {
         tier: plan.tier,
       }));
     },
-    staleTime: 0,
-    gcTime: 0,
   });
 
   const { data: currentSubscription, isLoading: isLoadingSubscription } = useQuery({
@@ -65,6 +64,24 @@ export const useSubscription = () => {
       return data;
     },
   });
+
+  const checkFeatureAccess = async (featureName: string): Promise<boolean> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { data, error } = await supabase
+      .rpc('has_feature', { 
+        user_id: user.id,
+        feature_name: featureName
+      });
+
+    if (error) {
+      console.error('Error checking feature access:', error);
+      return false;
+    }
+
+    return data;
+  };
 
   const subscribeToPlan = useMutation({
     mutationFn: async (planId: string) => {
@@ -104,5 +121,6 @@ export const useSubscription = () => {
     currentSubscription,
     isLoading: isLoadingPlans || isLoadingSubscription,
     subscribeToPlan,
+    checkFeatureAccess,
   };
 };

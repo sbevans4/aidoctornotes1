@@ -375,13 +375,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_features: {
+        Row: {
+          features: Json | null
+          tier: Database["public"]["Enums"]["subscription_tier"] | null
+          tier_level: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      has_feature: {
+        Args: {
+          user_id: string
+          feature_name: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      subscription_tier: "basic" | "pro" | "enterprise"
+      subscription_tier:
+        | "trial"
+        | "basic"
+        | "standard"
+        | "professional"
+        | "unlimited"
+        | "enterprise"
     }
     CompositeTypes: {
       [_ in never]: never
