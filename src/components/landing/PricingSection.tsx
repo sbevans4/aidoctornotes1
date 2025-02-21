@@ -29,7 +29,7 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
     if (plan.type === 'transcription') {
       return "0.50";
     }
-    return plan.price;
+    return plan.price?.toString() || "0";
   };
 
   return (
