@@ -27,11 +27,11 @@ export const FeaturesSection = () => {
             </ul>
           </div>
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">Free Trial</h3>
+            <h3 className="text-xl font-bold">Trial Plan</h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span className="text-gray-600">Limited transcription minutes</span>
+                <span className="text-gray-600">Only $9.99 per month</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
@@ -39,7 +39,7 @@ export const FeaturesSection = () => {
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500 shrink-0" />
-                <span className="text-gray-600">Try before you subscribe</span>
+                <span className="text-gray-600">Try before committing</span>
               </li>
             </ul>
           </div>

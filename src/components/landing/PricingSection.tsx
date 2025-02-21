@@ -29,6 +29,9 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
     if (plan.type === 'transcription' && plan.price > 0) {
       return "0.50";
     }
+    if (plan.name === 'Trial') {
+      return "9.99";
+    }
     return plan.price > 0 ? plan.price.toString() : "0";
   };
 
