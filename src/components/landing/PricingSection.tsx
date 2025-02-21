@@ -26,10 +26,10 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
   };
 
   const getFormattedPrice = (plan: any) => {
-    if (plan.type === 'transcription') {
+    if (plan.type === 'transcription' && plan.price > 0) {
       return "0.50";
     }
-    return plan.price?.toString() || "0";
+    return plan.price > 0 ? plan.price.toString() : "0";
   };
 
   return (
@@ -40,14 +40,21 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
           {plans?.slice(0, 3).map((plan) => {
             const isCurrentPlan = currentSubscription?.plan_id === plan.id;
             const priceDisplay = getFormattedPrice(plan);
+            const isFree = plan.price === 0;
             return (
               <Card key={plan.id} className="p-6">
                 <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                 <div className="text-3xl font-bold mb-4">
-                  ${priceDisplay}
-                  <span className="text-sm font-normal text-gray-600">
-                    {plan.type === 'transcription' ? "/minute" : "/month"}
-                  </span>
+                  {isFree ? (
+                    "Free"
+                  ) : (
+                    <>
+                      ${priceDisplay}
+                      <span className="text-sm font-normal text-gray-600">
+                        {plan.type === 'transcription' ? "/minute" : "/month"}
+                      </span>
+                    </>
+                  )}
                 </div>
                 <ul className="space-y-3 mb-6">
                   {(plan.features as string[]).slice(0, 4).map((feature, index) => (
