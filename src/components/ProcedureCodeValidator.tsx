@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import CodeHeader from "./procedure-codes/CodeHeader";
-import CodeInput from "./procedure-codes/CodeInput";
+import { CodeHeader } from "./procedure-codes/CodeHeader";
+import { CodeInput } from "./procedure-codes/CodeInput";
 
 interface ProcedureCodeValidatorProps {
   onValidate: (codes: string[]) => void;
@@ -174,14 +173,11 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
             <CodeInput
               key={index}
               code={code}
-              index={index}
-              isValid={validations[index]}
-              isFocused={focusedIndex === index}
+              onChange={(value) => handleCodeChange(index, value)}
+              isLoading={isLoading}
+              error={error}
+              validationResult={validations[index] ? { isValid: true, message: "Valid code" } : { isValid: false, message: "Invalid code format" }}
               showValidation={showValidation}
-              onChange={handleCodeChange}
-              onKeyDown={handleKeyDown}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
             />
           ))}
         </div>
