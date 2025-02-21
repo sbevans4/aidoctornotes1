@@ -1,30 +1,32 @@
 
-import React from "react";
+import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface CodeInputProps {
   code: string;
   index: number;
   isValid: boolean;
   isFocused: boolean;
+  showValidation: boolean;
   onChange: (index: number, value: string) => void;
   onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>, index: number) => void;
   onFocus: (index: number) => void;
   onBlur: () => void;
 }
 
-const CodeInput: React.FC<CodeInputProps> = ({
+const CodeInput = ({
   code,
   index,
   isValid,
   isFocused,
+  showValidation,
   onChange,
   onKeyDown,
   onFocus,
   onBlur,
-}) => {
+}: CodeInputProps) => {
   return (
     <div className="space-y-2">
       <Label htmlFor={`code-${index}`} className="sr-only">
@@ -40,14 +42,14 @@ const CodeInput: React.FC<CodeInputProps> = ({
           onFocus={() => onFocus(index)}
           onBlur={onBlur}
           className={`w-full pr-8 ${
-            !isValid && code ? 'border-red-500 focus-visible:ring-red-500' : 
-            code && isValid ? 'border-green-500 focus-visible:ring-green-500' : ''
+            !isValid && code && showValidation ? 'border-red-500 focus-visible:ring-red-500' : 
+            code && isValid && showValidation ? 'border-green-500 focus-visible:ring-green-500' : ''
           } ${isFocused ? 'ring-2 ring-offset-2' : ''}`}
-          aria-invalid={!isValid}
-          aria-describedby={!isValid ? `error-${index}` : undefined}
+          aria-invalid={!isValid && showValidation}
+          aria-describedby={!isValid && showValidation ? `error-${index}` : undefined}
           maxLength={6}
         />
-        {code && (
+        {code && showValidation && (
           <div 
             className="absolute right-2 top-1/2 -translate-y-1/2"
             aria-hidden="true"
@@ -60,7 +62,7 @@ const CodeInput: React.FC<CodeInputProps> = ({
           </div>
         )}
       </div>
-      {!isValid && code && (
+      {!isValid && code && showValidation && (
         <p 
           id={`error-${index}`} 
           className="text-sm text-red-500"

@@ -1,11 +1,10 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import { Label } from "@/components/ui/label";
-import { Info, CheckCircle2, AlertCircle } from "lucide-react";
+import CodeHeader from "./procedure-codes/CodeHeader";
+import CodeInput from "./procedure-codes/CodeInput";
 
 interface ProcedureCodeValidatorProps {
   onValidate: (codes: string[]) => void;
@@ -17,6 +16,9 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
   const [isLoading, setIsLoading] = useState(true);
   const [debounceTimers, setDebounceTimers] = useState<NodeJS.Timeout[]>(Array(5).fill(null));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [autoSave, setAutoSave] = useState(true);
+  const [showValidation, setShowValidation] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadProcedureCodes();
@@ -27,6 +29,7 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
 
   const loadProcedureCodes = async () => {
     try {
+      setError(null);
       const { data: procedureCodes, error } = await supabase
         .from('procedure_codes')
         .select('code')
@@ -42,10 +45,11 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
         setCodes([...loadedCodes, ...Array(5 - loadedCodes.length).fill("")]);
       }
     } catch (error) {
-      console.error("Error loading procedure codes:", error);
+      const message = error instanceof Error ? error.message : 'Failed to load procedure codes';
+      setError(message);
       toast({
         title: "Error",
-        description: "Failed to load procedure codes",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -78,10 +82,13 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
       clearTimeout(debounceTimers[index]);
     }
 
+    if (!autoSave) return;
+
     const newTimers = [...debounceTimers];
     newTimers[index] = setTimeout(async () => {
       if (formattedCode && isValid) {
         try {
+          setError(null);
           await supabase
             .from('procedure_codes')
             .upsert([{ code: formattedCode }], {
@@ -99,10 +106,11 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
             onValidate(validCodes);
           }
         } catch (error) {
-          console.error("Error saving procedure code:", error);
+          const message = error instanceof Error ? error.message : 'Failed to save procedure code';
+          setError(message);
           toast({
             title: "Error",
-            description: "Failed to save procedure code",
+            description: message,
             variant: "destructive",
           });
         }
@@ -145,19 +153,17 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
   return (
     <Card className="p-4" role="form" aria-label="Procedure Code Entry Form">
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold" id="procedure-codes-heading">Procedure Codes</h2>
-          <Info 
-            className="h-4 w-4 text-muted-foreground cursor-help" 
-            aria-hidden="true"
-          />
-        </div>
-        <p 
-          className="text-sm text-muted-foreground"
-          id="procedure-codes-description"
-        >
-          Enter procedure codes in the format: one letter followed by 4-5 digits (e.g., A1234 or B12345)
-        </p>
+        <CodeHeader
+          autoSave={autoSave}
+          onAutoSaveChange={setAutoSave}
+          showValidation={showValidation}
+          onShowValidationChange={setShowValidation}
+        />
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded" role="alert">
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
         <div 
           className="grid grid-cols-1 md:grid-cols-5 gap-4" 
           role="group" 
@@ -165,50 +171,18 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
           aria-describedby="procedure-codes-description"
         >
           {codes.map((code, index) => (
-            <div key={index} className="space-y-2">
-              <Label htmlFor={`code-${index}`} className="sr-only">
-                Procedure Code {index + 1}
-              </Label>
-              <div className="relative">
-                <Input
-                  id={`code-${index}`}
-                  placeholder={`Code ${index + 1}`}
-                  value={code}
-                  onChange={(e) => handleCodeChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(e, index)}
-                  onFocus={() => handleFocus(index)}
-                  onBlur={handleBlur}
-                  className={`w-full pr-8 ${
-                    !validations[index] && code ? 'border-red-500 focus-visible:ring-red-500' : 
-                    code && validations[index] ? 'border-green-500 focus-visible:ring-green-500' : ''
-                  } ${focusedIndex === index ? 'ring-2 ring-offset-2' : ''}`}
-                  aria-invalid={!validations[index]}
-                  aria-describedby={!validations[index] ? `error-${index}` : undefined}
-                  maxLength={6}
-                />
-                {code && (
-                  <div 
-                    className="absolute right-2 top-1/2 -translate-y-1/2"
-                    aria-hidden="true"
-                  >
-                    {validations[index] ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-500" />
-                    )}
-                  </div>
-                )}
-              </div>
-              {!validations[index] && code && (
-                <p 
-                  id={`error-${index}`} 
-                  className="text-sm text-red-500"
-                  role="alert"
-                >
-                  Invalid format: must be one letter followed by 4-5 digits
-                </p>
-              )}
-            </div>
+            <CodeInput
+              key={index}
+              code={code}
+              index={index}
+              isValid={validations[index]}
+              isFocused={focusedIndex === index}
+              showValidation={showValidation}
+              onChange={handleCodeChange}
+              onKeyDown={handleKeyDown}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+            />
           ))}
         </div>
       </div>
