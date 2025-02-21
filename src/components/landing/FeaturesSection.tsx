@@ -4,10 +4,22 @@ import { Check, Info } from "lucide-react";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useState } from "react";
 
+type Feature = {
+  text: string;
+  tooltip: string;
+};
+
+type PlanType = {
+  title: string;
+  price?: string;
+  popular?: boolean;
+  features: Feature[];
+};
+
 export const FeaturesSection = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const features = {
+  const features: Record<string, PlanType> = {
     basic: {
       title: "Standard Plan",
       price: "$99/month",
