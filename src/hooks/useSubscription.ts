@@ -10,6 +10,7 @@ interface Plan {
   price: number;
   features: string[];
   type: string;
+  tier: string;
 }
 
 interface SubscriptionPlan {
@@ -18,6 +19,7 @@ interface SubscriptionPlan {
   price: number;
   features: Json;
   type: string;
+  tier: string;
 }
 
 export const useSubscription = () => {
@@ -40,6 +42,7 @@ export const useSubscription = () => {
         price: plan.price,
         features: Array.isArray(plan.features) ? plan.features as string[] : [],
         type: plan.type,
+        tier: plan.tier,
       }));
     },
     staleTime: 0,
