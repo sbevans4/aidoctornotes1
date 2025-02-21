@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-import { Info } from "lucide-react";
+import { Info, CheckCircle2, AlertCircle } from "lucide-react";
 
 interface ProcedureCodeValidatorProps {
   onValidate: (codes: string[]) => void;
@@ -15,9 +15,13 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
   const [codes, setCodes] = useState<string[]>(Array(5).fill(""));
   const [validations, setValidations] = useState<boolean[]>(Array(5).fill(true));
   const [isLoading, setIsLoading] = useState(true);
+  const [debounceTimers, setDebounceTimers] = useState<NodeJS.Timeout[]>(Array(5).fill(null));
 
   useEffect(() => {
     loadProcedureCodes();
+    return () => {
+      debounceTimers.forEach(timer => timer && clearTimeout(timer));
+    };
   }, []);
 
   const loadProcedureCodes = async () => {
@@ -49,62 +53,68 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
   };
 
   const formatProcedureCode = (code: string): string => {
-    // Remove any non-alphanumeric characters and convert to uppercase
     return code.replace(/[^A-Z0-9]/gi, '').toUpperCase();
   };
 
   const validateProcedureCode = (code: string): boolean => {
-    if (!code) return true; // Empty codes are considered valid
-    // Common format for procedure codes: Letter followed by 4-5 digits
+    if (!code) return true;
     const procedureCodeRegex = /^[A-Z]\d{4,5}$/;
     return procedureCodeRegex.test(code);
   };
 
   const handleCodeChange = async (index: number, value: string) => {
-    try {
-      const formattedCode = formatProcedureCode(value);
-      const newCodes = [...codes];
-      newCodes[index] = formattedCode;
-      setCodes(newCodes);
+    const formattedCode = formatProcedureCode(value);
+    const newCodes = [...codes];
+    newCodes[index] = formattedCode;
+    setCodes(newCodes);
 
-      const isValid = validateProcedureCode(formattedCode);
-      const newValidations = [...validations];
-      newValidations[index] = isValid;
-      setValidations(newValidations);
+    const isValid = validateProcedureCode(formattedCode);
+    const newValidations = [...validations];
+    newValidations[index] = isValid;
+    setValidations(newValidations);
 
-      if (!isValid && formattedCode) {
-        toast({
-          title: "Invalid Format",
-          description: "Procedure code should be a letter followed by 4-5 digits",
-          variant: "destructive",
-        });
-        return;
-      }
+    // Clear existing timer
+    if (debounceTimers[index]) {
+      clearTimeout(debounceTimers[index]);
+    }
 
-      // Only save valid non-empty codes
+    // Set new timer for saving to database
+    const newTimers = [...debounceTimers];
+    newTimers[index] = setTimeout(async () => {
       if (formattedCode && isValid) {
-        await supabase
-          .from('procedure_codes')
-          .upsert([
-            { code: formattedCode }
-          ], {
-            onConflict: 'code'
+        try {
+          await supabase
+            .from('procedure_codes')
+            .upsert([{ code: formattedCode }], {
+              onConflict: 'code'
+            });
+
+          toast({
+            title: "Success",
+            description: `Procedure code ${formattedCode} saved`,
+            duration: 2000,
           });
 
-        // Validate and notify parent only with valid codes
-        const validCodes = newCodes.filter((code, i) => code && newValidations[i]);
-        if (validCodes.length > 0) {
-          onValidate(validCodes);
+          const validCodes = newCodes.filter((code, i) => code && newValidations[i]);
+          if (validCodes.length > 0) {
+            onValidate(validCodes);
+          }
+        } catch (error) {
+          console.error("Error saving procedure code:", error);
+          toast({
+            title: "Error",
+            description: "Failed to save procedure code",
+            variant: "destructive",
+          });
         }
       }
-    } catch (error) {
-      console.error("Error saving procedure code:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save procedure code",
-        variant: "destructive",
-      });
-    }
+    }, 1000); // 1 second debounce
+    setDebounceTimers(newTimers);
+  };
+
+  const getInputStatus = (index: number) => {
+    if (!codes[index]) return "default";
+    return validations[index] ? "success" : "error";
   };
 
   if (isLoading) {
@@ -123,7 +133,7 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold">Procedure Codes</h2>
-          <Info className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          <Info className="h-4 w-4 text-muted-foreground cursor-help" aria-hidden="true" />
         </div>
         <p className="text-sm text-muted-foreground">
           Enter procedure codes in the format: one letter followed by 4-5 digits (e.g., A1234 or B12345)
@@ -134,15 +144,29 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
               <Label htmlFor={`code-${index}`} className="sr-only">
                 Procedure Code {index + 1}
               </Label>
-              <Input
-                id={`code-${index}`}
-                placeholder={`Code ${index + 1}`}
-                value={code}
-                onChange={(e) => handleCodeChange(index, e.target.value)}
-                className={`w-full ${!validations[index] ? 'border-red-500' : ''}`}
-                aria-invalid={!validations[index]}
-                aria-describedby={!validations[index] ? `error-${index}` : undefined}
-              />
+              <div className="relative">
+                <Input
+                  id={`code-${index}`}
+                  placeholder={`Code ${index + 1}`}
+                  value={code}
+                  onChange={(e) => handleCodeChange(index, e.target.value)}
+                  className={`w-full pr-8 ${
+                    !validations[index] && code ? 'border-red-500 focus-visible:ring-red-500' : 
+                    code && validations[index] ? 'border-green-500 focus-visible:ring-green-500' : ''
+                  }`}
+                  aria-invalid={!validations[index]}
+                  aria-describedby={!validations[index] ? `error-${index}` : undefined}
+                />
+                {code && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    {validations[index] ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                  </div>
+                )}
+              </div>
               {!validations[index] && code && (
                 <p id={`error-${index}`} className="text-sm text-red-500">
                   Invalid format
@@ -157,4 +181,3 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
 };
 
 export default ProcedureCodeValidator;
-
