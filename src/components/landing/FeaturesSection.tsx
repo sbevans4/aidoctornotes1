@@ -1,33 +1,64 @@
-import { Card } from "@/components/ui/card";
-import { Headset, FileText, ChartBar } from "lucide-react";
+import { Check } from "lucide-react";
 
 export const FeaturesSection = () => {
   return (
     <section className="py-16">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12">Key Features</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">
+          Features that Make a Difference
+        </h2>
         <div className="grid md:grid-cols-3 gap-8">
-          <Card className="p-6 text-center">
-            <Headset className="w-12 h-12 mx-auto mb-4 text-medical-primary" />
-            <h3 className="text-xl font-semibold mb-2">Real-time Transcription</h3>
-            <p className="text-gray-600">
-              Instantly convert medical conversations into text with high accuracy
-            </p>
-          </Card>
-          <Card className="p-6 text-center">
-            <FileText className="w-12 h-12 mx-auto mb-4 text-medical-primary" />
-            <h3 className="text-xl font-semibold mb-2">SOAP Note Generation</h3>
-            <p className="text-gray-600">
-              Automatically structure notes in SOAP format with AI assistance
-            </p>
-          </Card>
-          <Card className="p-6 text-center">
-            <ChartBar className="w-12 h-12 mx-auto mb-4 text-medical-primary" />
-            <h3 className="text-xl font-semibold mb-2">Analytics & Insights</h3>
-            <p className="text-gray-600">
-              Track productivity and gain insights from your documentation
-            </p>
-          </Card>
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold">Pay-As-You-Go</h3>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600">Only $0.50 per minute</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600">No monthly commitment</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600">High-quality transcription</span>
+              </li>
+            </ul>
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold">Transcription Services</h3>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600">Accurate transcriptions</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600">Fast turnaround times</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600">Multiple file formats supported</span>
+              </li>
+            </ul>
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold">AI-Powered Summaries</h3>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600">Concise meeting summaries</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600">Key insights extraction</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600">Improved decision-making</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </section>
