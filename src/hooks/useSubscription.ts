@@ -18,7 +18,7 @@ export const useSubscription = () => {
       return data;
     },
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
   });
 
   const { data: currentSubscription, isLoading: isLoadingSubscription } = useQuery({
