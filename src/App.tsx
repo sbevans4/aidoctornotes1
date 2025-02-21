@@ -8,6 +8,7 @@ import MedicalDocumentation from "./pages/MedicalDocumentation";
 import NotFound from "./pages/NotFound";
 import SubscriptionPlans from "./pages/SubscriptionPlans";
 import Auth from "./pages/Auth";
+import Enterprise from "./pages/Enterprise";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/enterprise" element={<Enterprise />} />
           <Route
             path="/medical-documentation"
             element={
