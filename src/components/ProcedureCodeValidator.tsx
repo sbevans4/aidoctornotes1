@@ -16,6 +16,7 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
   const [validations, setValidations] = useState<boolean[]>(Array(5).fill(true));
   const [isLoading, setIsLoading] = useState(true);
   const [debounceTimers, setDebounceTimers] = useState<NodeJS.Timeout[]>(Array(5).fill(null));
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     loadProcedureCodes();
@@ -73,12 +74,10 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
     newValidations[index] = isValid;
     setValidations(newValidations);
 
-    // Clear existing timer
     if (debounceTimers[index]) {
       clearTimeout(debounceTimers[index]);
     }
 
-    // Set new timer for saving to database
     const newTimers = [...debounceTimers];
     newTimers[index] = setTimeout(async () => {
       if (formattedCode && isValid) {
@@ -108,13 +107,28 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
           });
         }
       }
-    }, 1000); // 1 second debounce
+    }, 1000);
     setDebounceTimers(newTimers);
   };
 
-  const getInputStatus = (index: number) => {
-    if (!codes[index]) return "default";
-    return validations[index] ? "success" : "error";
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (event.key === 'ArrowDown' || (event.key === 'Tab' && !event.shiftKey)) {
+      event.preventDefault();
+      const nextIndex = Math.min(index + 1, 4);
+      document.getElementById(`code-${nextIndex}`)?.focus();
+    } else if (event.key === 'ArrowUp' || (event.key === 'Tab' && event.shiftKey)) {
+      event.preventDefault();
+      const prevIndex = Math.max(index - 1, 0);
+      document.getElementById(`code-${prevIndex}`)?.focus();
+    }
+  };
+
+  const handleFocus = (index: number) => {
+    setFocusedIndex(index);
+  };
+
+  const handleBlur = () => {
+    setFocusedIndex(null);
   };
 
   if (isLoading) {
@@ -129,16 +143,27 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
   }
 
   return (
-    <Card className="p-4">
+    <Card className="p-4" role="form" aria-label="Procedure Code Entry Form">
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold">Procedure Codes</h2>
-          <Info className="h-4 w-4 text-muted-foreground cursor-help" aria-hidden="true" />
+          <h2 className="text-lg font-semibold" id="procedure-codes-heading">Procedure Codes</h2>
+          <Info 
+            className="h-4 w-4 text-muted-foreground cursor-help" 
+            aria-hidden="true"
+          />
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p 
+          className="text-sm text-muted-foreground"
+          id="procedure-codes-description"
+        >
           Enter procedure codes in the format: one letter followed by 4-5 digits (e.g., A1234 or B12345)
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div 
+          className="grid grid-cols-1 md:grid-cols-5 gap-4" 
+          role="group" 
+          aria-labelledby="procedure-codes-heading"
+          aria-describedby="procedure-codes-description"
+        >
           {codes.map((code, index) => (
             <div key={index} className="space-y-2">
               <Label htmlFor={`code-${index}`} className="sr-only">
@@ -150,15 +175,22 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
                   placeholder={`Code ${index + 1}`}
                   value={code}
                   onChange={(e) => handleCodeChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  onFocus={() => handleFocus(index)}
+                  onBlur={handleBlur}
                   className={`w-full pr-8 ${
                     !validations[index] && code ? 'border-red-500 focus-visible:ring-red-500' : 
                     code && validations[index] ? 'border-green-500 focus-visible:ring-green-500' : ''
-                  }`}
+                  } ${focusedIndex === index ? 'ring-2 ring-offset-2' : ''}`}
                   aria-invalid={!validations[index]}
                   aria-describedby={!validations[index] ? `error-${index}` : undefined}
+                  maxLength={6}
                 />
                 {code && (
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <div 
+                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                    aria-hidden="true"
+                  >
                     {validations[index] ? (
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
                     ) : (
@@ -168,8 +200,12 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
                 )}
               </div>
               {!validations[index] && code && (
-                <p id={`error-${index}`} className="text-sm text-red-500">
-                  Invalid format
+                <p 
+                  id={`error-${index}`} 
+                  className="text-sm text-red-500"
+                  role="alert"
+                >
+                  Invalid format: must be one letter followed by 4-5 digits
                 </p>
               )}
             </div>
