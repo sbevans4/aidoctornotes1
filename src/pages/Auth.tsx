@@ -9,7 +9,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useReferral } from "@/hooks/useReferral";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Label, Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function Auth() {
   const [isOpen, setIsOpen] = useState(false);
