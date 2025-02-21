@@ -201,6 +201,7 @@ export type Database = {
           stripe_price_id: string | null
           tier: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit: number | null
+          type: string
           updated_at: string
         }
         Insert: {
@@ -213,6 +214,7 @@ export type Database = {
           stripe_price_id?: string | null
           tier: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit?: number | null
+          type?: string
           updated_at?: string
         }
         Update: {
@@ -225,6 +227,7 @@ export type Database = {
           stripe_price_id?: string | null
           tier?: Database["public"]["Enums"]["subscription_tier"]
           transcription_limit?: number | null
+          type?: string
           updated_at?: string
         }
         Relationships: []
