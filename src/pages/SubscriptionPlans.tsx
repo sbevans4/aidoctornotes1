@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -41,6 +42,7 @@ const SubscriptionPlans = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans?.map((plan) => {
             const isCurrentPlan = currentSubscription?.plan_id === plan.id;
+            const priceDisplay = plan.name === "Pay-As-You-Go" ? "0.50" : plan.price;
             return (
               <Card key={plan.id} className="p-6 flex flex-col">
                 <div className="flex items-center gap-2 mb-4">
@@ -54,7 +56,7 @@ const SubscriptionPlans = () => {
                 
                 <div className="mb-6">
                   <p className="text-3xl font-bold">
-                    ${plan.price}
+                    ${priceDisplay}
                     <span className="text-sm font-normal text-gray-600">
                       {plan.name === "Pay-As-You-Go" ? "/minute" : "/month"}
                     </span>

@@ -32,11 +32,12 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {plans?.slice(0, 3).map((plan) => {
             const isCurrentPlan = currentSubscription?.plan_id === plan.id;
+            const priceDisplay = plan.name === "Pay-As-You-Go" ? "0.50" : plan.price;
             return (
               <Card key={plan.id} className="p-6">
                 <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                 <div className="text-3xl font-bold mb-4">
-                  ${plan.price}
+                  ${priceDisplay}
                   <span className="text-sm font-normal text-gray-600">
                     {plan.name === "Pay-As-You-Go" ? "/minute" : "/month"}
                   </span>
@@ -77,3 +78,4 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
     </section>
   );
 };
+
