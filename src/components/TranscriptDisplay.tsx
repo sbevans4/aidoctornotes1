@@ -1,3 +1,4 @@
+
 interface Speaker {
   id: string;
   name: string;
@@ -20,17 +21,17 @@ const TranscriptDisplay = ({ transcript, speakers, segments }: TranscriptDisplay
   if (!transcript) return null;
 
   return (
-    <div className="mt-6">
+    <div className="mt-4 sm:mt-6">
       <h3 className="text-lg font-semibold mb-2">Transcript</h3>
       
       {speakers && speakers.length > 0 && (
-        <div className="mb-4">
+        <div className="mb-4 overflow-x-auto">
           <h4 className="text-sm font-medium text-gray-500 mb-2">Speakers</h4>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {speakers.map((speaker) => (
               <span
                 key={speaker.id}
-                className="px-2 py-1 bg-gray-100 rounded-full text-sm"
+                className="px-3 py-1 bg-gray-100 rounded-full text-sm whitespace-nowrap"
               >
                 {speaker.name}
               </span>
@@ -42,13 +43,16 @@ const TranscriptDisplay = ({ transcript, speakers, segments }: TranscriptDisplay
       {segments && segments.length > 0 ? (
         <div className="space-y-4">
           {segments.map((segment, index) => (
-            <div key={index} className="bg-gray-50 p-4 rounded-lg">
+            <div 
+              key={index} 
+              className="bg-gray-50 p-4 rounded-lg transition-all hover:shadow-md"
+            >
               {segment.speaker && (
                 <span className="text-sm font-medium text-medical-primary mb-1 block">
                   {segment.speaker}
                 </span>
               )}
-              <p className="text-gray-700">{segment.text}</p>
+              <p className="text-gray-700 break-words">{segment.text}</p>
               <span className="text-xs text-gray-400 mt-1 block">
                 {Math.floor(segment.start)}s - {Math.ceil(segment.end)}s
               </span>
@@ -57,7 +61,7 @@ const TranscriptDisplay = ({ transcript, speakers, segments }: TranscriptDisplay
         </div>
       ) : (
         <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="text-gray-700">{transcript}</p>
+          <p className="text-gray-700 break-words">{transcript}</p>
         </div>
       )}
     </div>

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
@@ -45,14 +46,17 @@ const VoiceRecorder = () => {
   };
 
   return (
-    <Card className="p-6 max-w-4xl mx-auto">
-      <div className="space-y-6">
-        <RecordingControls
-          isRecording={isRecording}
-          isProcessing={isProcessing}
-          onStartRecording={startRecording}
-          onStopRecording={handleStopRecording}
-        />
+    <Card className="w-full max-w-4xl mx-auto p-4 sm:p-6 overflow-hidden">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3">
+          <RecordingControls
+            isRecording={isRecording}
+            isProcessing={isProcessing}
+            onStartRecording={startRecording}
+            onStopRecording={handleStopRecording}
+          />
+        </div>
+        
         <TranscriptionProcessor
           onTranscriptionComplete={(text, spkrs, segs) => {
             setTranscript(text);
@@ -62,12 +66,15 @@ const VoiceRecorder = () => {
           onSoapNoteGenerated={setSoapNote}
           onProcessingStateChange={setIsProcessing}
         />
-        <TranscriptDisplay 
-          transcript={transcript} 
-          speakers={speakers}
-          segments={segments}
-        />
-        <SoapNoteDisplay soapNote={soapNote} />
+
+        <div className="space-y-4 sm:space-y-6">
+          <TranscriptDisplay 
+            transcript={transcript} 
+            speakers={speakers}
+            segments={segments}
+          />
+          <SoapNoteDisplay soapNote={soapNote} />
+        </div>
       </div>
     </Card>
   );
