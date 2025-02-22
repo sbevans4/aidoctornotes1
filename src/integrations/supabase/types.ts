@@ -280,6 +280,7 @@ export type Database = {
           features: Json
           id: string
           name: string
+          paypal_plan_id: string | null
           price: number
           square_plan_id: string | null
           stripe_price_id: string | null
@@ -293,6 +294,7 @@ export type Database = {
           features: Json
           id?: string
           name: string
+          paypal_plan_id?: string | null
           price: number
           square_plan_id?: string | null
           stripe_price_id?: string | null
@@ -306,6 +308,7 @@ export type Database = {
           features?: Json
           id?: string
           name?: string
+          paypal_plan_id?: string | null
           price?: number
           square_plan_id?: string | null
           stripe_price_id?: string | null

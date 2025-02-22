@@ -27,12 +27,22 @@ export const PayPalPayment = ({ planId, onSuccess, onCancel }: PayPalPaymentProp
           .eq('id', planId)
           .single();
 
-        if (planError) {
+        if (planError || !plan) {
           console.error('Error fetching plan:', planError);
           toast({
             variant: "destructive",
             title: "Error",
             description: "Could not load plan details. Please try again.",
+          });
+          return;
+        }
+
+        if (!plan.paypal_plan_id) {
+          console.error('No PayPal plan ID configured for this subscription plan');
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "This payment method is not available for the selected plan.",
           });
           return;
         }
