@@ -22,7 +22,7 @@ export const FeaturesSection = () => {
   const features: Record<string, PlanType> = {
     basic: {
       title: "Basic Plan",
-      price: "$49/month",
+      price: "$19.99/month",
       features: [
         { text: "100 minutes/month transcription", tooltip: "Audio to text conversion with high accuracy" },
         { text: "Basic summary + highlights", tooltip: "AI-generated summaries of your recordings" },
@@ -31,7 +31,7 @@ export const FeaturesSection = () => {
     },
     professional: {
       title: "Professional Plan",
-      price: "$99/month",
+      price: "$259.99/month",
       popular: true,
       features: [
         { text: "500 minutes/month transcription", tooltip: "More than double the transcription time" },
