@@ -71,21 +71,21 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
               >
                 {plan.name === "Professional" && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-primary text-primary-foreground text-sm font-semibold px-3 py-1 rounded-full">
+                    <span className="bg-primary text-primary-foreground text-sm font-semibold px-3 py-1 rounded-full whitespace-nowrap">
                       Most Popular
                     </span>
                   </div>
                 )}
-                <h3 className="text-xl font-bold mb-2 truncate">{plan.name}</h3>
-                <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-3xl font-bold">${plan.price}</span>
-                  <span className="text-muted-foreground">/month</span>
+                <h3 className="text-xl font-semibold mb-2 break-words">{plan.name}</h3>
+                <div className="flex items-baseline gap-1 mb-4 flex-wrap">
+                  <span className="text-3xl font-bold whitespace-nowrap">${plan.price}</span>
+                  <span className="text-muted-foreground whitespace-nowrap">/month</span>
                 </div>
                 <ul className="space-y-3 mb-6 min-h-[320px]">
                   {(plan.features as string[]).map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground text-sm">{feature}</span>
+                      <span className="text-muted-foreground text-sm break-words">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -131,3 +131,4 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
     </section>
   );
 };
+
