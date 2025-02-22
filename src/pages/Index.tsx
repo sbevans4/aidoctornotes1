@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import ProcedureCodes from "@/components/ProcedureCodes";
@@ -93,26 +94,30 @@ const Index = () => {
 
   if (session) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-medical-primary text-white py-6">
-          <div className="container mx-auto px-4">
-            <h1 className="text-2xl font-semibold">Medical Transcription Assistant</h1>
-            <p className="text-medical-light mt-2">Intelligent documentation for healthcare professionals</p>
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+        <header className="bg-medical-primary text-white py-8 px-4">
+          <div className="container mx-auto">
+            <h1 className="text-3xl font-bold mb-2">Medical Transcription Assistant</h1>
+            <p className="text-medical-light text-lg">Intelligent documentation for healthcare professionals</p>
           </div>
         </header>
         
         <main className="container mx-auto px-4 py-8">
           {!hasSelectedRole ? (
-            <RoleSelection onRoleSelected={() => setHasSelectedRole(true)} />
+            <div className="max-w-4xl mx-auto">
+              <RoleSelection onRoleSelected={() => setHasSelectedRole(true)} />
+            </div>
           ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <QuickActions currentSubscription={currentSubscription} />
                 <RecentActivity recentNotes={recentNotes} />
               </div>
-              <ProcedureCodes />
-              <VoiceRecorder />
-            </>
+              <div className="space-y-8">
+                <ProcedureCodes />
+                <VoiceRecorder />
+              </div>
+            </div>
           )}
         </main>
       </div>
@@ -120,7 +125,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-medical-light to-white">
+    <div className="min-h-screen bg-gradient-to-b from-medical-light/10 to-white">
       <HeroSection handleLogin={handleLogin} />
       <FeaturesSection />
       <PricingSection handleLogin={handleLogin} />
@@ -130,3 +135,4 @@ const Index = () => {
 };
 
 export default Index;
+
