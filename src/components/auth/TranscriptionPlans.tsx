@@ -28,16 +28,16 @@ export function TranscriptionPlans({ plans, onSelectPlan }: TranscriptionPlansPr
           >
             {plan.name === 'Pro' && (
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-primary text-primary-foreground text-sm font-semibold px-3 py-1 rounded-full">
+                <span className="bg-primary text-primary-foreground text-sm font-semibold px-3 py-1 rounded-full whitespace-nowrap">
                   Most Popular
                 </span>
               </div>
             )}
             <div className="mb-4">
-              <h3 className="text-xl font-semibold truncate">{plan.name}</h3>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-3xl font-bold">${plan.price}</span>
-                <span className="text-muted-foreground">/month</span>
+              <h3 className="text-xl font-semibold break-words">{plan.name}</h3>
+              <div className="mt-2 flex items-baseline gap-1 flex-wrap">
+                <span className="text-3xl font-bold whitespace-nowrap">${plan.price}</span>
+                <span className="text-muted-foreground whitespace-nowrap">/month</span>
               </div>
             </div>
 
@@ -45,7 +45,7 @@ export function TranscriptionPlans({ plans, onSelectPlan }: TranscriptionPlansPr
               {plan.features.map((feature, index) => (
                 <li key={index} className="flex items-start gap-2">
                   <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span className="text-muted-foreground text-sm">{feature}</span>
+                  <span className="text-muted-foreground text-sm break-words">{feature}</span>
                 </li>
               ))}
             </ul>
