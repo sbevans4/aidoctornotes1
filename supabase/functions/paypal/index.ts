@@ -22,6 +22,7 @@ serve(async (req) => {
     switch (action) {
       case 'create_subscription': {
         const { userId, planId } = body
+        console.log('Creating PayPal subscription for user:', userId, 'plan:', planId)
 
         // Get plan details from database
         const { data: plan, error: planError } = await supabaseClient
@@ -30,10 +31,14 @@ serve(async (req) => {
           .eq('id', planId)
           .single()
 
-        if (planError || !plan) throw new Error('Plan not found')
+        if (planError || !plan) {
+          console.error('Plan not found:', planError)
+          throw new Error('Plan not found')
+        }
 
         // For sandbox testing, we'll use a fixed subscription ID
         const subscriptionId = `test_sub_${Date.now()}`
+        console.log('Created test subscription ID:', subscriptionId)
 
         // Store subscription in database
         const { error: subError } = await supabaseClient
@@ -42,11 +47,15 @@ serve(async (req) => {
             user_id: userId,
             plan_id: planId,
             paypal_subscription_id: subscriptionId,
+            status: 'pending',
             current_period_start: new Date().toISOString(),
             current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
           })
 
-        if (subError) throw subError
+        if (subError) {
+          console.error('Error storing subscription:', subError)
+          throw subError
+        }
 
         return new Response(
           JSON.stringify({ subscriptionId }),
@@ -56,6 +65,7 @@ serve(async (req) => {
 
       case 'activate_subscription': {
         const { userId, subscriptionId, planId } = body
+        console.log('Activating subscription:', subscriptionId, 'for user:', userId)
 
         // Update subscription status in database
         const { error: updateError } = await supabaseClient
@@ -65,8 +75,12 @@ serve(async (req) => {
           .eq('plan_id', planId)
           .eq('paypal_subscription_id', subscriptionId)
 
-        if (updateError) throw updateError
+        if (updateError) {
+          console.error('Error activating subscription:', updateError)
+          throw updateError
+        }
 
+        console.log('Subscription activated successfully')
         return new Response(
           JSON.stringify({ success: true }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
