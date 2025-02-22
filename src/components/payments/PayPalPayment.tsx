@@ -20,7 +20,8 @@ export const PayPalPayment = ({ planId, onSuccess, onCancel }: PayPalPaymentProp
   useEffect(() => {
     // Load PayPal script
     const script = document.createElement("script");
-    script.src = "https://www.paypal.com/sdk/js?client-id=test&currency=USD";
+    // Replace 'your_client_id' with your actual PayPal client ID
+    script.src = "https://www.paypal.com/sdk/js?client-id=your_client_id&currency=USD";
     script.async = true;
     
     script.onload = () => {
@@ -30,11 +31,12 @@ export const PayPalPayment = ({ planId, onSuccess, onCancel }: PayPalPaymentProp
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("User not authenticated");
 
-            const { data } = await supabase.functions.invoke('paypal', {
+            const { data, error } = await supabase.functions.invoke('paypal', {
               body: { action: 'create_subscription', userId: user.id, planId }
             });
 
-            if (!data?.subscriptionId) {
+            if (error || !data?.subscriptionId) {
+              console.error('Subscription creation error:', error);
               throw new Error("Failed to create subscription");
             }
 
@@ -45,7 +47,7 @@ export const PayPalPayment = ({ planId, onSuccess, onCancel }: PayPalPaymentProp
             if (!user) throw new Error("User not authenticated");
 
             try {
-              await supabase.functions.invoke('paypal', {
+              const { error } = await supabase.functions.invoke('paypal', {
                 body: {
                   action: 'activate_subscription',
                   userId: user.id,
@@ -53,6 +55,8 @@ export const PayPalPayment = ({ planId, onSuccess, onCancel }: PayPalPaymentProp
                   planId
                 }
               });
+
+              if (error) throw error;
 
               toast({
                 title: "Success",
