@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import CodeHeader from "./CodeHeader";
-import CodeInput from "./CodeInput";
+import { CodeHeader } from "./CodeHeader";
+import { CodeInput } from "./CodeInput";
 
 interface ProcedureCodeValidatorProps {
   onValidate: (codes: string[]) => void;
@@ -16,6 +15,9 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
   const [isLoading, setIsLoading] = useState(true);
   const [debounceTimers, setDebounceTimers] = useState<NodeJS.Timeout[]>(Array(5).fill(null));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [autoSave, setAutoSave] = useState(false);
+  const [showValidation, setShowValidation] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadProcedureCodes();
@@ -142,24 +144,42 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
   return (
     <Card className="p-4" role="form" aria-label="Procedure Code Entry Form">
       <div className="space-y-4">
-        <CodeHeader />
+        <CodeHeader 
+          autoSave={autoSave}
+          onAutoSaveChange={setAutoSave}
+          showValidation={showValidation}
+          onShowValidationChange={setShowValidation}
+        />
+        {error && (
+          <div 
+            className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded" 
+            role="alert"
+            aria-live="polite"
+          >
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
         <div 
           className="grid grid-cols-1 md:grid-cols-5 gap-4" 
           role="group" 
           aria-labelledby="procedure-codes-heading"
-          aria-describedby="procedure-codes-description"
         >
           {codes.map((code, index) => (
             <CodeInput
               key={index}
               code={code}
-              index={index}
-              isValid={validations[index]}
-              isFocused={focusedIndex === index}
-              onChange={handleCodeChange}
-              onKeyDown={handleKeyDown}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
+              onChange={(value) => handleCodeChange(index, value)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              isLoading={isLoading}
+              error={error}
+              validationResult={validations[index] ? 
+                { isValid: true, message: "Valid code" } : 
+                { isValid: false, message: "Invalid code format" }
+              }
+              showValidation={showValidation}
+              id={`code-${index}`}
+              placeholder={`Code ${index + 1}`}
+              aria-label={`Procedure code ${index + 1}`}
             />
           ))}
         </div>
