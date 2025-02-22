@@ -22,13 +22,15 @@ export const useReferral = () => {
       if (referralError) throw referralError;
       if (!referralCode) throw new Error("Invalid referral code");
 
-      // Create the referral
+      // Create the referral with default 10% discount
       const { error: createError } = await supabase
         .from("referrals")
         .insert({
           referrer_id: referralCode.user_id,
           referred_id: user.id,
           status: "completed",
+          discount_percentage: 10.0, // Set the default discount percentage
+          discount_applied: false // Initialize as not applied
         });
 
       if (createError) throw createError;
@@ -45,7 +47,7 @@ export const useReferral = () => {
       queryClient.invalidateQueries({ queryKey: ["referral"] });
       toast({
         title: "Success",
-        description: "Referral code applied successfully",
+        description: "Referral code applied successfully. You will receive a 10% discount on your next purchase.",
       });
     },
     onError: (error: Error) => {
@@ -79,7 +81,7 @@ export const useReferral = () => {
       queryClient.invalidateQueries({ queryKey: ["referral"] });
       toast({
         title: "Success",
-        description: "Referral code generated successfully",
+        description: "Referral code generated successfully. Share it with others to give them a 10% discount!",
       });
     },
     onError: (error: Error) => {
@@ -91,7 +93,7 @@ export const useReferral = () => {
     },
   });
 
-  // Get user's referral details
+  // Get user's referral details including discount information
   const { data: referralData, isLoading: isLoadingReferral } = useQuery({
     queryKey: ["referral"],
     queryFn: async () => {
@@ -106,12 +108,17 @@ export const useReferral = () => {
         supabase
           .from("referrals")
           .select("*")
-          .eq("referrer_id", user.id),
+          .or(`referrer_id.eq.${user.id},referred_id.eq.${user.id}`),
       ]);
 
       return {
         codes: codes || [],
         referrals: referrals || [],
+        activeDiscount: referrals?.find(r => 
+          r.referred_id === user.id && 
+          !r.discount_applied && 
+          r.status === "completed"
+        )?.discount_percentage || null
       };
     },
   });
@@ -123,3 +130,4 @@ export const useReferral = () => {
     isLoadingReferral,
   };
 };
+
