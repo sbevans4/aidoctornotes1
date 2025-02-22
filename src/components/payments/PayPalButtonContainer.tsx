@@ -42,3 +42,4 @@ export const PayPalButtonContainer = ({ planId, onSuccess, onCancel }: PayPalBut
 
   return <div id="paypal-button-container" className="w-full" />;
 };
+

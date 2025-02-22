@@ -37,3 +37,4 @@ export const PayPalPayment = ({ planId, onSuccess, onCancel }: PayPalPaymentProp
     </div>
   );
 };
+

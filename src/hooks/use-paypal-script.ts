@@ -55,3 +55,4 @@ export const usePayPalScript = (planId: string) => {
     loadPayPalScript();
   }, [planId]);
 };
+

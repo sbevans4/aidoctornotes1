@@ -86,3 +86,4 @@ export const usePayPalSubscription = (planId: string, onSuccess: () => void) => 
     activateSubscription
   };
 };
+
