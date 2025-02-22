@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { toast } from "@/hooks/use-toast";
 import { generateSoapNotePrompt, handleSoapNoteValidation } from '@/utils/soapGeneration';
@@ -67,7 +66,7 @@ export async function generateSoapNote(transcript: string, procedureCodes: strin
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4',  // Fixed typo from 'gpt-4o' to 'gpt-4'
+      model: 'gpt-4',
       messages: [
         {
           role: 'system',
@@ -121,4 +120,39 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
 
   const data = await response.json();
   return data.text;
+}
+
+export async function analyzeImage(imageBase64: string): Promise<string> {
+  const apiKey = await getOpenAIKey();
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a medical image analysis assistant. Analyze the provided medical image and provide a detailed interpretation. Focus on key findings, potential diagnoses, and any notable abnormalities.'
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Please analyze this medical image and provide interpretation:' },
+            { type: 'image_url', image_url: imageBase64 }
+          ]
+        }
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to analyze image');
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
 }
