@@ -1,6 +1,7 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ReferralData {
   activeDiscount?: number;
@@ -8,6 +9,8 @@ interface ReferralData {
 }
 
 export const useReferral = () => {
+  const { toast } = useToast();
+
   const { data: referralData, isLoading } = useQuery({
     queryKey: ["referral-data"],
     queryFn: async (): Promise<ReferralData> => {
@@ -36,8 +39,46 @@ export const useReferral = () => {
     },
   });
 
+  const applyReferral = useMutation({
+    mutationFn: async (code: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const { data: referral, error } = await supabase
+        .from("referrals")
+        .insert([
+          {
+            referred_id: user.id,
+            referral_code: code,
+            status: "active",
+            discount_percentage: 10, // Default 10% discount
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return referral;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Referral code applied successfully!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
+  });
+
   return {
     referralData,
     isLoading,
+    applyReferral,
   };
 };
+
