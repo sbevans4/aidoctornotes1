@@ -21,17 +21,17 @@ export const FeaturesSection = () => {
 
   const features: Record<string, PlanType> = {
     basic: {
-      title: "Standard Plan",
-      price: "$99/month",
+      title: "Basic Plan",
+      price: "$49/month",
       features: [
-        { text: "200 minutes/month transcription", tooltip: "Audio to text conversion with high accuracy" },
-        { text: "Full summary + key highlights", tooltip: "AI-generated summaries of your recordings" },
-        { text: "Up to 20 SOAP notes/month", tooltip: "Structured clinical documentation" },
+        { text: "100 minutes/month transcription", tooltip: "Audio to text conversion with high accuracy" },
+        { text: "Basic summary + highlights", tooltip: "AI-generated summaries of your recordings" },
+        { text: "Up to 10 SOAP notes/month", tooltip: "Structured clinical documentation" },
       ],
     },
     professional: {
       title: "Professional Plan",
-      price: "$149/month",
+      price: "$99/month",
       popular: true,
       features: [
         { text: "500 minutes/month transcription", tooltip: "More than double the transcription time" },
@@ -42,6 +42,7 @@ export const FeaturesSection = () => {
     },
     enterprise: {
       title: "Enterprise Plan",
+      price: "Contact Sales",
       features: [
         { text: "Unlimited team transcription", tooltip: "No limits on users or minutes" },
         { text: "Custom code libraries", tooltip: "Add your frequently used codes" },
