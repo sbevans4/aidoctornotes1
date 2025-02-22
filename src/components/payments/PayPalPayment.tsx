@@ -18,84 +18,155 @@ interface PayPalPaymentProps {
 
 export const PayPalPayment = ({ planId, onSuccess, onCancel }: PayPalPaymentProps) => {
   useEffect(() => {
-    // Load PayPal script
-    const script = document.createElement("script");
-    // Replace 'your_client_id' with your actual PayPal client ID
-    script.src = "https://www.paypal.com/sdk/js?client-id=your_client_id&currency=USD";
-    script.async = true;
-    
-    script.onload = () => {
-      if (window.paypal) {
-        window.paypal.Buttons({
-          createOrder: async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("User not authenticated");
+    const loadPayPalScript = async () => {
+      try {
+        // Get the plan details to set up the proper amount
+        const { data: plan, error: planError } = await supabase
+          .from('subscription_plans')
+          .select('*')
+          .eq('id', planId)
+          .single();
 
-            const { data, error } = await supabase.functions.invoke('paypal', {
-              body: { action: 'create_subscription', userId: user.id, planId }
-            });
+        if (planError) {
+          console.error('Error fetching plan:', planError);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not load plan details. Please try again.",
+          });
+          return;
+        }
 
-            if (error || !data?.subscriptionId) {
-              console.error('Subscription creation error:', error);
-              throw new Error("Failed to create subscription");
-            }
-
-            return data.subscriptionId;
-          },
-          onApprove: async (data: any) => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error("User not authenticated");
-
-            try {
-              const { error } = await supabase.functions.invoke('paypal', {
-                body: {
-                  action: 'activate_subscription',
-                  userId: user.id,
-                  subscriptionId: data.subscriptionId,
-                  planId
+        // Load PayPal script
+        const script = document.createElement("script");
+        script.src = `https://www.paypal.com/sdk/js?client-id=${plan.paypal_plan_id}&currency=USD&intent=subscription`;
+        script.async = true;
+        
+        script.onload = () => {
+          if (window.paypal) {
+            window.paypal.Buttons({
+              createSubscription: async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                  toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Please log in to continue.",
+                  });
+                  throw new Error("User not authenticated");
                 }
-              });
 
-              if (error) throw error;
+                const { data, error } = await supabase.functions.invoke('paypal', {
+                  body: { 
+                    action: 'create_subscription',
+                    userId: user.id,
+                    planId
+                  }
+                });
 
-              toast({
-                title: "Success",
-                description: "Your subscription has been activated!",
-              });
-              onSuccess();
-            } catch (error) {
-              console.error('PayPal activation error:', error);
-              toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Failed to activate subscription. Please try again.",
-              });
-            }
-          },
-          onError: (err: any) => {
-            console.error('PayPal error:', err);
-            toast({
-              variant: "destructive",
-              title: "Error",
-              description: "There was an error processing your payment. Please try again.",
-            });
-          },
-          onCancel: () => {
-            toast({
-              title: "Cancelled",
-              description: "Payment cancelled. No charges were made.",
-            });
-            onCancel();
+                if (error || !data?.subscriptionId) {
+                  console.error('Subscription creation error:', error);
+                  toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to create subscription. Please try again.",
+                  });
+                  throw new Error("Failed to create subscription");
+                }
+
+                return data.subscriptionId;
+              },
+              onApprove: async (data: any) => {
+                console.log('PayPal subscription approved:', data);
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                  toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Please log in to continue.",
+                  });
+                  throw new Error("User not authenticated");
+                }
+
+                try {
+                  const { error } = await supabase.functions.invoke('paypal', {
+                    body: {
+                      action: 'activate_subscription',
+                      userId: user.id,
+                      subscriptionId: data.subscriptionID,
+                      planId
+                    }
+                  });
+
+                  if (error) {
+                    console.error('PayPal activation error:', error);
+                    toast({
+                      variant: "destructive",
+                      title: "Error",
+                      description: "Failed to activate subscription. Please try again.",
+                    });
+                    throw error;
+                  }
+
+                  toast({
+                    title: "Success",
+                    description: "Your subscription has been activated!",
+                  });
+                  onSuccess();
+                } catch (error) {
+                  console.error('PayPal activation error:', error);
+                  toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to activate subscription. Please try again.",
+                  });
+                }
+              },
+              onError: (err: any) => {
+                console.error('PayPal error:', err);
+                toast({
+                  variant: "destructive",
+                  title: "Error",
+                  description: "There was an error processing your payment. Please try again.",
+                });
+              },
+              onCancel: () => {
+                console.log('PayPal subscription cancelled');
+                toast({
+                  title: "Cancelled",
+                  description: "Payment cancelled. No charges were made.",
+                });
+                onCancel();
+              }
+            }).render("#paypal-button-container");
           }
-        }).render("#paypal-button-container");
+        };
+
+        script.onerror = () => {
+          console.error('Failed to load PayPal script');
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load payment system. Please try again.",
+          });
+        };
+
+        document.body.appendChild(script);
+
+        return () => {
+          document.body.removeChild(script);
+        };
+      } catch (error) {
+        console.error('PayPal initialization error:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to initialize payment system. Please try again.",
+        });
       }
     };
 
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
+    loadPayPalScript();
   }, [planId, onSuccess, onCancel]);
 
   return (
