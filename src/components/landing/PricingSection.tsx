@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Check, Scroll, Mic, Brain } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PaymentForm } from "@/components/PaymentForm";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { FeaturesComparison } from "./FeaturesComparison";
 
@@ -16,6 +16,7 @@ interface PricingSectionProps {
 export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
   const { plans, currentSubscription } = useSubscription();
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [showDetailsForPlan, setShowDetailsForPlan] = useState<string | null>(null);
 
   const handleSubscribe = async (planId: string) => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -81,14 +82,23 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
                   <span className="text-3xl font-bold whitespace-nowrap">${plan.price}</span>
                   <span className="text-muted-foreground whitespace-nowrap">/month</span>
                 </div>
-                <ul className="space-y-3 mb-6 min-h-[320px]">
-                  {(plan.features as string[]).map((feature, index) => (
+                <ul className="space-y-3 mb-6">
+                  {(plan.features as string[]).slice(0, 3).map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                       <span className="text-muted-foreground text-sm break-words">{feature}</span>
                     </li>
                   ))}
                 </ul>
+                {(plan.features as string[]).length > 3 && (
+                  <Button
+                    variant="ghost"
+                    className="w-full mb-4 text-primary hover:text-primary"
+                    onClick={() => setShowDetailsForPlan(plan.id)}
+                  >
+                    View All Features
+                  </Button>
+                )}
                 <Button
                   className="w-full"
                   variant={isCurrentPlan ? "secondary" : "default"}
@@ -128,7 +138,26 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!showDetailsForPlan} onOpenChange={() => setShowDetailsForPlan(null)}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              {plans?.find(p => p.id === showDetailsForPlan)?.name} Plan Features
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <ul className="space-y-3">
+              {plans?.find(p => p.id === showDetailsForPlan)?.features.map((feature, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                  <span className="text-muted-foreground">{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
-
