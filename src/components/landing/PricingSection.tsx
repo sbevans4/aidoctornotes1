@@ -30,18 +30,18 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
   const keyFeatures = [
     {
       icon: Scroll,
-      title: "5 Custom Code Tabs",
-      description: "Organize and access your frequently used codes efficiently",
+      title: "Code Libraries",
+      description: "Store and manage your frequently used medical codes",
     },
     {
       icon: Mic,
-      title: "Real-Time Transcription",
-      description: "Convert speech to text instantly with high accuracy",
+      title: "Voice Transcription",
+      description: "High-accuracy medical transcription with AI assistance",
     },
     {
       icon: Brain,
-      title: "DeepSeek AI SOAP Notes",
-      description: "Generate structured clinical notes automatically",
+      title: "AI SOAP Notes",
+      description: "Automated clinical documentation with structured format",
     },
   ];
 
@@ -65,57 +65,64 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans?.filter(plan => plan.name !== "Enterprise").map((plan) => {
             const isCurrentPlan = currentSubscription?.plan_id === plan.id;
+            const isProfessional = plan.name === "Professional";
+            
             return (
               <Card 
                 key={plan.id} 
-                className={`p-6 ${plan.name === "Professional" ? "border-2 border-primary relative" : ""}`}
+                className={`p-6 ${isProfessional ? "border-2 border-primary shadow-lg relative" : ""}`}
               >
-                {plan.name === "Professional" && (
+                {isProfessional && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-primary text-primary-foreground text-sm font-semibold px-3 py-1 rounded-full whitespace-nowrap">
+                    <span className="bg-primary text-primary-foreground text-sm font-semibold px-4 py-1 rounded-full">
                       Most Popular
                     </span>
                   </div>
                 )}
-                <h3 className="text-xl font-semibold mb-2 break-words">{plan.name}</h3>
-                <div className="flex items-baseline gap-1 mb-4 flex-wrap">
-                  <span className="text-3xl font-bold whitespace-nowrap">${plan.price}</span>
-                  <span className="text-muted-foreground whitespace-nowrap">/month</span>
-                </div>
-                <ul className="space-y-3 mb-6">
-                  {(plan.features as string[]).slice(0, 3).map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground text-sm break-words">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                {(plan.features as string[]).length > 3 && (
+                <div className={`${isProfessional ? "pt-4" : ""}`}>
+                  <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
+                  <div className="flex items-baseline gap-1 mb-6">
+                    <span className="text-3xl font-bold">${plan.price}</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </div>
+                  
+                  <div className="space-y-4 mb-8">
+                    {(plan.features as string[]).slice(0, 4).map((feature, index) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                        <span className="text-sm text-muted-foreground">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {(plan.features as string[]).length > 4 && (
+                    <Button
+                      variant="ghost"
+                      className="w-full mb-4 text-primary hover:text-primary"
+                      onClick={() => setShowDetailsForPlan(plan.id)}
+                    >
+                      View All Features
+                    </Button>
+                  )}
+                  
                   <Button
-                    variant="ghost"
-                    className="w-full mb-4 text-primary hover:text-primary"
-                    onClick={() => setShowDetailsForPlan(plan.id)}
+                    className={`w-full ${isProfessional ? "bg-primary hover:bg-primary/90" : ""}`}
+                    variant={isCurrentPlan ? "secondary" : "default"}
+                    disabled={isCurrentPlan}
+                    onClick={() => handleSubscribe(plan.id)}
                   >
-                    View All Features
+                    {isCurrentPlan ? "Current Plan" : "Get Started"}
                   </Button>
-                )}
-                <Button
-                  className="w-full"
-                  variant={isCurrentPlan ? "secondary" : "default"}
-                  disabled={isCurrentPlan}
-                  onClick={() => handleSubscribe(plan.id)}
-                >
-                  {isCurrentPlan ? "Current Plan" : "Get Started"}
-                </Button>
+                </div>
               </Card>
             );
           })}
         </div>
 
-        <div className="text-center mt-12">
+        <div className="text-center mt-16">
           <h3 className="text-2xl font-bold mb-4">Need Enterprise Features?</h3>
-          <p className="text-muted-foreground mb-6">
-            Get in touch for custom pricing and features tailored to your organization.
+          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+            Looking for custom features, dedicated support, or special requirements? Our enterprise plan is tailored to your organization's needs.
           </p>
           <Button 
             variant="outline" 
