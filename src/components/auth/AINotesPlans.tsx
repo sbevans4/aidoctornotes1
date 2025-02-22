@@ -34,10 +34,10 @@ export function AINotesPlans({ plans, onSelectPlan }: AINotesPlansProps) {
               </div>
             )}
             <div className="mb-4">
-              <h3 className="text-xl font-semibold">{plan.name}</h3>
-              <div className="mt-2">
+              <h3 className="text-xl font-semibold truncate">{plan.name}</h3>
+              <div className="mt-2 flex items-baseline gap-1">
                 <span className="text-3xl font-bold">${plan.price}</span>
-                <span className="text-gray-600">/month</span>
+                <span className="text-muted-foreground">/month</span>
               </div>
             </div>
 
@@ -45,7 +45,7 @@ export function AINotesPlans({ plans, onSelectPlan }: AINotesPlansProps) {
               {plan.features.map((feature, index) => (
                 <li key={index} className="flex items-start gap-2">
                   <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                  <span className="text-gray-600">{feature}</span>
+                  <span className="text-muted-foreground text-sm">{feature}</span>
                 </li>
               ))}
             </ul>
@@ -63,4 +63,3 @@ export function AINotesPlans({ plans, onSelectPlan }: AINotesPlansProps) {
     </div>
   );
 }
-

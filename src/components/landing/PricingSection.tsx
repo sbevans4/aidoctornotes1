@@ -54,7 +54,7 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
             <Card key={feature.title} className="p-6 text-center">
               <feature.icon className="w-12 h-12 mx-auto mb-4 text-medical-primary" />
               <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-              <p className="text-sm text-gray-600">{feature.description}</p>
+              <p className="text-sm text-muted-foreground">{feature.description}</p>
             </Card>
           ))}
         </div>
@@ -65,20 +65,27 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
           {plans?.filter(plan => plan.name !== "Enterprise").map((plan) => {
             const isCurrentPlan = currentSubscription?.plan_id === plan.id;
             return (
-              <Card key={plan.id} className={`p-6 ${plan.name === "Professional" ? "border-2 border-primary" : ""}`}>
+              <Card 
+                key={plan.id} 
+                className={`p-6 ${plan.name === "Professional" ? "border-2 border-primary relative" : ""}`}
+              >
                 {plan.name === "Professional" && (
-                  <div className="text-sm font-medium text-center text-primary mb-4">Most Popular</div>
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-primary text-primary-foreground text-sm font-semibold px-3 py-1 rounded-full">
+                      Most Popular
+                    </span>
+                  </div>
                 )}
-                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                <div className="text-3xl font-bold mb-4">
-                  ${plan.price}
-                  <span className="text-sm font-normal text-gray-600">/month</span>
+                <h3 className="text-xl font-bold mb-2 truncate">{plan.name}</h3>
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-3xl font-bold">${plan.price}</span>
+                  <span className="text-muted-foreground">/month</span>
                 </div>
                 <ul className="space-y-3 mb-6 min-h-[320px]">
                   {(plan.features as string[]).map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                      <span className="text-gray-600">{feature}</span>
+                      <span className="text-muted-foreground text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -97,8 +104,14 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
 
         <div className="text-center mt-12">
           <h3 className="text-2xl font-bold mb-4">Need Enterprise Features?</h3>
-          <p className="text-gray-600 mb-6">Get in touch for custom pricing and features tailored to your organization.</p>
-          <Button variant="outline" size="lg" onClick={() => window.location.href = "/enterprise"}>
+          <p className="text-muted-foreground mb-6">
+            Get in touch for custom pricing and features tailored to your organization.
+          </p>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            onClick={() => window.location.href = "/enterprise"}
+          >
             Contact Sales
           </Button>
         </div>
