@@ -50,23 +50,26 @@ export const FeaturesComparison = () => {
     <Collapsible
       open={isOpen}
       onOpenChange={setIsOpen}
-      className="w-full max-w-4xl mx-auto"
+      className="w-full max-w-4xl mx-auto space-y-2"
     >
-      <CollapsibleTrigger asChild>
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 mx-auto mb-8"
-        >
-          Compare All Features
-          <ArrowDown
-            className={`h-4 w-4 transition-transform duration-200 ${
-              isOpen ? "rotate-180" : ""
-            }`}
-          />
-        </Button>
-      </CollapsibleTrigger>
+      <div className="flex items-center justify-center">
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            {isOpen ? "Hide" : "Compare All"} Features
+            <ArrowDown
+              className={`h-4 w-4 transition-transform duration-200 ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            />
+          </Button>
+        </CollapsibleTrigger>
+      </div>
+
       <CollapsibleContent className="space-y-4">
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-white">
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50">
               <tr>
@@ -88,9 +91,9 @@ export const FeaturesComparison = () => {
                 {Object.values(plans).map((plan) => (
                   <td key={`${plan.name}-ehr`} className="px-6 py-4">
                     {plan.ehr ? (
-                      <Check className="text-green-500" />
+                      <Check className="text-green-500 h-5 w-5 mx-auto" />
                     ) : (
-                      <X className="text-red-500" />
+                      <X className="text-red-500 h-5 w-5 mx-auto" />
                     )}
                   </td>
                 ))}
@@ -102,9 +105,9 @@ export const FeaturesComparison = () => {
                 {Object.values(plans).map((plan) => (
                   <td key={`${plan.name}-templates`} className="px-6 py-4">
                     {plan.customTemplates ? (
-                      <Check className="text-green-500" />
+                      <Check className="text-green-500 h-5 w-5 mx-auto" />
                     ) : (
-                      <X className="text-red-500" />
+                      <X className="text-red-500 h-5 w-5 mx-auto" />
                     )}
                   </td>
                 ))}
@@ -114,7 +117,7 @@ export const FeaturesComparison = () => {
                   AI SOAP Notes
                 </th>
                 {Object.values(plans).map((plan) => (
-                  <td key={`${plan.name}-ai`} className="px-6 py-4">
+                  <td key={`${plan.name}-ai`} className="px-6 py-4 text-center">
                     {plan.aiSoap}
                   </td>
                 ))}
@@ -124,7 +127,7 @@ export const FeaturesComparison = () => {
                   Transcription Limit
                 </th>
                 {Object.values(plans).map((plan) => (
-                  <td key={`${plan.name}-transcription`} className="px-6 py-4">
+                  <td key={`${plan.name}-transcription`} className="px-6 py-4 text-center">
                     {plan.transcription}
                   </td>
                 ))}
@@ -134,7 +137,7 @@ export const FeaturesComparison = () => {
                   Support Level
                 </th>
                 {Object.values(plans).map((plan) => (
-                  <td key={`${plan.name}-support`} className="px-6 py-4">
+                  <td key={`${plan.name}-support`} className="px-6 py-4 text-center">
                     {plan.support}
                   </td>
                 ))}
