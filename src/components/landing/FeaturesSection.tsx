@@ -65,13 +65,13 @@ export const FeaturesSection = () => {
                 {Object.entries(features).map(([key, plan]) => (
                   <th key={key} className="p-4 text-center relative min-w-[200px]">
                     {plan.popular && (
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                         <span className="bg-primary text-primary-foreground text-sm font-semibold px-3 py-1 rounded-full">
                           Most Popular
                         </span>
                       </div>
                     )}
-                    <div className="font-bold text-lg">{plan.title}</div>
+                    <div className="font-bold text-lg mt-3">{plan.title}</div>
                     {plan.price && <div className="text-gray-600">{plan.price}</div>}
                   </th>
                 ))}
