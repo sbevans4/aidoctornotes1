@@ -210,4 +210,3 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
     </section>
   );
 };
-
