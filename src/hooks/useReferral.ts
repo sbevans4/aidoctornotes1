@@ -44,15 +44,27 @@ export const useReferral = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      // First, find the referrer based on the referral code
+      const { data: referralCode, error: referralCodeError } = await supabase
+        .from("referral_codes")
+        .select("user_id")
+        .eq("code", code)
+        .single();
+
+      if (referralCodeError) throw new Error("Invalid referral code");
+      if (referralCode.user_id === user.id) throw new Error("You cannot use your own referral code");
+
+      // Then create the referral with both referrer and referred IDs
       const { data: referral, error } = await supabase
         .from("referrals")
         .insert([
           {
             referred_id: user.id,
-            referral_code: code,
+            referrer_id: referralCode.user_id,
             status: "active",
             discount_percentage: 10, // Default 10% discount
-          },
+            discount_applied: false
+          }
         ])
         .select()
         .single();
@@ -81,4 +93,3 @@ export const useReferral = () => {
     applyReferral,
   };
 };
-
