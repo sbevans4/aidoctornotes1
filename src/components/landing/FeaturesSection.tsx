@@ -65,8 +65,8 @@ export const FeaturesSection = () => {
                 {Object.entries(features).map(([key, plan]) => (
                   <th key={key} className="p-4 text-center relative min-w-[200px]">
                     {plan.popular && (
-                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                        <span className="bg-primary text-primary-foreground text-sm font-semibold px-3 py-1 rounded-full">
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <span className="bg-black text-white text-xs font-medium px-2.5 py-0.5 rounded-full">
                           Most Popular
                         </span>
                       </div>
