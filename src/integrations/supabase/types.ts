@@ -245,6 +245,7 @@ export type Database = {
         Row: {
           created_at: string
           discount_applied: boolean | null
+          discount_percentage: number | null
           id: string
           referred_id: string
           referrer_id: string
@@ -254,6 +255,7 @@ export type Database = {
         Insert: {
           created_at?: string
           discount_applied?: boolean | null
+          discount_percentage?: number | null
           id?: string
           referred_id: string
           referrer_id: string
@@ -263,6 +265,7 @@ export type Database = {
         Update: {
           created_at?: string
           discount_applied?: boolean | null
+          discount_percentage?: number | null
           id?: string
           referred_id?: string
           referrer_id?: string
