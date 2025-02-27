@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Scroll, Mic, Brain, Gift, Percent } from "lucide-react";
+import { Scroll, Mic, Brain, Gift, Percent, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PaymentForm } from "@/components/PaymentForm";
@@ -9,6 +9,7 @@ import { useReferral } from "@/hooks/useReferral";
 import { FeaturesComparison } from "./FeaturesComparison";
 import { KeyFeatures } from "./pricing/KeyFeatures";
 import { PricingCard } from "./pricing/PricingCard";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PricingSectionProps {
   handleLogin: () => Promise<void>;
@@ -52,7 +53,7 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
       const discountMultiplier = (100 - referralData.activeDiscount) / 100;
       return (price * discountMultiplier).toFixed(2);
     }
-    return price;
+    return price.toString();
   };
 
   return (
