@@ -8,6 +8,10 @@ interface ReferralData {
   referralCode?: string;
 }
 
+interface SendReferralInviteParams {
+  email: string;
+}
+
 export const useReferral = () => {
   const { toast } = useToast();
 
@@ -62,8 +66,9 @@ export const useReferral = () => {
             referred_id: user.id,
             referrer_id: referralCode.user_id,
             status: "active",
-            discount_percentage: 10, // Default 10% discount
-            discount_applied: false
+            discount_percentage: 20, // Updated to 20% discount
+            discount_applied: false,
+            subscription_duration: '3 months' // Added subscription duration
           }
         ])
         .select()
@@ -87,9 +92,70 @@ export const useReferral = () => {
     },
   });
 
+  const sendReferralInvite = useMutation({
+    mutationFn: async ({ email }: SendReferralInviteParams) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      // Get or create a referral code for the user
+      let { data: existingCode } = await supabase
+        .from("referral_codes")
+        .select("code")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!existingCode) {
+        const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const { data: newReferralCode, error: createCodeError } = await supabase
+          .from("referral_codes")
+          .insert([{ user_id: user.id, code: newCode }])
+          .select()
+          .single();
+
+        if (createCodeError) throw createCodeError;
+        existingCode = newReferralCode;
+      }
+
+      // Create the referral invite
+      const { error: inviteError } = await supabase
+        .from("referral_invites")
+        .insert([
+          {
+            referrer_id: user.id,
+            email,
+            code: existingCode.code,
+            status: "pending"
+          }
+        ]);
+
+      if (inviteError) {
+        if (inviteError.code === '23505') { // Unique violation
+          throw new Error("You've already sent an invite to this email address");
+        }
+        throw inviteError;
+      }
+
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast({
+        title: "Invite Sent",
+        description: "Referral invite has been sent successfully!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
+  });
+
   return {
     referralData,
     isLoading,
     applyReferral,
+    sendReferralInvite,
   };
 };

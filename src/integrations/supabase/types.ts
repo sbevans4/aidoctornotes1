@@ -241,6 +241,36 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_invites: {
+        Row: {
+          code: string
+          created_at: string
+          email: string
+          id: string
+          referrer_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email: string
+          id?: string
+          referrer_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string
+          id?: string
+          referrer_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           created_at: string
@@ -250,6 +280,7 @@ export type Database = {
           referred_id: string
           referrer_id: string
           status: string
+          subscription_duration: unknown | null
           updated_at: string
         }
         Insert: {
@@ -260,6 +291,7 @@ export type Database = {
           referred_id: string
           referrer_id: string
           status?: string
+          subscription_duration?: unknown | null
           updated_at?: string
         }
         Update: {
@@ -270,6 +302,7 @@ export type Database = {
           referred_id?: string
           referrer_id?: string
           status?: string
+          subscription_duration?: unknown | null
           updated_at?: string
         }
         Relationships: []
