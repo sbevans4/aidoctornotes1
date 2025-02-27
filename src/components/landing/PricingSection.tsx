@@ -1,14 +1,14 @@
 
 import { useState } from "react";
+import { Scroll, Mic, Brain, Gift, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Check, Scroll, Mic, Brain, Gift, Percent } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PaymentForm } from "@/components/PaymentForm";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useReferral } from "@/hooks/useReferral";
-import { PaymentForm } from "@/components/PaymentForm";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
 import { FeaturesComparison } from "./FeaturesComparison";
+import { KeyFeatures } from "./pricing/KeyFeatures";
+import { PricingCard } from "./pricing/PricingCard";
 
 interface PricingSectionProps {
   handleLogin: () => Promise<void>;
@@ -47,7 +47,6 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
     },
   ];
 
-  // Calculate discounted prices if there's an active discount
   const getDiscountedPrice = (price: number) => {
     if (referralData?.activeDiscount) {
       const discountMultiplier = (100 - referralData.activeDiscount) / 100;
@@ -73,16 +72,7 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
           </div>
         )}
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-16">
-          {keyFeatures.map((feature) => (
-            <Card key={feature.title} className="p-6 text-center">
-              <feature.icon className="w-12 h-12 mx-auto mb-4 text-medical-primary" />
-              <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground">{feature.description}</p>
-            </Card>
-          ))}
-        </div>
-
+        <KeyFeatures features={keyFeatures} />
         <FeaturesComparison />
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -93,70 +83,17 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
             const discountedPrice = getDiscountedPrice(originalPrice);
             
             return (
-              <Card 
-                key={plan.id} 
-                className={`p-6 ${isProfessional ? "border-2 border-primary shadow-lg relative" : ""}`}
-              >
-                {isProfessional && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-primary text-primary-foreground text-sm font-semibold px-4 py-1 rounded-full">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-                <div className={`${isProfessional ? "pt-4" : ""}`}>
-                  <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
-                  <div className="flex items-baseline gap-1 mb-6">
-                    {referralData?.activeDiscount ? (
-                      <div className="flex flex-col">
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold">${discountedPrice}</span>
-                          <span className="text-muted-foreground">/month</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <span className="line-through">${originalPrice}</span>
-                          <span className="text-green-600 font-medium">
-                            ({referralData.activeDiscount}% off)
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold">${originalPrice}</span>
-                        <span className="text-muted-foreground">/month</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-4 mb-8">
-                    {(plan.features as string[]).slice(0, 4).map((feature, index) => (
-                      <div key={index} className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                        <span className="text-sm text-muted-foreground">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {(plan.features as string[]).length > 4 && (
-                    <Button
-                      variant="ghost"
-                      className="w-full mb-4 text-primary hover:text-primary"
-                      onClick={() => setShowDetailsForPlan(plan.id)}
-                    >
-                      View All Features
-                    </Button>
-                  )}
-                  
-                  <Button
-                    className={`w-full ${isProfessional ? "bg-primary hover:bg-primary/90" : ""}`}
-                    variant={isCurrentPlan ? "secondary" : "default"}
-                    disabled={isCurrentPlan}
-                    onClick={() => handleSubscribe(plan.id)}
-                  >
-                    {isCurrentPlan ? "Current Plan" : "Get Started"}
-                  </Button>
-                </div>
-              </Card>
+              <PricingCard
+                key={plan.id}
+                plan={plan}
+                isCurrentPlan={isCurrentPlan}
+                isProfessional={isProfessional}
+                originalPrice={originalPrice}
+                discountedPrice={discountedPrice}
+                referralDiscount={referralData?.activeDiscount}
+                onShowDetails={() => setShowDetailsForPlan(plan.id)}
+                onSubscribe={() => handleSubscribe(plan.id)}
+              />
             );
           })}
         </div>
