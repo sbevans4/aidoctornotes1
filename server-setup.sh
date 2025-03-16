@@ -4,7 +4,7 @@
 # Run this script once when setting up a new server
 
 # Replace with your Hostinger VPS details
-SERVER_IP="your_server_ip"
+SERVER_IP="217.15.175.191"
 SERVER_USER="root"
 
 echo "Setting up server at $SERVER_IP..."

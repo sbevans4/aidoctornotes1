@@ -3,7 +3,7 @@
 # Deployment script for Hostinger VPS
 
 # Configure your deployment settings
-SERVER_IP="your_server_ip"
+SERVER_IP="217.15.175.191"
 SERVER_USER="root"
 SERVER_DEPLOY_PATH="/var/www/html"
 LOCAL_BUILD_PATH="./dist"  # Path to your local build directory
