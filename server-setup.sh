@@ -16,14 +16,25 @@ ssh $SERVER_USER@$SERVER_IP << 'EOF'
   sudo apt update
   sudo apt upgrade -y
 
+  # Remove Apache2 if installed
+  echo "Removing Apache2 if installed..."
+  sudo apt-get purge apache2* -y
+
+  # Install Node.js
+  echo "Installing Node.js..."
+  curl -sL https://deb.nodesource.com/setup_18.x -o nodesource_setup.sh
+  sudo bash nodesource_setup.sh
+  sudo apt install -y nodejs
+  
+  # Verify Node.js and npm installation
+  echo "Node.js version:"
+  node -v
+  echo "npm version:"
+  npm -v
+
   # Install Nginx if not already installed
   echo "Installing Nginx..."
   sudo apt install -y nginx
-
-  # Install Node.js if needed for any server-side processing
-  echo "Installing Node.js and npm..."
-  curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-  sudo apt install -y nodejs
 
   # Create web directory if it doesn't exist
   echo "Setting up web directory..."
