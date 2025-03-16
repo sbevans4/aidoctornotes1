@@ -41,10 +41,47 @@ ssh $SERVER_USER@$SERVER_IP << 'EOF'
   sudo mkdir -p /var/www/html
   sudo chown -R $USER:$USER /var/www/html
 
+  # Configure Nginx
+  echo "Configuring Nginx..."
+  sudo cat > /etc/nginx/sites-available/convonotes << 'EOL'
+server {
+    listen 80;
+    server_name 217.15.175.191;
+
+    root /var/www/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache static assets
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000";
+    }
+
+    # Security headers
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+}
+EOL
+
+  # Enable the site configuration
+  sudo ln -sf /etc/nginx/sites-available/convonotes /etc/nginx/sites-enabled/
+  
+  # Remove default site if exists
+  sudo rm -f /etc/nginx/sites-enabled/default
+  
+  # Test Nginx configuration
+  sudo nginx -t
+
   # Enable Nginx and start it
   echo "Starting Nginx..."
   sudo systemctl enable nginx
-  sudo systemctl start nginx
+  sudo systemctl restart nginx
 
   echo "Server setup completed!"
 EOF
