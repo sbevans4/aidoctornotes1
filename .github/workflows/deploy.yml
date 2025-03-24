@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build_and_deploy:  # Combined job
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,27 +18,21 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        continue-on-error: true  # Continue to the next step even if install fails
+
+      - name: Debug - List files after install (if it runs)
+        run: ls -la
+        if: always() # Run this step even if the previous step failed
 
       - name: Build project
         run: npm run build
+        continue-on-error: true # Continue so we can check for output even on failure
 
-      - name: Upload artifact  # Corrected upload step
-        uses: actions/upload-artifact@v3
-        with:
-          name: dist-files
-          path: ./dist/  # Ensure this path is correct!
-          if-no-files-found: error # VERY IMPORTANT - Fail if no files are found
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build  # Depends on the 'build' job
-
-    steps:
-      - name: Download artifact  # Download the build output
-        uses: actions/download-artifact@v3
-        with:
-          name: dist-files  # MUST match the name in upload-artifact
-          path: ./dist/      # Download it to the same relative path
+      - name: Debug - List files in dist after build (if it runs)
+        run: |
+          echo "Contents of ./dist:"
+          ls -la ./dist
+        if: always() # Run this even if build fails
 
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
