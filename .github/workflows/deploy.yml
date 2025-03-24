@@ -35,9 +35,9 @@ jobs:
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: "31.170.166.84"
+          username: "u396802645.aidoctornotes.com"
+          password: "Wh0said1t#1982"
           local-dir: ./dist/
-          server-dir: ${{ secrets.FTP_REMOTE_PATH }}
+          server-dir: "/public_html"
           delete-removed: true
