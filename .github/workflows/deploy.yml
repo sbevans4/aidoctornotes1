@@ -36,10 +36,10 @@
        - name: Deploy to FTP
          uses: SamKirkland/FTP-Deploy-Action@v4.3.4 # Use a reliable FTP deployment action
          with:
-           server: 31.170.166.84
-           username: u396802645.aidoctornotes.com
-           password: Wh0said1t#1982
-           local-dir: ./dist/ # Upload the contents of the dist directory
-           server-dir: /public_html # The remote directory
+           server: "31.170.166.84"
+           username: "u396802645.aidoctornotes.com"
+           password: "Wh0said1t#1982"
+           local-dir: "./dist/" # Upload the contents of the dist directory
+           server-dir: "/public_html" # The remote directory
            delete-removed: true # VERY IMPORTANT: Clean up old files
  ```
