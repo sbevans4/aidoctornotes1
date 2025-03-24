@@ -3,8 +3,8 @@ name: Build and Deploy to Hostinger (FTP)
 on:
   push:
     branches:
-      - main  # Trigger on pushes to 'main' (adjust if needed)
-  workflow_dispatch: # Allow manual triggering
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -24,13 +24,26 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Upload build artifact  # UPLOAD THE DIST FOLDER
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-artifact  # Choose a name for the artifact
+          path: dist/          # Path to the directory to upload
+          retention-days: 5     # Optional: How long to keep the artifact
+
   deploy:
     runs-on: ubuntu-latest
-    needs: build  # Depends on the 'build' job
+    needs: build
 
     steps:
-      - name: Checkout code # Checkout again in the deploy job
+      - name: Checkout code  # We still check out the code (for consistency)
         uses: actions/checkout@v3
+
+      - name: Download build artifact # DOWNLOAD THE DIST FOLDER
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-artifact  # MUST MATCH THE UPLOAD NAME
+          path: dist           # Download it into a directory named 'dist'
 
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
