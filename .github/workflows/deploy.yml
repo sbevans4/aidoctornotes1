@@ -39,5 +39,5 @@ jobs:
           username: "u396802645.aidoctornotes.com"
           password: "Wh0said1t#1982"
           local-dir: ./dist/
-          server-dir: "/public_html"
+          server-dir: "/public_html/"
           delete-removed: true
