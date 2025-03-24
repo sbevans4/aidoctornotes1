@@ -1,8 +1,8 @@
 on:
   push:
     branches:
-      - main  # Trigger on pushes to 'main'
-  workflow_dispatch: # Allow manual triggering
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -22,11 +22,12 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Upload artifact  # Upload the build output
+      - name: Upload artifact  # Corrected upload step
         uses: actions/upload-artifact@v3
         with:
-          name: dist-files  # Give the artifact a name
-          path: ./dist/      # Path to the directory to upload
+          name: dist-files
+          path: ./dist/  # Ensure this path is correct!
+          if-no-files-found: error # VERY IMPORTANT - Fail if no files are found
 
   deploy:
     runs-on: ubuntu-latest
