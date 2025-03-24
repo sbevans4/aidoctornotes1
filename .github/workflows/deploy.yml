@@ -41,5 +41,5 @@ jobs:
           username: "u396802645.dev"
           password: "Wh0said1t#1982"
           local-dir: ./dist/   # Now, this correctly points to the downloaded artifact
-          server-dir: "/public_html/"
+          server-dir: ""
           delete-removed: true
