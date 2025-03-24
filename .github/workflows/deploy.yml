@@ -1,12 +1,9 @@
 on:
-  push:
-    branches:
-      - publish-live
-  workflow_dispatch:
-
+  release:
+    types: [created]
 
 jobs:
-  build_and_deploy:  # Combined job
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -19,21 +16,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        continue-on-error: true  # Continue to the next step even if install fails
-
-      - name: Debug - List files after install (if it runs)
-        run: ls -la
-        if: always() # Run this step even if the previous step failed
 
       - name: Build project
         run: npm run build
-        continue-on-error: true # Continue so we can check for output even on failure
-
-      - name: Debug - List files in dist after build (if it runs)
-        run: |
-          echo "Contents of ./dist:"
-          ls -la ./dist
-        if: always() # Run this even if build fails
 
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -41,6 +26,6 @@ jobs:
           server: "31.170.166.84"
           username: "u396802645.dev"
           password: "Wh0said1t#1982"
-          local-dir: ./dist/   # Now, this correctly points to the downloaded artifact
+          local-dir: ./dist/
           server-dir: ""
           delete-removed: true
