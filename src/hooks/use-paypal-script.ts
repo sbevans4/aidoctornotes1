@@ -35,8 +35,9 @@ export const usePayPalScript = (planId: string) => {
           return;
         }
 
+        const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || 'sandbox';
         const script = document.createElement("script");
-        script.src = `https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || 'test'}&currency=USD&intent=subscription`;
+        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=subscription`;
         script.async = true;
 
         script.onload = () => {

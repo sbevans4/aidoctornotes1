@@ -25,6 +25,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Get PayPal client credentials from environment variables
     const PAYPAL_CLIENT_ID = Deno.env.get('PAYPAL_CLIENT_ID')
     const PAYPAL_CLIENT_SECRET = Deno.env.get('PAYPAL_CLIENT_SECRET')
 
