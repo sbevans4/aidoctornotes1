@@ -23,24 +23,35 @@ export const usePayPalScript = (planId: string) => {
           return;
         }
 
-        if (!plan.paypal_plan_id) {
-          console.error('No PayPal plan ID configured for this subscription plan');
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "This payment method is not available for the selected plan.",
-          });
+        // Check if PayPal is already loaded to avoid duplicate scripts
+        if (document.querySelector('script[src*="www.paypal.com/sdk/js"]')) {
           return;
         }
 
         const script = document.createElement("script");
-        script.src = `https://www.paypal.com/sdk/js?client-id=${plan.paypal_plan_id}&currency=USD&intent=subscription`;
+        script.src = `https://www.paypal.com/sdk/js?client-id=${process.env.PAYPAL_CLIENT_ID || 'test'}&currency=USD&intent=subscription`;
         script.async = true;
+
+        script.onload = () => {
+          console.log('PayPal SDK loaded successfully');
+        };
+
+        script.onerror = (err) => {
+          console.error('Error loading PayPal SDK:', err);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load payment system. Please try again later.",
+          });
+        };
 
         document.body.appendChild(script);
 
         return () => {
-          document.body.removeChild(script);
+          const existingScript = document.querySelector('script[src*="www.paypal.com/sdk/js"]');
+          if (existingScript) {
+            document.body.removeChild(existingScript);
+          }
         };
       } catch (error) {
         console.error('PayPal initialization error:', error);
@@ -55,4 +66,3 @@ export const usePayPalScript = (planId: string) => {
     loadPayPalScript();
   }, [planId]);
 };
-
