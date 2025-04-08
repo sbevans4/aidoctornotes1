@@ -33,8 +33,8 @@ serve(async (req) => {
       throw new Error('PayPal credentials not configured')
     }
 
-    // For sandbox testing
-    const paypalEndpoint = 'https://api-m.sandbox.paypal.com'
+    // Use production PayPal endpoint instead of sandbox
+    const paypalEndpoint = 'https://api-m.paypal.com'
 
     // Get access token for API calls
     const getAccessToken = async () => {

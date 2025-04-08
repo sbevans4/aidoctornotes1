@@ -35,7 +35,8 @@ export const usePayPalScript = (planId: string) => {
           return;
         }
 
-        const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || 'sandbox';
+        // Use the production client ID without fallback to sandbox for production environments
+        const clientId = 'AYVOUVbZ5T81XYtvXQqhYjS5wVLJDyMBVrEVVXWcQPcNmKkC1lmhJRPY2UeE-qBf_3U9kKVBDR_GKL5T';
         const script = document.createElement("script");
         script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=subscription`;
         script.async = true;
