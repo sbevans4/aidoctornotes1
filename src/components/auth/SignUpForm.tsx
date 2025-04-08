@@ -72,6 +72,78 @@ export function SignUpForm() {
     }
   };
 
+  const handleTestSignIn = async () => {
+    setLoading(true);
+    
+    try {
+      const testEmail = "dr.note.tester@example.com";
+      const testPassword = "DrSupportTrial2025!";
+      const testFullName = "DR Note Tester";
+      
+      // Try to sign in first to check if user exists
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: testEmail,
+        password: testPassword,
+      });
+      
+      // If sign in fails due to user not found, create the user
+      if (signInError && signInError.message.includes("Invalid login credentials")) {
+        const { error: signUpError, data } = await supabase.auth.signUp({
+          email: testEmail,
+          password: testPassword,
+          options: {
+            data: {
+              full_name: testFullName,
+            },
+          },
+        });
+
+        if (signUpError) throw signUpError;
+
+        if (data.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert([
+              {
+                id: data.user.id,
+                email: testEmail,
+                full_name: testFullName,
+                has_used_trial: false,
+                purchase_date: null,
+                refund_requested: false,
+                refund_request_date: null
+              }
+            ]);
+
+          if (profileError) throw profileError;
+        }
+        
+        // Sign in after creating account
+        const { error: secondSignInError } = await supabase.auth.signInWithPassword({
+          email: testEmail,
+          password: testPassword,
+        });
+        
+        if (secondSignInError) throw secondSignInError;
+      }
+      
+      toast({
+        title: "Test account accessed",
+        description: "You're now signed in as DR Note Tester",
+      });
+      
+      navigate("/medical-documentation");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <form onSubmit={handleSignUp} className="space-y-4">
@@ -109,6 +181,24 @@ export function SignUpForm() {
           100% Money-Back Guarantee - Try Risk-Free
         </p>
       </form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white px-2 text-gray-500">Or</span>
+        </div>
+      </div>
+
+      <Button 
+        variant="outline" 
+        className="w-full" 
+        onClick={handleTestSignIn} 
+        disabled={loading}
+      >
+        {loading ? "Loading..." : "Demo Account Access"}
+      </Button>
 
       <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
         <CollapsibleTrigger asChild>
