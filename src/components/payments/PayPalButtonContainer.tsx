@@ -30,10 +30,28 @@ export const PayPalButtonContainer = ({ planId, onSuccess, onCancel }: PayPalBut
               shape: 'rect',
               label: 'subscribe'
             },
-            createSubscription,
+            createSubscription: async (data: any, actions: any) => {
+              try {
+                const subscriptionId = await createSubscription();
+                return subscriptionId;
+              } catch (error) {
+                console.error('Error creating subscription:', error);
+                // Let the user know there was an error
+                toast({
+                  variant: "destructive",
+                  title: "Error",
+                  description: "Failed to set up subscription. Please try again.",
+                });
+                return null;
+              }
+            },
             onApprove: async (data: any) => {
               console.log('PayPal subscription approved:', data);
-              await activateSubscription(data.subscriptionID);
+              try {
+                await activateSubscription(data.subscriptionID);
+              } catch (error) {
+                console.error('Error activating subscription:', error);
+              }
             },
             onError: (err: any) => {
               console.error('PayPal error:', err);
@@ -65,16 +83,21 @@ export const PayPalButtonContainer = ({ planId, onSuccess, onCancel }: PayPalBut
       }
     };
 
-    // Wait for paypal to load
-    const checkPayPalSDKLoaded = () => {
-      if (window.paypal) {
-        renderPayPalButton();
-      } else {
-        setTimeout(checkPayPalSDKLoaded, 100);
-      }
-    };
-
-    checkPayPalSDKLoaded();
+    // Render immediately if paypal is already loaded
+    if (window.paypal) {
+      renderPayPalButton();
+    } else {
+      // Check every 100ms for paypal to load
+      const checkInterval = setInterval(() => {
+        if (window.paypal) {
+          renderPayPalButton();
+          clearInterval(checkInterval);
+        }
+      }, 100);
+      
+      // Clear interval after 10 seconds to prevent infinite checking
+      setTimeout(() => clearInterval(checkInterval), 10000);
+    }
 
     return () => {
       buttonRendered.current = false;

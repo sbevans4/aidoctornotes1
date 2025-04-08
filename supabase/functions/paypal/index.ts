@@ -25,11 +25,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const API_USERNAME = Deno.env.get('PAYPAL_API_USERNAME')
-    const API_PASSWORD = Deno.env.get('PAYPAL_API_PASSWORD')
-    const API_SIGNATURE = Deno.env.get('PAYPAL_API_SIGNATURE')
+    const PAYPAL_CLIENT_ID = Deno.env.get('PAYPAL_CLIENT_ID')
+    const PAYPAL_CLIENT_SECRET = Deno.env.get('PAYPAL_CLIENT_SECRET')
 
-    if (!API_USERNAME || !API_PASSWORD || !API_SIGNATURE) {
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
       throw new Error('PayPal credentials not configured')
     }
 
@@ -38,23 +37,23 @@ serve(async (req) => {
 
     // Get access token for API calls
     const getAccessToken = async () => {
-      const tokenResponse = await fetch(`${paypalEndpoint}/v1/oauth2/token`, {
+      const response = await fetch(`${paypalEndpoint}/v1/oauth2/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${btoa(`${API_USERNAME}:${API_PASSWORD}`)}`
+          'Authorization': `Basic ${btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`)}`
         },
         body: 'grant_type=client_credentials'
       });
       
-      if (!tokenResponse.ok) {
-        const error = await tokenResponse.json();
+      if (!response.ok) {
+        const error = await response.json();
         console.error('PayPal token error:', error);
         throw new Error(`Failed to get access token: ${error.error_description}`);
       }
       
-      const tokenData = await tokenResponse.json();
-      return tokenData.access_token;
+      const data = await response.json();
+      return data.access_token;
     };
 
     switch (action) {
@@ -93,10 +92,9 @@ serve(async (req) => {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`,
-            'PayPal-Partner-Attribution-Id': API_SIGNATURE
           },
           body: JSON.stringify({
-            plan_id: plan.paypal_plan_id || 'default_test_plan',
+            plan_id: plan.paypal_plan_id,
             subscriber: {
               name: {
                 given_name: user.full_name ? user.full_name.split(' ')[0] : "Subscriber",
@@ -161,9 +159,6 @@ serve(async (req) => {
         }
 
         const paypalSubscription = await verifyResponse.json();
-        
-        // For testing, we'll consider any status acceptable 
-        // In production, you would check specifically for 'ACTIVE' status
         
         // Update subscription status in database
         const { error: updateError } = await supabaseClient
