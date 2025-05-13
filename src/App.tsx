@@ -50,84 +50,84 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          <Route 
-            path="/" 
+          <Route
+            path="/"
             element={
               <Layout>
                 <Index />
               </Layout>
-            } 
+            }
           />
           <Route path="/auth" element={<Auth />} />
-          <Route 
-            path="/enterprise" 
+          <Route
+            path="/enterprise"
             element={
               <Layout>
                 <Enterprise />
               </Layout>
-            } 
+            }
           />
           
           {/* Service Pages */}
-          <Route 
-            path="/services/ai-doctor-notes" 
+          <Route
+            path="/services/ai-doctor-notes"
             element={
               <Layout>
                 <AIDoctorNotes />
               </Layout>
-            } 
+            }
           />
-          <Route 
-            path="/services/ai-therapy-notes" 
+          <Route
+            path="/services/ai-therapy-notes"
             element={
               <Layout>
                 <AITherapyNotes />
               </Layout>
-            } 
+            }
           />
-          <Route 
-            path="/services/ai-medical-transcription" 
+          <Route
+            path="/services/ai-medical-transcription"
             element={
               <Layout>
                 <AIMedicalTranscription />
               </Layout>
-            } 
+            }
           />
           
           {/* Blog Routes */}
-          <Route 
-            path="/blog" 
+          <Route
+            path="/blog"
             element={
               <Layout>
                 <Blog />
               </Layout>
-            } 
+            }
           />
-          <Route 
-            path="/blog/:slug" 
+          <Route
+            path="/blog/:slug"
             element={
               <Layout>
                 <BlogPost />
               </Layout>
-            } 
+            }
           />
           
           {/* Additional Pages */}
-          <Route 
-            path="/security" 
+          <Route
+            path="/security"
             element={
               <Layout>
                 <Security />
               </Layout>
-            } 
+            }
           />
-          <Route 
-            path="/contact" 
+          <Route
+            path="/contact"
             element={
               <Layout>
                 <Contact />
               </Layout>
-            } 
+            }
           />
           
           {/* Private Routes */}
@@ -151,13 +151,13 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route 
-            path="*" 
+          <Route
+            path="*"
             element={
               <Layout>
                 <NotFound />
               </Layout>
-            } 
+            }
           />
         </Routes>
       </Router>

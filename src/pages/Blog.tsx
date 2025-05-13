@@ -1,9 +1,8 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Helmet } from "react-helmet";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, Tag, ArrowRight } from "lucide-react";
+import { ArrowRight, Calendar, User, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface BlogPostPreview {
@@ -14,12 +13,11 @@ interface BlogPostPreview {
   date: string;
   author: string;
   category: string;
-  image?: string;
+  image: string;
 }
 
 const Blog = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
   
   // Sample blog posts for demonstration
   const blogPosts: BlogPostPreview[] = [
@@ -28,7 +26,7 @@ const Blog = () => {
       title: "How AI Doctor Notes Reduce Physician Burnout",
       excerpt: "Recent studies show that AI-assisted documentation can save physicians up to 2 hours per day, significantly reducing burnout and improving work-life balance.",
       slug: "how-ai-doctor-notes-reduce-physician-burnout",
-      date: "2025-05-10",
+      date: "2023-05-15",
       author: "Dr. James Wilson, MD",
       category: "AI in Healthcare",
       image: "/blog/physician-burnout.jpg"
@@ -38,7 +36,7 @@ const Blog = () => {
       title: "Top 5 HIPAA-Compliant AI Tools for Medical Notes",
       excerpt: "With the rise of AI in healthcare, choosing HIPAA-compliant solutions is crucial. Here are the top tools that maintain security while boosting efficiency.",
       slug: "top-5-hipaa-compliant-ai-tools-for-medical-notes",
-      date: "2025-05-08",
+      date: "2023-06-02",
       author: "Sarah Johnson, Healthcare IT Specialist",
       category: "HIPAA Compliance",
       image: "/blog/hipaa-compliant.jpg"
@@ -46,203 +44,89 @@ const Blog = () => {
     {
       id: "3",
       title: "The Future of Medical Documentation: AI and Beyond",
-      excerpt: "AI is transforming medical documentation, but what's next? We explore emerging trends and technologies that will shape healthcare documentation.",
-      slug: "future-medical-documentation-ai-beyond",
-      date: "2025-05-05",
-      author: "Michael Chen, Health Tech Analyst",
-      category: "Industry Trends",
-      image: "/blog/future-medical-documentation.jpg"
-    },
-    {
-      id: "4",
-      title: "EHR Integration: Best Practices for Medical AI Tools",
-      excerpt: "Seamlessly integrating AI documentation tools with your EHR system is crucial for workflow efficiency. Learn the best practices for successful implementation.",
-      slug: "ehr-integration-best-practices-medical-ai-tools",
-      date: "2025-05-01",
-      author: "Dr. Jennifer Lee, Healthcare Systems Specialist",
-      category: "EHR Integration",
-      image: "/blog/ehr-integration.jpg"
-    },
-    {
-      id: "5",
-      title: "How Small Medical Practices Can Benefit from AI Documentation",
-      excerpt: "AI documentation isn't just for large healthcare systems. Discover how small practices can implement AI solutions to improve efficiency and patient care.",
-      slug: "how-small-medical-practices-benefit-ai-documentation",
-      date: "2025-04-28",
-      author: "Robert Garcia, Practice Management Consultant",
-      category: "Small Practice Solutions",
-      image: "/blog/small-practice-ai.jpg"
+      excerpt: "AI is transforming medical documentation today, but what's coming next? Explore emerging technologies that will shape healthcare documentation in the next decade.",
+      slug: "future-of-medical-documentation-ai-and-beyond",
+      date: "2023-06-15",
+      author: "Dr. Emily Chen, Digital Health Researcher",
+      category: "Future of Healthcare",
+      image: "/blog/future-documentation.jpg"
     },
   ];
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real application, this would send data to your backend
-    alert(`Thank you for subscribing with ${email}! You'll receive our latest healthcare IT insights.`);
-    setEmail('');
-  };
-
+  
   return (
     <>
       <Helmet>
-        <title>Healthcare AI Blog | ConvoNotes Genius</title>
-        <meta name="description" content="Insights, tips and updates about AI in medical documentation, HIPAA compliance, and improving clinical workflow efficiency." />
-        <meta property="og:title" content="Healthcare AI Blog | ConvoNotes Genius" />
-        <meta property="og:description" content="Insights, tips and updates about AI in medical documentation, HIPAA compliance, and improving clinical workflow efficiency." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://aidoctornotes.com/blog" />
-        <meta property="og:image" content="https://aidoctornotes.com/og-image.png" />
-        
-        {/* Schema.org markup for Blog */}
-        <script type="application/ld+json">
-          {`
-            {
-              "@context": "https://schema.org",
-              "@type": "Blog",
-              "headline": "Healthcare AI Blog | ConvoNotes Genius",
-              "description": "Insights, tips and updates about AI in medical documentation, HIPAA compliance, and improving clinical workflow efficiency.",
-              "url": "https://aidoctornotes.com/blog",
-              "author": {
-                "@type": "Organization",
-                "name": "ConvoNotes Genius"
-              }
-            }
-          `}
-        </script>
+        <title>Healthcare Documentation Blog | ConvoNotes Genius</title>
+        <meta name="description" content="Explore insights on AI in healthcare documentation, HIPAA compliance, and strategies to reduce physician burnout through better documentation workflows." />
+        <meta property="og:title" content="Healthcare Documentation Blog | ConvoNotes Genius" />
+        <meta property="og:description" content="Insights on AI in healthcare documentation, HIPAA compliance, and reducing physician burnout." />
       </Helmet>
 
       <div className="pt-20 pb-16">
         <div className="container mx-auto px-4">
-          {/* Blog Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4">Healthcare AI Insights</h1>
+          <div className="text-center mb-16">
+            <h1 className="text-4xl font-bold mb-4">Healthcare Documentation Insights</h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Expert articles on medical documentation, AI technology, and practice efficiency
+              Expert perspectives on AI documentation, regulatory compliance, and improving clinical workflows
             </p>
           </div>
 
-          {/* Featured Post */}
-          <div className="mb-12">
-            <Card className="overflow-hidden">
-              <div className="grid md:grid-cols-2">
-                <div className="h-64 md:h-auto bg-gray-200">
-                  <img 
-                    src={blogPosts[0].image || "/placeholder.svg"} 
-                    alt={blogPosts[0].title}
-                    className="w-full h-full object-cover"
-                  />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {blogPosts.map((post) => (
+              <div key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="h-48 bg-gray-300 relative">
+                  {post.image && (
+                    <img 
+                      src={post.image} 
+                      alt={post.title} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/placeholder.svg";
+                      }}
+                    />
+                  )}
                 </div>
-                <div className="p-6 md:p-8 flex flex-col">
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="bg-medical-light text-medical-primary px-3 py-1 rounded-full text-sm font-medium">
-                        {blogPosts[0].category}
-                      </span>
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-bold mb-4">
-                      {blogPosts[0].title}
-                    </h2>
-                    <p className="text-gray-600 mb-4">
-                      {blogPosts[0].excerpt}
-                    </p>
+                
+                <div className="p-6">
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                    <Calendar className="h-4 w-4" />
+                    <span>{post.date}</span>
+                    <Tag className="h-4 w-4 ml-2" />
+                    <span>{post.category}</span>
                   </div>
-                  <div className="mt-auto">
-                    <div className="flex items-center mb-4 text-gray-500 text-sm">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      <span>{blogPosts[0].date}</span>
-                      <span className="mx-2">•</span>
-                      <User className="h-4 w-4 mr-1" />
-                      <span>{blogPosts[0].author}</span>
+                  
+                  <h2 className="text-xl font-bold mb-3 hover:text-blue-600 cursor-pointer" onClick={() => navigate(`/blog/${post.slug}`)}>
+                    {post.title}
+                  </h2>
+                  
+                  <p className="text-gray-600 mb-4">
+                    {post.excerpt}
+                  </p>
+                  
+                  <div className="flex items-center justify-between mt-6">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-500">{post.author}</span>
                     </div>
+                    
                     <Button 
-                      onClick={() => navigate(`/blog/${blogPosts[0].slug}`)}
-                      className="bg-medical-primary hover:bg-medical-primary/90"
+                      variant="link" 
+                      className="p-0 h-auto text-blue-600 flex items-center gap-1"
+                      onClick={() => navigate(`/blog/${post.slug}`)}
                     >
-                      Read Article <ArrowRight className="ml-2 h-4 w-4" />
+                      Read more <ArrowRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </div>
-            </Card>
-          </div>
-
-          {/* Blog Posts Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {blogPosts.slice(1).map((post) => (
-              <Card key={post.id} className="overflow-hidden flex flex-col h-full">
-                <div className="h-48 bg-gray-200">
-                  <img 
-                    src={post.image || "/placeholder.svg"} 
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <CardContent className="pt-6 flex-grow">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
-                      {post.category}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">{post.title}</h3>
-                  <p className="text-gray-600">{post.excerpt}</p>
-                </CardContent>
-                <CardFooter className="pt-0 pb-6 flex flex-col items-start">
-                  <div className="flex items-center mb-4 text-gray-500 text-sm">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    <span>{post.date}</span>
-                    <span className="mx-2">•</span>
-                    <User className="h-4 w-4 mr-1" />
-                    <span>{post.author.split(',')[0]}</span>
-                  </div>
-                  <Button 
-                    variant="link" 
-                    className="p-0 h-auto font-medium text-medical-primary"
-                    onClick={() => navigate(`/blog/${post.slug}`)}
-                  >
-                    Read Article <ArrowRight className="ml-1 h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
             ))}
           </div>
 
-          {/* Categories Section */}
-          <div className="mt-16">
-            <h3 className="text-2xl font-bold mb-6">Browse by Category</h3>
-            <div className="flex flex-wrap gap-3">
-              {['AI in Healthcare', 'HIPAA Compliance', 'Industry Trends', 'EHR Integration', 
-                'Small Practice Solutions', 'Clinical Documentation', 'Healthcare Efficiency'].map((category) => (
-                <Button 
-                  key={category} 
-                  variant="outline" 
-                  className="rounded-full"
-                  onClick={() => navigate(`/blog/category/${category.toLowerCase().replace(/\s+/g, '-')}`)}
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Newsletter Subscribe */}
-          <div className="mt-16 bg-gray-50 rounded-lg p-8">
-            <div className="max-w-3xl mx-auto text-center">
-              <h3 className="text-2xl font-bold mb-4">Subscribe to Our Newsletter</h3>
-              <p className="text-gray-600 mb-6">
-                Get the latest insights on AI medical documentation and HIPAA compliance directly to your inbox
-              </p>
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
-                <input 
-                  type="email" 
-                  placeholder="Your email address" 
-                  className="px-4 py-2 border rounded-md flex-grow"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                <Button type="submit">Subscribe</Button>
-              </form>
-            </div>
+          <div className="text-center mt-16">
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              View All Articles
+            </Button>
           </div>
         </div>
       </div>
