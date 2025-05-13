@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ interface BlogPostPreview {
 
 const Blog = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
   
   // Sample blog posts for demonstration
   const blogPosts: BlogPostPreview[] = [
@@ -52,7 +53,34 @@ const Blog = () => {
       category: "Industry Trends",
       image: "/blog/future-medical-documentation.jpg"
     },
+    {
+      id: "4",
+      title: "EHR Integration: Best Practices for Medical AI Tools",
+      excerpt: "Seamlessly integrating AI documentation tools with your EHR system is crucial for workflow efficiency. Learn the best practices for successful implementation.",
+      slug: "ehr-integration-best-practices-medical-ai-tools",
+      date: "2025-05-01",
+      author: "Dr. Jennifer Lee, Healthcare Systems Specialist",
+      category: "EHR Integration",
+      image: "/blog/ehr-integration.jpg"
+    },
+    {
+      id: "5",
+      title: "How Small Medical Practices Can Benefit from AI Documentation",
+      excerpt: "AI documentation isn't just for large healthcare systems. Discover how small practices can implement AI solutions to improve efficiency and patient care.",
+      slug: "how-small-medical-practices-benefit-ai-documentation",
+      date: "2025-04-28",
+      author: "Robert Garcia, Practice Management Consultant",
+      category: "Small Practice Solutions",
+      image: "/blog/small-practice-ai.jpg"
+    },
   ];
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real application, this would send data to your backend
+    alert(`Thank you for subscribing with ${email}! You'll receive our latest healthcare IT insights.`);
+    setEmail('');
+  };
 
   return (
     <>
@@ -64,6 +92,23 @@ const Blog = () => {
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://aidoctornotes.com/blog" />
         <meta property="og:image" content="https://aidoctornotes.com/og-image.png" />
+        
+        {/* Schema.org markup for Blog */}
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "Blog",
+              "headline": "Healthcare AI Blog | ConvoNotes Genius",
+              "description": "Insights, tips and updates about AI in medical documentation, HIPAA compliance, and improving clinical workflow efficiency.",
+              "url": "https://aidoctornotes.com/blog",
+              "author": {
+                "@type": "Organization",
+                "name": "ConvoNotes Genius"
+              }
+            }
+          `}
+        </script>
       </Helmet>
 
       <div className="pt-20 pb-16">
@@ -161,6 +206,24 @@ const Blog = () => {
             ))}
           </div>
 
+          {/* Categories Section */}
+          <div className="mt-16">
+            <h3 className="text-2xl font-bold mb-6">Browse by Category</h3>
+            <div className="flex flex-wrap gap-3">
+              {['AI in Healthcare', 'HIPAA Compliance', 'Industry Trends', 'EHR Integration', 
+                'Small Practice Solutions', 'Clinical Documentation', 'Healthcare Efficiency'].map((category) => (
+                <Button 
+                  key={category} 
+                  variant="outline" 
+                  className="rounded-full"
+                  onClick={() => navigate(`/blog/category/${category.toLowerCase().replace(/\s+/g, '-')}`)}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Newsletter Subscribe */}
           <div className="mt-16 bg-gray-50 rounded-lg p-8">
             <div className="max-w-3xl mx-auto text-center">
@@ -168,14 +231,17 @@ const Blog = () => {
               <p className="text-gray-600 mb-6">
                 Get the latest insights on AI medical documentation and HIPAA compliance directly to your inbox
               </p>
-              <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
                 <input 
                   type="email" 
                   placeholder="Your email address" 
                   className="px-4 py-2 border rounded-md flex-grow"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
-                <Button>Subscribe</Button>
-              </div>
+                <Button type="submit">Subscribe</Button>
+              </form>
             </div>
           </div>
         </div>

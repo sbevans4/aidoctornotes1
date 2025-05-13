@@ -3,8 +3,12 @@ import React from "react";
 import { Helmet } from "react-helmet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Lock, Server, FileCheck, FileText, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Security = () => {
+  const navigate = useNavigate();
+  
   const securityFeatures = [
     {
       icon: Lock,
@@ -47,6 +51,30 @@ const Security = () => {
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://aidoctornotes.com/security" />
         <meta property="og:image" content="https://aidoctornotes.com/og-image.png" />
+        
+        {/* Schema.org markup */}
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "WebPage",
+              "name": "Security & HIPAA Compliance | ConvoNotes Genius",
+              "description": "Learn about our comprehensive security measures and HIPAA compliance for protecting patient data in our AI-powered medical documentation platform.",
+              "publisher": {
+                "@type": "Organization",
+                "name": "ConvoNotes Genius",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": "https://aidoctornotes.com/logo.png"
+                }
+              },
+              "mainContentOfPage": {
+                "@type": "WebPageElement",
+                "cssSelector": ".container"
+              }
+            }
+          `}
+        </script>
       </Helmet>
 
       <div className="pt-20 pb-16">
@@ -100,14 +128,13 @@ const Security = () => {
                 <p className="text-gray-700 mb-4">
                   Our standard BAA covers all requirements under HIPAA and clearly defines responsibilities for both parties.
                 </p>
-                <a 
-                  href="/baa-sample.pdf" 
-                  className="text-medical-primary font-medium flex items-center hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate("/baa-sample")}
+                  className="flex items-center gap-2"
                 >
                   View Sample BAA
-                </a>
+                </Button>
               </div>
             </div>
           </div>
@@ -180,6 +207,21 @@ const Security = () => {
                 For more details about our security practices or to request a copy of our security documentation, please contact our security team at <a href="mailto:security@aidoctornotes.com">security@aidoctornotes.com</a>.
               </p>
             </div>
+          </div>
+
+          {/* CTA */}
+          <div className="mt-16 text-center">
+            <h3 className="text-2xl font-bold mb-4">Ready to experience secure AI medical documentation?</h3>
+            <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+              Start using our HIPAA-compliant platform today with a 14-day free trial
+            </p>
+            <Button 
+              size="lg" 
+              onClick={() => navigate("/auth")}
+              className="bg-medical-primary hover:bg-medical-primary/90"
+            >
+              Start Free Trial
+            </Button>
           </div>
         </div>
       </div>

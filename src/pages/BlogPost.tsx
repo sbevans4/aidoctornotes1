@@ -56,6 +56,28 @@ const BlogPost = () => {
     tags: ["AI Doctor Notes", "Physician Burnout", "EHR", "Healthcare Efficiency"]
   };
 
+  // Related posts would typically be fetched from a database
+  const relatedPosts = [
+    {
+      title: "EHR Integration: Best Practices for Medical AI Tools",
+      excerpt: "Seamlessly integrating AI documentation tools with your EHR system...",
+      slug: "ehr-integration-best-practices-medical-ai-tools",
+      image: "/blog/ehr-integration.jpg"
+    },
+    {
+      title: "The Future of Medical Documentation: AI and Beyond",
+      excerpt: "AI is transforming medical documentation, but what's next?...",
+      slug: "future-medical-documentation-ai-beyond",
+      image: "/blog/future-medical-documentation.jpg"
+    },
+    {
+      title: "How Small Medical Practices Can Benefit from AI Documentation",
+      excerpt: "AI documentation isn't just for large healthcare systems...",
+      slug: "how-small-medical-practices-benefit-ai-documentation",
+      image: "/blog/small-practice-ai.jpg"
+    }
+  ];
+
   return (
     <>
       <Helmet>
@@ -66,6 +88,36 @@ const BlogPost = () => {
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://aidoctornotes.com/blog/${slug}`} />
         <meta property="og:image" content={`https://aidoctornotes.com${post.image}`} />
+        
+        {/* Schema.org markup for Article */}
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "Article",
+              "headline": "${post.title}",
+              "description": "${post.excerpt}",
+              "image": "https://aidoctornotes.com${post.image}",
+              "author": {
+                "@type": "Person",
+                "name": "${post.author}"
+              },
+              "publisher": {
+                "@type": "Organization",
+                "name": "ConvoNotes Genius",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": "https://aidoctornotes.com/logo.png"
+                }
+              },
+              "datePublished": "${post.date}",
+              "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": "https://aidoctornotes.com/blog/${slug}"
+              }
+            }
+          `}
+        </script>
       </Helmet>
 
       <div className="pt-20 pb-16">
@@ -153,20 +205,26 @@ const BlogPost = () => {
             </div>
           </div>
 
-          {/* Related posts placeholder */}
+          {/* Related posts */}
           <div className="max-w-5xl mx-auto mt-16">
             <h2 className="text-2xl font-bold mb-6">Related Articles</h2>
             <div className="grid md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
+              {relatedPosts.map((relatedPost, i) => (
                 <div key={i} className="border rounded-lg overflow-hidden">
-                  <div className="h-40 bg-gray-200"></div>
+                  <div className="h-40 bg-gray-200">
+                    <img 
+                      src={relatedPost.image || "/placeholder.svg"} 
+                      alt={relatedPost.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   <div className="p-4">
-                    <h3 className="font-bold mb-2">Related Article Title</h3>
-                    <p className="text-gray-600 text-sm mb-4">A brief excerpt from the related article...</p>
+                    <h3 className="font-bold mb-2">{relatedPost.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{relatedPost.excerpt}</p>
                     <Button 
                       variant="link" 
                       className="p-0 h-auto text-medical-primary"
-                      onClick={() => navigate("/blog/sample-slug")}
+                      onClick={() => navigate(`/blog/${relatedPost.slug}`)}
                     >
                       Read More
                     </Button>

@@ -75,6 +75,33 @@ const Contact = () => {
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://aidoctornotes.com/contact" />
         <meta property="og:image" content="https://aidoctornotes.com/og-image.png" />
+        
+        {/* Schema.org markup */}
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "ContactPage",
+              "name": "Contact Us | ConvoNotes Genius",
+              "description": "Have questions about our AI medical documentation platform? Contact our team for information about features, pricing, or to schedule a demo.",
+              "url": "https://aidoctornotes.com/contact",
+              "mainEntity": {
+                "@type": "Organization",
+                "name": "ConvoNotes Genius",
+                "telephone": "+18005551234",
+                "email": "info@aidoctornotes.com",
+                "address": {
+                  "@type": "PostalAddress",
+                  "streetAddress": "123 Health Tech Plaza, Suite 400",
+                  "addressLocality": "San Francisco",
+                  "addressRegion": "CA",
+                  "postalCode": "94105",
+                  "addressCountry": "US"
+                }
+              }
+            }
+          `}
+        </script>
       </Helmet>
 
       <div className="pt-20 pb-16">
@@ -263,7 +290,7 @@ const Contact = () => {
                     <p className="text-gray-600 mb-3">
                       See our platform in action with a personalized demo tailored to your practice needs.
                     </p>
-                    <Button variant="outline" onClick={() => window.location.href = "/request-demo"}>
+                    <Button variant="outline" onClick={() => window.location.href = "/enterprise"}>
                       Request Demo
                     </Button>
                   </div>
@@ -282,14 +309,16 @@ const Contact = () => {
             </div>
           </div>
           
-          {/* Map Section (placeholder) */}
+          {/* Map Section */}
           <div className="mt-16 max-w-6xl mx-auto">
-            <div className="h-80 rounded-lg bg-gray-200 flex items-center justify-center">
-              <div className="text-center">
-                <MapPin className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-500">Map would be displayed here</p>
-              </div>
-            </div>
+            <iframe
+              title="Office Location Map"
+              className="w-full h-80 rounded-lg"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.1034212816567!2d-122.39568382354304!3d37.78991451202424!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808580627b1a7b83%3A0x8f6efde49be056e7!2s123%20Health%20Tech%20Plaza%20(fictional)%2C%20San%20Francisco%2C%20CA%2094105!5e0!3m2!1sen!2sus!4v1653010230418!5m2!1sen!2sus"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+            ></iframe>
           </div>
         </div>
       </div>
