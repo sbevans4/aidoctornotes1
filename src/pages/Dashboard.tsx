@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { UsageStats } from "@/components/dashboard/UsageStats";
-import { RoleSelection } from "@/components/RoleSelection";
+import RoleSelection from "@/components/RoleSelection"; // Fixed import statement
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "@/hooks/use-toast";
 
@@ -59,7 +59,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <RoleSelection />
+          <RoleSelection onRoleSelected={() => {}} />
 
           <UsageStats isLoading={isLoading} />
           
