@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -17,6 +18,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Security from "./pages/Security";
 import Contact from "./pages/Contact";
+import Dashboard from "./pages/Dashboard";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -139,6 +141,16 @@ function App() {
           />
           
           {/* Private Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
           <Route
             path="/medical-documentation"
             element={

@@ -9,7 +9,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, User } from "lucide-react";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -141,13 +141,36 @@ export const Navigation = () => {
 
             {session ? (
               <>
-                <Link 
-                  to="/medical-documentation" 
-                  className={`hover:text-medical-primary ${textColor}`}
-                >
-                  Dashboard
-                </Link>
-                <Button onClick={handleLogout}>Sign Out</Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={`flex items-center gap-1 hover:text-medical-primary ${textColor}`}
+                    >
+                      <User className="h-4 w-4" />
+                      Account
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard" className="cursor-pointer w-full">
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/medical-documentation" className="cursor-pointer w-full">
+                        Documentation
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/subscription-plans" className="cursor-pointer w-full">
+                        Subscription
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               <>
@@ -224,10 +247,22 @@ export const Navigation = () => {
               {session ? (
                 <>
                   <button
-                    className="w-full px-2 py-3 mb-2 hover:bg-gray-100 rounded"
-                    onClick={() => navigate("/medical-documentation")}
+                    className="w-full px-2 py-3 mb-2 hover:bg-gray-100 rounded text-left"
+                    onClick={() => navigate("/dashboard")}
                   >
                     Dashboard
+                  </button>
+                  <button
+                    className="w-full px-2 py-3 mb-2 hover:bg-gray-100 rounded text-left"
+                    onClick={() => navigate("/medical-documentation")}
+                  >
+                    Documentation
+                  </button>
+                  <button
+                    className="w-full px-2 py-3 mb-2 hover:bg-gray-100 rounded text-left"
+                    onClick={() => navigate("/subscription-plans")}
+                  >
+                    Subscription
                   </button>
                   <Button 
                     onClick={handleLogout} 
