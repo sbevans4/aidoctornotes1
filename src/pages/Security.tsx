@@ -1,12 +1,31 @@
 
 import React from "react";
 import { Helmet } from "react-helmet";
-import { Shield, Lock, Check, FileCheck, Server, Award } from "lucide-react";
+import { Shield, Lock, Check, FileCheck, Server, Award, BarChart2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Security = () => {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+    
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   const securityFeatures = [
     {
@@ -51,13 +70,26 @@ const Security = () => {
                 We protect your data with the same care that you protect your patients. 
                 Our robust security infrastructure ensures HIPAA compliance and the highest standards of data protection.
               </p>
-              <Button 
-                variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-blue-600"
-                onClick={() => navigate("/contact")}
-              >
-                Contact Our Security Team
-              </Button>
+
+              <div className="flex flex-wrap justify-center gap-4">
+                <Button 
+                  variant="outline" 
+                  className="border-white text-white hover:bg-white hover:text-blue-600"
+                  onClick={() => navigate("/contact")}
+                >
+                  Contact Our Security Team
+                </Button>
+                
+                {isAuthenticated && (
+                  <Button 
+                    className="bg-white text-blue-600 hover:bg-blue-50"
+                    onClick={() => navigate("/security/dashboard")}
+                  >
+                    <BarChart2 className="mr-2 h-4 w-4" />
+                    View Security Dashboard
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </section>
@@ -193,9 +225,22 @@ const Security = () => {
               <p className="text-xl mb-8">
                 Get detailed information about our security practices, infrastructure, and compliance measures.
               </p>
-              <Button className="bg-white text-blue-600 hover:bg-gray-100">
-                Download Whitepaper
-              </Button>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Button className="bg-white text-blue-600 hover:bg-gray-100">
+                  Download Whitepaper
+                </Button>
+                
+                {isAuthenticated && (
+                  <Button 
+                    variant="outline"
+                    className="border-white text-white hover:bg-white hover:text-blue-600"
+                    onClick={() => navigate("/security/dashboard")}
+                  >
+                    <BarChart2 className="mr-2 h-4 w-4" />
+                    View Security Dashboard
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </section>

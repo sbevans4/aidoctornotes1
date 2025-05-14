@@ -17,6 +17,7 @@ import AIMedicalTranscription from "./pages/Services/AIMedicalTranscription";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Security from "./pages/Security";
+import SecurityDashboard from "./pages/SecurityDashboard";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 
@@ -122,13 +123,23 @@ function App() {
             }
           />
           
-          {/* Additional Pages */}
+          {/* Security Pages */}
           <Route
             path="/security"
             element={
               <Layout>
                 <Security />
               </Layout>
+            }
+          />
+          <Route
+            path="/security/dashboard"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <SecurityDashboard />
+                </Layout>
+              </PrivateRoute>
             }
           />
           <Route
