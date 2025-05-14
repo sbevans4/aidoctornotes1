@@ -1,28 +1,35 @@
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { UsageStats } from "@/components/dashboard/UsageStats";
-import RoleSelection from "@/components/RoleSelection"; // Fixed import statement
+import RoleSelection from "@/components/RoleSelection";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
+import { FileText, Clock, AlertCircle } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const [recentNotes, setRecentNotes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { currentSubscription } = useSubscription();
+  const [stats, setStats] = useState({
+    totalNotes: 0,
+    completedNotes: 0,
+    pendingNotes: 0
+  });
 
   useEffect(() => {
     const fetchRecentNotes = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          navigate("/auth");
-          return;
-        }
+        if (!user) return;
 
         const { data, error } = await supabase
           .from("clinical_notes")
@@ -33,8 +40,27 @@ const Dashboard = () => {
 
         if (error) throw error;
         setRecentNotes(data || []);
+
+        // Calculate stats
+        const { data: statsData, error: statsError } = await supabase
+          .from("clinical_notes")
+          .select("id, status")
+          .eq("user_id", user.id);
+
+        if (statsError) throw statsError;
+
+        const totalNotes = statsData?.length || 0;
+        const completedNotes = statsData?.filter(n => n.status === "completed").length || 0;
+        const pendingNotes = statsData?.filter(n => n.status === "draft").length || 0;
+
+        setStats({
+          totalNotes,
+          completedNotes,
+          pendingNotes
+        });
+
       } catch (error) {
-        console.error("Error fetching recent notes:", error);
+        console.error("Error fetching dashboard data:", error);
         toast({
           title: "Error",
           description: "Failed to load your recent notes",
@@ -46,12 +72,37 @@ const Dashboard = () => {
     };
 
     fetchRecentNotes();
-  }, [navigate]);
+  }, [user]);
+
+  const handleCreateNewNote = () => {
+    navigate("/medical-documentation");
+  }
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Skeleton className="h-10 w-64 mb-2" />
+          <Skeleton className="h-5 w-96" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-56 w-full" />
+            <Skeleton className="h-72 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Welcome to ConvoNotes Genius</h1>
+        <h1 className="text-3xl font-bold">Welcome{profile?.full_name ? `, ${profile.full_name}` : ''}</h1>
         <p className="text-gray-600 mt-1">
           Your AI-powered medical documentation assistant
         </p>
@@ -59,12 +110,39 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-6 flex flex-col items-center justify-center">
+              <div className="rounded-full bg-blue-100 p-3 mb-2">
+                <FileText className="h-6 w-6 text-blue-500" />
+              </div>
+              <h3 className="font-medium">Total Notes</h3>
+              <p className="text-2xl font-bold">{stats.totalNotes}</p>
+            </Card>
+            <Card className="p-6 flex flex-col items-center justify-center">
+              <div className="rounded-full bg-green-100 p-3 mb-2">
+                <Clock className="h-6 w-6 text-green-500" />
+              </div>
+              <h3 className="font-medium">Completed</h3>
+              <p className="text-2xl font-bold">{stats.completedNotes}</p>
+            </Card>
+            <Card className="p-6 flex flex-col items-center justify-center">
+              <div className="rounded-full bg-amber-100 p-3 mb-2">
+                <AlertCircle className="h-6 w-6 text-amber-500" />
+              </div>
+              <h3 className="font-medium">Pending</h3>
+              <p className="text-2xl font-bold">{stats.pendingNotes}</p>
+            </Card>
+          </div>
+          
           <RoleSelection onRoleSelected={() => {}} />
 
-          <UsageStats isLoading={isLoading} />
+          <UsageStats isLoading={false} />
           
           <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Get Started</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Get Started</h2>
+              <Button onClick={handleCreateNewNote}>Create New Note</Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div 
                 onClick={() => navigate("/medical-documentation")}

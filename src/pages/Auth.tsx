@@ -1,6 +1,12 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SignInForm } from "@/components/auth/SignInForm";
+import { SignUpForm } from "@/components/auth/SignUpForm";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useReferral } from "@/hooks/useReferral";
@@ -15,6 +21,7 @@ import { OnboardingTour } from "@/components/auth/OnboardingTour";
 
 export default function Auth() {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("sign-in");
   const navigate = useNavigate();
   const { plans, isLoading } = useSubscription();
   const { applyReferral } = useReferral();
@@ -24,8 +31,8 @@ export default function Auth() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-64"></div>
-          <div className="h-32 bg-gray-200 rounded w-96"></div>
+          <Skeleton className="h-8 w-64"/>
+          <Skeleton className="h-32 w-96"/>
         </div>
       </div>
     );
@@ -36,36 +43,39 @@ export default function Auth() {
   const aiNotesPlans = standardPlans.filter(plan => plan.type === "ai_notes").slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-6xl mx-auto space-y-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold">Medical Documentation Assistant</h2>
-          <p className="mt-2 text-gray-600">Streamline your clinical documentation with AI</p>
-        </div>
-
-        <div className="space-y-12">
-          <TranscriptionPlans 
-            plans={transcriptionPlans} 
-            onSelectPlan={setSelectedPlanId} 
-          />
-
-          <AINotesPlans 
-            plans={aiNotesPlans} 
-            onSelectPlan={setSelectedPlanId} 
-          />
-
-          <EnterpriseCTA />
-        </div>
-
-        <DocumentationExample />
-
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            14-day money-back guarantee • Cancel anytime
-          </p>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-extrabold text-gray-900">ConvoNotes Genius</h1>
+            <p className="mt-2 text-sm text-gray-600">Medical Documentation Assistant</p>
+          </div>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <Tabs 
+                value={activeTab} 
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
+                <TabsList className="grid grid-cols-2 mb-6">
+                  <TabsTrigger value="sign-in">Sign In</TabsTrigger>
+                  <TabsTrigger value="sign-up">Sign Up</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="sign-in">
+                  <SignInForm />
+                </TabsContent>
+                
+                <TabsContent value="sign-up">
+                  <SignUpForm />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
       </div>
-
+      
       <Dialog open={!!selectedPlanId} onOpenChange={() => setSelectedPlanId(null)}>
         <DialogContent className="sm:max-w-[500px]">
           <div className="space-y-4">
@@ -97,8 +107,6 @@ export default function Auth() {
           </div>
         </DialogContent>
       </Dialog>
-
-      <OnboardingTour />
     </div>
   );
 }

@@ -9,6 +9,10 @@ import TranscriptDisplay from "./TranscriptDisplay";
 import SoapNoteDisplay from "./SoapNoteDisplay";
 import { templateOptions } from "./advanced-documentation/TemplateSelector";
 import TemplateSelector from "./advanced-documentation/TemplateSelector";
+import { useAudioRecorder } from "@/hooks/useAudioRecorder";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Speaker {
   id: string;
@@ -30,7 +34,8 @@ interface SoapNote {
 }
 
 const VoiceRecorder = () => {
-  const [isRecording, setIsRecording] = useState(false);
+  const { user } = useAuth();
+  const { isRecording, startRecording, stopRecording } = useAudioRecorder();
   const [isPaused, setIsPaused] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [soapNote, setSoapNote] = useState<SoapNote>({
@@ -52,6 +57,7 @@ const VoiceRecorder = () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
       
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -59,30 +65,12 @@ const VoiceRecorder = () => {
         }
       };
       
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        audioChunksRef.current = [];
-        
-        // Process the audio with the selected template
-        setIsProcessing(true);
-        try {
-          // Here you would pass the selected template to the processing function
-          // For now, we're just showing the UI
-        } catch (error) {
-          console.error("Error processing audio:", error);
-          toast({
-            title: "Processing Error",
-            description: "Failed to process the audio. Please try again.",
-            variant: "destructive",
-          });
-        } finally {
-          setIsProcessing(false);
-        }
-      };
-      
       mediaRecorder.start();
-      setIsRecording(true);
       setIsPaused(false);
+      toast({
+        title: "Recording started",
+        description: "Speak clearly into your microphone.",
+      });
     } catch (error) {
       console.error("Error accessing microphone:", error);
       toast({
@@ -93,10 +81,25 @@ const VoiceRecorder = () => {
     }
   };
   
-  const handleStopRecording = () => {
+  const handleStopRecording = async () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
-      setIsRecording(false);
+      
+      // Save recording metadata to Supabase
+      if (user) {
+        try {
+          await supabase.from("recordings").insert({
+            user_id: user.id,
+            title: `Recording ${new Date().toLocaleString()}`,
+            duration: Math.floor(elapsedTime) // In seconds
+          });
+        } catch (error) {
+          console.error("Error saving recording metadata:", error);
+        }
+      }
+
+      // Process audio
+      processAudio();
     }
   };
   
@@ -114,6 +117,40 @@ const VoiceRecorder = () => {
     }
   };
   
+  const processAudio = async () => {
+    setIsProcessing(true);
+    toast({
+      title: "Processing audio",
+      description: "This might take a moment...",
+    });
+    
+    try {
+      const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+      
+      // Reset state for new processing
+      setTranscript("");
+      setSoapNote({
+        subjective: "",
+        objective: "",
+        assessment: "",
+        plan: "",
+      });
+      setSpeakers([]);
+      setSegments([]);
+      
+      // TranscriptionProcessor will handle the actual processing
+      // We're setting up the UI for feedback
+    } catch (error) {
+      console.error("Error processing audio:", error);
+      toast({
+        title: "Processing Error",
+        description: "Failed to process the audio. Please try again.",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+    }
+  };
+  
   const handleTranscriptionComplete = (
     transcript: string,
     speakers: Speaker[],
@@ -122,10 +159,19 @@ const VoiceRecorder = () => {
     setTranscript(transcript);
     setSpeakers(speakers);
     setSegments(segments);
+    toast({
+      title: "Transcription complete",
+      description: "Your audio has been successfully transcribed.",
+    });
   };
   
   const handleSoapNoteGenerated = (soapNote: SoapNote) => {
     setSoapNote(soapNote);
+    toast({
+      title: "SOAP note generated",
+      description: "Your clinical note is ready for review.",
+    });
+    setIsProcessing(false);
   };
   
   const handleProcessingStateChange = (isProcessing: boolean) => {
@@ -135,6 +181,27 @@ const VoiceRecorder = () => {
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplateId(templateId);
   };
+
+  // Track elapsed time
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    if (isRecording && !isPaused) {
+      intervalId = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
+    } else if (!isRecording) {
+      setElapsedTime(0);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isRecording, isPaused]);
   
   return (
     <div className="space-y-6">
@@ -154,7 +221,14 @@ const VoiceRecorder = () => {
           onResumeRecording={handleResumeRecording}
         />
         
-        {transcript && (
+        {isProcessing && (
+          <div className="text-center py-8">
+            <Skeleton className="h-8 w-3/4 mx-auto mb-4" />
+            <Skeleton className="h-24 w-full mx-auto" />
+          </div>
+        )}
+        
+        {transcript && !isProcessing && (
           <TranscriptDisplay
             transcript={transcript}
             speakers={speakers}
@@ -162,7 +236,9 @@ const VoiceRecorder = () => {
           />
         )}
         
-        <SoapNoteDisplay soapNote={soapNote} />
+        {soapNote.subjective && !isProcessing && (
+          <SoapNoteDisplay soapNote={soapNote} />
+        )}
         
         <TranscriptionProcessor
           onTranscriptionComplete={handleTranscriptionComplete}

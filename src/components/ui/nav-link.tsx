@@ -1,31 +1,38 @@
 
-import React from "react";
-import { Link, LinkProps, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { NavLink as RouterNavLink, NavLinkProps as RouterNavLinkProps } from "react-router-dom";
 
-export const Separator = () => {
-  return <div className="h-px w-full my-2 bg-gray-200" />;
-};
-
-interface NavLinkProps extends LinkProps {
+interface NavLinkProps extends RouterNavLinkProps {
   className?: string;
   activeClassName?: string;
   end?: boolean;
 }
 
-export const NavLink = ({ className, activeClassName, end = false, ...props }: NavLinkProps) => {
-  const location = useLocation();
-  const isActive = end 
-    ? location.pathname === props.to 
-    : location.pathname.startsWith(props.to as string);
-
+export const NavLink = ({
+  to,
+  className,
+  activeClassName,
+  children,
+  end = false,
+  ...props
+}: NavLinkProps) => {
   return (
-    <Link
+    <RouterNavLink
+      to={to}
+      end={end}
+      className={({ isActive }) => 
+        cn(
+          className,
+          isActive && activeClassName
+        )
+      }
       {...props}
-      className={cn(
-        className,
-        isActive && (activeClassName || "text-primary font-medium")
-      )}
-    />
+    >
+      {children}
+    </RouterNavLink>
   );
 };
+
+export const Separator = () => (
+  <hr className="my-2 border-t border-gray-200" />
+);
