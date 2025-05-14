@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -10,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import SubscriptionPlans from "./pages/SubscriptionPlans";
 import Auth from "./pages/Auth";
 import Enterprise from "./pages/Enterprise";
+import Services from "./pages/Services";
 import AIDoctorNotes from "./pages/Services/AIDoctorNotes";
 import AITherapyNotes from "./pages/Services/AITherapyNotes";
 import AIMedicalTranscription from "./pages/Services/AIMedicalTranscription";
@@ -68,7 +68,15 @@ function App() {
             }
           />
           
-          {/* Service Pages */}
+          {/* Services Pages */}
+          <Route
+            path="/services"
+            element={
+              <Layout>
+                <Services />
+              </Layout>
+            }
+          />
           <Route
             path="/services/ai-doctor-notes"
             element={

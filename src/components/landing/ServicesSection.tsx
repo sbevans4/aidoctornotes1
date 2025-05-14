@@ -63,11 +63,10 @@ export const ServicesSection = () => {
         
         <div className="text-center mt-12">
           <Button 
-            size="lg"
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/services")}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            Start Your Free Trial
+            View All Services
           </Button>
         </div>
       </div>
