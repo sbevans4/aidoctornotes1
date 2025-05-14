@@ -3,118 +3,98 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 201 96% 32%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 201 96% 32%;
-    --radius: 0.5rem;
-    
-    /* Medical theme specific colors */
-    --medical-primary: 201 96% 32%;
-    --medical-primary-foreground: 210 40% 98%;
-    --medical-light: 199 89% 48%;
-    --medical-light-foreground: 0 0% 100%;
-    --medical-dark: 201 100% 16%;
-    --medical-accent: 142 76% 36%;
-  }
- 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 201 96% 32%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-  }
+/* Added for better markdown content styling in blog posts */
+.prose img {
+  @apply rounded-lg my-8;
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-  
-  /* Override default body padding */
-  body {
-    margin: 0;
-    padding: 0;
-  }
-}
-
-/* Medical theme specific utility classes */
-.bg-medical-primary {
-  background-color: hsl(var(--medical-primary));
-  color: hsl(var(--medical-primary-foreground));
-}
-
-.bg-medical-light {
-  background-color: hsl(var(--medical-light));
-  color: hsl(var(--medical-light-foreground));
-}
-
-.text-medical-primary {
-  color: hsl(var(--medical-primary));
-}
-
-.text-medical-light {
-  color: hsl(var(--medical-light));
-}
-
-.text-medical-dark {
-  color: hsl(var(--medical-dark));
-}
-
-/* Custom prose styles for blog */
 .prose h2 {
-  margin-top: 2em;
-  margin-bottom: 0.5em;
-  font-size: 1.5rem;
+  @apply text-2xl font-bold mt-8 mb-4 text-gray-900;
+}
+
+.prose h3 {
+  @apply text-xl font-semibold mt-6 mb-3 text-gray-900;
 }
 
 .prose p {
-  margin-bottom: 1.25em;
-  line-height: 1.7;
+  @apply text-gray-700 mb-4;
 }
 
-.prose ul {
-  margin-bottom: 1.25em;
-  padding-left: 1.5em;
-  list-style-type: disc;
+.prose ul, .prose ol {
+  @apply my-4;
 }
 
-.prose ul li {
-  margin-bottom: 0.5em;
+.prose li {
+  @apply mb-1;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-blue-500 pl-4 italic my-6;
+}
+
+.prose a {
+  @apply text-blue-600 hover:underline;
+}
+
+.prose table {
+  @apply w-full border-collapse my-6;
+}
+
+.prose th, .prose td {
+  @apply border border-gray-300 px-4 py-2;
+}
+
+.prose th {
+  @apply bg-gray-100;
+}
+
+/* General styles */
+:root {
+  --medical-primary: #4f46e5;
+  --medical-secondary: #3730a3;
+  --medical-light: #e0e7ff;
+}
+
+/* Medical theme vars */
+.bg-medical-primary {
+  background-color: var(--medical-primary);
+}
+
+.bg-medical-secondary {
+  background-color: var(--medical-secondary);
+}
+
+.text-medical-primary {
+  color: var(--medical-primary);
+}
+
+.text-medical-light {
+  color: var(--medical-light);
+}
+
+/* Add line clamp utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Add utility for hover effects */
+.hover-scale {
+  @apply transition-transform duration-200 hover:scale-105;
 }

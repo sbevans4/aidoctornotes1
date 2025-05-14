@@ -9,6 +9,7 @@ import { IntegrationsSection } from "@/components/landing/IntegrationsSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { CTASection } from "@/components/landing/CTASection";
+import { FeaturedBlogPosts } from "@/components/blog/FeaturedBlogPosts";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -87,6 +88,7 @@ const Index = () => {
         <FeaturesSection />
         <TestimonialsSection />
         <IntegrationsSection />
+        <FeaturedBlogPosts />
         <PricingSection handleLogin={handleLogin} />
         <FAQSection />
         <CTASection handleLogin={handleLogin} />
