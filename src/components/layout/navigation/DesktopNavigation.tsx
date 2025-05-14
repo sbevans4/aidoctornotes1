@@ -22,7 +22,7 @@ import {
 
 interface DesktopNavigationProps {
   textColor: string;
-  buttonVariant: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
+  buttonVariant: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive" | "outlineWhite";
   session: any;
   handleLogin: () => Promise<void>;
   handleLogout: () => Promise<void>;
