@@ -3,7 +3,9 @@ import React from "react";
 import { Helmet } from "react-helmet";
 import { supabase } from "@/integrations/supabase/client";
 import HeroBanner from "@/components/security/HeroBanner";
+import SecurityStatusCard from "@/components/security/SecurityStatusCard";
 import SecurityFeatures from "@/components/security/SecurityFeatures";
+import DocumentSecurityInfo from "@/components/security/DocumentSecurityInfo";
 import HipaaCompliance from "@/components/security/HipaaCompliance";
 import Certifications from "@/components/security/Certifications";
 import SecurityWhitepaper from "@/components/security/SecurityWhitepaper";
@@ -39,7 +41,9 @@ const Security = () => {
 
       <div className="pt-20">
         <HeroBanner isAuthenticated={isAuthenticated} />
+        <SecurityStatusCard isAuthenticated={isAuthenticated} />
         <SecurityFeatures />
+        <DocumentSecurityInfo />
         <HipaaCompliance />
         <Certifications />
         <SecurityWhitepaper isAuthenticated={isAuthenticated} />
