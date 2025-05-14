@@ -151,10 +151,7 @@ const BlogPost = () => {
                 <span 
                   key={tag}
                   className="inline-block bg-gray-100 px-3 py-1 rounded-full text-sm text-gray-700 cursor-pointer hover:bg-gray-200"
-                  onClick={() => {
-                    navigate("/blog");
-                    // We'll need to handle this in the Blog component
-                  }}
+                  onClick={() => navigate("/blog")}
                 >
                   {tag}
                 </span>
@@ -184,10 +181,7 @@ const BlogPost = () => {
           
           {/* Sidebar */}
           <div className="lg:col-span-2">
-            {/* Sidebar content - can add things like newsletter signup, most popular posts, etc. */}
-            <div className="sticky top-24">
-              {/* This will be filled in later if needed */}
-            </div>
+            {/* This will be filled in later if needed */}
           </div>
         </div>
       </div>
