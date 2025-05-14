@@ -1,9 +1,13 @@
+
 import { validateSoapNote } from './soapValidation';
 import { toast } from "@/hooks/use-toast";
+import { TemplateOption } from '@/components/advanced-documentation/TemplateSelector';
 
-export const generateSoapNotePrompt = (transcript: string, procedureCodes: string[]): string => {
+export const generateSoapNotePrompt = (transcript: string, procedureCodes: string[], template: TemplateOption): string => {
   return `
-    As a medical documentation expert, analyze the following medical conversation transcript and procedure codes to generate a compliant and accurate SOAP note.
+    ${template.specialtyPrompt}
+    
+    Analyze the following medical conversation transcript and procedure codes to generate a compliant and accurate SOAP note.
     
     Transcript: ${transcript}
     Procedure Codes: ${procedureCodes.join(', ')}
@@ -41,4 +45,13 @@ export const handleSoapNoteValidation = (soapNote: any, procedureCodes: string[]
   });
 
   return validationIssues.length === 0;
+};
+
+export const getSoapNoteTemplate = (templateId: string, templates: TemplateOption[]): TemplateOption => {
+  const template = templates.find(t => t.id === templateId);
+  if (!template) {
+    // Default to general if template not found
+    return templates.find(t => t.id === "general") || templates[0];
+  }
+  return template;
 };

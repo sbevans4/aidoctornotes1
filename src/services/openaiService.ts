@@ -1,6 +1,8 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { toast } from "@/hooks/use-toast";
-import { generateSoapNotePrompt, handleSoapNoteValidation } from '@/utils/soapGeneration';
+import { generateSoapNotePrompt, handleSoapNoteValidation, getSoapNoteTemplate } from '@/utils/soapGeneration';
+import { templateOptions } from '@/components/advanced-documentation/TemplateSelector';
 
 // Only create the client if the environment variables are available
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -50,14 +52,19 @@ async function getOpenAIKey() {
   return data.value;
 }
 
-export async function generateSoapNote(transcript: string, procedureCodes: string[]): Promise<{
+export async function generateSoapNote(
+  transcript: string, 
+  procedureCodes: string[],
+  templateId: string = "general"
+): Promise<{
   subjective: string;
   objective: string;
   assessment: string;
   plan: string;
 }> {
   const apiKey = await getOpenAIKey();
-  const prompt = generateSoapNotePrompt(transcript, procedureCodes);
+  const template = getSoapNoteTemplate(templateId, templateOptions);
+  const prompt = generateSoapNotePrompt(transcript, procedureCodes, template);
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -66,7 +73,7 @@ export async function generateSoapNote(transcript: string, procedureCodes: strin
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',

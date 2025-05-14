@@ -20,6 +20,7 @@ import Security from "./pages/Security";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
+import UserProfile from "./pages/UserProfile";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -178,6 +179,16 @@ function App() {
               <PrivateRoute>
                 <Layout>
                   <SubscriptionPlans />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <UserProfile />
                 </Layout>
               </PrivateRoute>
             }

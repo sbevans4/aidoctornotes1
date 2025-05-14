@@ -14,6 +14,7 @@ import { BlogPost, BlogCategory } from "@/types/blog";
 import { BlogPostCard } from "@/components/blog/BlogPostCard";
 import { BlogSearch } from "@/components/blog/BlogSearch";
 import { BlogSidebar } from "@/components/blog/BlogSidebar";
+import { BlogPagination } from "@/components/blog/BlogPagination";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 
@@ -24,7 +25,12 @@ const Blog = () => {
   const [recentPosts, setRecentPosts] = useState<BlogPost[]>([]);
   const [popularTags, setPopularTags] = useState<string[]>([]);
   const [activeFilter, setActiveFilter] = useState<string>("");
-  const [visiblePosts, setVisiblePosts] = useState<number>(6);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [postsPerPage] = useState(6);
+  const [totalPages, setTotalPages] = useState(1);
+  const [displayedPosts, setDisplayedPosts] = useState<BlogPost[]>([]);
   
   // Initial data load
   useEffect(() => {
@@ -50,6 +56,23 @@ const Blog = () => {
     setPopularTags(sortedTags);
   }, []);
   
+  // Update pagination whenever posts change
+  useEffect(() => {
+    setTotalPages(Math.ceil(posts.length / postsPerPage));
+    // Reset to first page when posts change
+    setCurrentPage(1);
+  }, [posts, postsPerPage]);
+  
+  // Update displayed posts when current page changes
+  useEffect(() => {
+    const indexOfLastPost = currentPage * postsPerPage;
+    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+    setDisplayedPosts(posts.slice(indexOfFirstPost, indexOfLastPost));
+    
+    // Scroll to top when page changes
+    window.scrollTo(0, 0);
+  }, [currentPage, posts, postsPerPage]);
+  
   const handleSearch = (query: string) => {
     if (!query.trim()) {
       setPosts(getAllBlogPosts());
@@ -59,8 +82,7 @@ const Blog = () => {
       setPosts(results);
       setActiveFilter(`Search: "${query}"`);
     }
-    setVisiblePosts(6);
-    window.scrollTo(0, 0);
+    setCurrentPage(1);
   };
   
   const handleSelectCategory = (categoryId: string) => {
@@ -69,8 +91,7 @@ const Blog = () => {
       const filteredPosts = getBlogPostsByCategory(categoryId);
       setPosts(filteredPosts);
       setActiveFilter(`Category: ${category.name}`);
-      setVisiblePosts(6);
-      window.scrollTo(0, 0);
+      setCurrentPage(1);
     }
   };
   
@@ -78,19 +99,17 @@ const Blog = () => {
     const filteredPosts = getBlogPostsByTag(tag);
     setPosts(filteredPosts);
     setActiveFilter(`Tag: ${tag}`);
-    setVisiblePosts(6);
-    window.scrollTo(0, 0);
+    setCurrentPage(1);
   };
   
   const handleClearFilters = () => {
     setPosts(getAllBlogPosts());
     setActiveFilter("");
-    setVisiblePosts(6);
-    window.scrollTo(0, 0);
+    setCurrentPage(1);
   };
   
-  const handleLoadMore = () => {
-    setVisiblePosts(prev => prev + 6);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
   
   return (
@@ -147,18 +166,16 @@ const Blog = () => {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  {posts.slice(0, visiblePosts).map((post) => (
+                  {displayedPosts.map((post) => (
                     <BlogPostCard key={post.id} post={post} />
                   ))}
                 </div>
                 
-                {visiblePosts < posts.length && (
-                  <div className="text-center mt-8">
-                    <Button onClick={handleLoadMore}>
-                      Load more articles
-                    </Button>
-                  </div>
-                )}
+                <BlogPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
               </>
             )}
           </div>

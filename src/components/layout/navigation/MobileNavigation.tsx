@@ -1,7 +1,8 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { NavLink, Separator } from "@/components/ui/nav-link";
+import { LayoutDashboard, User, FileText, CreditCard, LogOut, LogIn } from "@/components/ui/icons";
 
 interface MobileNavigationProps {
   isMenuOpen: boolean;
@@ -17,95 +18,92 @@ export const MobileNavigation = ({
   handleLogout
 }: MobileNavigationProps) => {
   const navigate = useNavigate();
-
+  
   if (!isMenuOpen) return null;
-
+  
   return (
-    <div className="md:hidden bg-white border-t shadow-lg">
-      <div className="container mx-auto px-4 py-4 space-y-2">
-        <button 
-          className="flex items-center justify-between w-full px-2 py-3 hover:bg-gray-100 rounded"
-          onClick={() => navigate("/services/ai-doctor-notes")}
-        >
-          AI Doctor Notes
-        </button>
-        <button 
-          className="flex items-center justify-between w-full px-2 py-3 hover:bg-gray-100 rounded"
-          onClick={() => navigate("/services/ai-therapy-notes")}
-        >
-          AI Therapy Notes
-        </button>
-        <button 
-          className="flex items-center justify-between w-full px-2 py-3 hover:bg-gray-100 rounded"
-          onClick={() => navigate("/services/ai-medical-transcription")}
-        >
-          AI Medical Transcription
-        </button>
-        <button 
-          className="flex items-center justify-between w-full px-2 py-3 hover:bg-gray-100 rounded"
-          onClick={() => navigate("/security")}
-        >
-          Security
-        </button>
-        <button 
-          className="flex items-center justify-between w-full px-2 py-3 hover:bg-gray-100 rounded"
-          onClick={() => navigate("/blog")}
-        >
-          Blog
-        </button>
-        <button 
-          className="flex items-center justify-between w-full px-2 py-3 hover:bg-gray-100 rounded"
-          onClick={() => navigate("/contact")}
-        >
-          Contact
-        </button>
-
-        <div className="pt-4 border-t">
+    <div className="md:hidden border-t">
+      <div className="container px-4 py-3">
+        <nav className="flex flex-col space-y-3">
+          <NavLink 
+            to="/" 
+            className="py-2 hover:text-blue-600"
+            end
+          >
+            Home
+          </NavLink>
+          <NavLink 
+            to="/services" 
+            className="py-2 hover:text-blue-600"
+            end
+          >
+            Services
+          </NavLink>
+          <NavLink 
+            to="/blog" 
+            className="py-2 hover:text-blue-600"
+          >
+            Blog
+          </NavLink>
+          <NavLink 
+            to="/contact" 
+            className="py-2 hover:text-blue-600"
+          >
+            Contact
+          </NavLink>
+          <NavLink 
+            to="/security" 
+            className="py-2 hover:text-blue-600"
+          >
+            Security
+          </NavLink>
+          
           {session ? (
             <>
+              <Separator />
+              <NavLink 
+                to="/dashboard" 
+                className="py-2 hover:text-blue-600 flex items-center gap-2"
+              >
+                <LayoutDashboard className="h-4 w-4" /> Dashboard
+              </NavLink>
+              <NavLink 
+                to="/profile" 
+                className="py-2 hover:text-blue-600 flex items-center gap-2"
+              >
+                <User className="h-4 w-4" /> Profile
+              </NavLink>
+              <NavLink 
+                to="/medical-documentation" 
+                className="py-2 hover:text-blue-600 flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" /> Documentation
+              </NavLink>
+              <NavLink 
+                to="/subscription-plans" 
+                className="py-2 hover:text-blue-600 flex items-center gap-2"
+              >
+                <CreditCard className="h-4 w-4" /> Subscription
+              </NavLink>
               <button
-                className="w-full px-2 py-3 mb-2 hover:bg-gray-100 rounded text-left"
-                onClick={() => navigate("/dashboard")}
+                onClick={handleLogout}
+                className="flex items-center gap-2 py-2 text-left text-red-500 hover:text-red-600"
               >
-                Dashboard
+                <LogOut className="h-4 w-4" /> Log out
               </button>
-              <button
-                className="w-full px-2 py-3 mb-2 hover:bg-gray-100 rounded text-left"
-                onClick={() => navigate("/medical-documentation")}
-              >
-                Documentation
-              </button>
-              <button
-                className="w-full px-2 py-3 mb-2 hover:bg-gray-100 rounded text-left"
-                onClick={() => navigate("/subscription-plans")}
-              >
-                Subscription
-              </button>
-              <Button 
-                onClick={handleLogout} 
-                className="w-full justify-center"
-              >
-                Sign Out
-              </Button>
             </>
           ) : (
             <>
-              <Button
-                variant="outline"
+              <Separator />
+              <button
                 onClick={handleLogin}
-                className="w-full justify-center mb-2"
+                className="flex items-center gap-2 py-2 text-blue-600 hover:text-blue-700"
               >
-                Sign In
-              </Button>
-              <Button
-                onClick={() => navigate("/auth?action=signup")}
-                className="w-full justify-center bg-medical-primary hover:bg-medical-primary/90"
-              >
-                Get Started
-              </Button>
+                <LogIn className="h-4 w-4" /> Sign in
+              </button>
             </>
           )}
-        </div>
+        </nav>
       </div>
     </div>
   );

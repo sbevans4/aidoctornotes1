@@ -1,18 +1,27 @@
-
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, User } from "lucide-react";
+import {
+  UserCircle,
+  LayoutDashboard,
+  FileText,
+  CreditCard,
+  LogOut,
+  User,
+  LogIn,
+} from "lucide-react";
 
 interface DesktopNavigationProps {
   textColor: string;
-  buttonVariant: "outline" | "outlineWhite" | any;
+  buttonVariant: "default" | "outline" | "outlineWhite";
   session: any;
   handleLogin: () => Promise<void>;
   handleLogout: () => Promise<void>;
@@ -23,110 +32,71 @@ export const DesktopNavigation = ({
   buttonVariant,
   session,
   handleLogin,
-  handleLogout
+  handleLogout,
 }: DesktopNavigationProps) => {
   const navigate = useNavigate();
-
+  const location = useLocation();
+  
   return (
-    <div className="hidden md:flex items-center space-x-8">
-      {/* Services Dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button 
-            className={`flex items-center gap-1 hover:text-medical-primary ${textColor}`}
-          >
-            Services <ChevronDown className="h-4 w-4" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-white">
-          <DropdownMenuItem asChild>
-            <Link to="/services/ai-doctor-notes" className="cursor-pointer">
-              AI Doctor Notes
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link to="/services/ai-therapy-notes" className="cursor-pointer">
-              AI Therapy Notes
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link to="/services/ai-medical-transcription" className="cursor-pointer">
-              AI Medical Transcription
-            </Link>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="hidden md:flex items-center gap-6">
+      <nav className="flex gap-6">
+        <NavLink to="/" className={`${textColor} hover:opacity-80`}>
+          Home
+        </NavLink>
+        <NavLink to="/services" className={`${textColor} hover:opacity-80`}>
+          Services
+        </NavLink>
+        <NavLink to="/blog" className={`${textColor} hover:opacity-80`}>
+          Blog
+        </NavLink>
+        <NavLink to="/contact" className={`${textColor} hover:opacity-80`}>
+          Contact
+        </NavLink>
+        <NavLink to="/security" className={`${textColor} hover:opacity-80`}>
+          Security
+        </NavLink>
+      </nav>
 
-      <Link 
-        to="/security" 
-        className={`hover:text-medical-primary ${textColor}`}
-      >
-        Security
-      </Link>
-      
-      <Link 
-        to="/blog" 
-        className={`hover:text-medical-primary ${textColor}`}
-      >
-        Blog
-      </Link>
-      
-      <Link 
-        to="/contact" 
-        className={`hover:text-medical-primary ${textColor}`}
-      >
-        Contact
-      </Link>
-
-      {session ? (
-        <>
+      <div className="flex items-center gap-3">
+        {session ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
-                className={`flex items-center gap-1 hover:text-medical-primary ${textColor}`}
-              >
-                <User className="h-4 w-4" />
-                Account
-              </button>
+              <Button variant="ghost" size="icon" className={textColor}>
+                <UserCircle className="h-5 w-5" />
+                <span className="sr-only">User menu</span>
+              </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem asChild>
-                <Link to="/dashboard" className="cursor-pointer w-full">
-                  Dashboard
-                </Link>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                Dashboard
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/medical-documentation" className="cursor-pointer w-full">
-                  Documentation
-                </Link>
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
+                <User className="mr-2 h-4 w-4" />
+                Profile
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/subscription-plans" className="cursor-pointer w-full">
-                  Subscription
-                </Link>
+              <DropdownMenuItem onClick={() => navigate('/medical-documentation')}>
+                <FileText className="mr-2 h-4 w-4" />
+                Documentation
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                Sign Out
+              <DropdownMenuItem onClick={() => navigate('/subscription-plans')}>
+                <CreditCard className="mr-2 h-4 w-4" />
+                Subscription
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </>
-      ) : (
-        <>
-          <Button 
-            variant={buttonVariant} 
-            onClick={handleLogin}
-          >
-            Sign In
+        ) : (
+          <Button variant={buttonVariant} onClick={handleLogin}>
+            Sign in
           </Button>
-          <Button 
-            className={buttonVariant !== "outline" ? "" : "bg-medical-primary hover:bg-medical-primary/90"}
-            onClick={() => navigate("/auth?action=signup")}
-          >
-            Get Started
-          </Button>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 };
