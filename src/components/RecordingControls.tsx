@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, Square, Loader2 } from "lucide-react";
+import { Mic, Square, Pause, Play, Loader2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -11,28 +11,33 @@ import {
 
 interface RecordingControlsProps {
   isRecording: boolean;
+  isPaused: boolean;
   isProcessing: boolean;
   onStartRecording: () => void;
   onStopRecording: () => void;
+  onPauseRecording: () => void;
+  onResumeRecording: () => void;
 }
 
 const RecordingControls = ({
   isRecording,
+  isPaused,
   isProcessing,
   onStartRecording,
   onStopRecording,
+  onPauseRecording,
+  onResumeRecording,
 }: RecordingControlsProps) => {
   const [elapsedTime, setElapsedTime] = useState(0);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
     
-    if (isRecording) {
-      setElapsedTime(0);
+    if (isRecording && !isPaused) {
       intervalId = setInterval(() => {
         setElapsedTime(prev => prev + 1);
       }, 1000);
-    } else {
+    } else if (!isRecording) {
       setElapsedTime(0);
     }
 
@@ -41,7 +46,7 @@ const RecordingControls = ({
         clearInterval(intervalId);
       }
     };
-  }, [isRecording]);
+  }, [isRecording, isPaused]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -77,19 +82,23 @@ const RecordingControls = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={isRecording ? onStopRecording : onStartRecording}
+                    onClick={isRecording ? 
+                      (isPaused ? onResumeRecording : onPauseRecording) : 
+                      onStartRecording}
                     onKeyDown={handleKeyPress}
                     className={`w-16 h-16 rounded-full transition-all duration-200 transform active:scale-95 focus:ring-2 focus:ring-offset-2 ${
                       isRecording 
                         ? "bg-red-500 hover:bg-red-600 shadow-lg focus:ring-red-500" 
                         : "bg-medical-primary hover:bg-medical-secondary focus:ring-medical-primary"
                     }`}
-                    aria-label={isRecording ? "Stop Recording" : "Start Recording"}
+                    aria-label={isRecording ? (isPaused ? "Resume Recording" : "Pause Recording") : "Start Recording"}
                     aria-pressed={isRecording}
                     role="switch"
                   >
                     {isRecording ? (
-                      <Square className="h-6 w-6" aria-hidden="true" />
+                      isPaused ? 
+                        <Play className="h-6 w-6" aria-hidden="true" /> : 
+                        <Pause className="h-6 w-6" aria-hidden="true" />
                     ) : (
                       <Mic className="h-6 w-6" aria-hidden="true" />
                     )}
@@ -97,7 +106,7 @@ const RecordingControls = ({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{isRecording 
-                    ? "Click to stop recording" 
+                    ? (isPaused ? "Click to resume recording" : "Click to pause recording") 
                     : "Click to start recording your medical notes"}
                   </p>
                 </TooltipContent>
@@ -105,14 +114,25 @@ const RecordingControls = ({
             </TooltipProvider>
           </div>
 
+          {isRecording && (
+            <Button
+              onClick={onStopRecording}
+              variant="outline"
+              size="sm"
+              className="bg-white border-red-400 text-red-500 hover:bg-red-50"
+            >
+              <Square className="h-4 w-4 mr-2" /> Stop Recording
+            </Button>
+          )}
+
           <div className="flex flex-col items-center gap-1">
             {isRecording && (
               <span 
-                className="text-sm font-semibold text-red-500"
+                className={`text-sm font-semibold ${isPaused ? "text-amber-500" : "text-red-500"}`}
                 role="timer"
                 aria-label="Recording duration"
               >
-                {formatTime(elapsedTime)}
+                {formatTime(elapsedTime)} {isPaused && "(Paused)"}
               </span>
             )}
             <span 
@@ -121,7 +141,7 @@ const RecordingControls = ({
               aria-live="polite"
             >
               {isRecording 
-                ? "Recording in progress..." 
+                ? (isPaused ? "Recording paused" : "Recording in progress...") 
                 : "Press Space or Enter to start recording"}
             </span>
           </div>

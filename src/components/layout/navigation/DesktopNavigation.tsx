@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useNavigate, useLocation, NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import {
 
 interface DesktopNavigationProps {
   textColor: string;
-  buttonVariant: "default" | "outline" | "outlineWhite";
+  buttonVariant: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
   session: any;
   handleLogin: () => Promise<void>;
   handleLogout: () => Promise<void>;

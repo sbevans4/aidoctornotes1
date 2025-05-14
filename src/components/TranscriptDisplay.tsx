@@ -12,13 +12,17 @@ interface Segment {
 }
 
 interface TranscriptDisplayProps {
-  transcript: string;
+  transcript?: string;
+  text?: string;
   speakers?: Speaker[];
   segments?: Segment[];
 }
 
-const TranscriptDisplay = ({ transcript, speakers, segments }: TranscriptDisplayProps) => {
-  if (!transcript) return null;
+const TranscriptDisplay = ({ transcript, text, speakers, segments }: TranscriptDisplayProps) => {
+  // Use either transcript or text prop
+  const transcriptContent = transcript || text;
+  
+  if (!transcriptContent) return null;
 
   return (
     <div className="mt-4 sm:mt-6">
@@ -61,7 +65,7 @@ const TranscriptDisplay = ({ transcript, speakers, segments }: TranscriptDisplay
         </div>
       ) : (
         <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="text-gray-700 break-words">{transcript}</p>
+          <p className="text-gray-700 break-words">{transcriptContent}</p>
         </div>
       )}
     </div>

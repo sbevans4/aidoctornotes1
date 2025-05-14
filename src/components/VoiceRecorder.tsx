@@ -29,18 +29,6 @@ interface SoapNote {
   plan: string;
 }
 
-interface Speaker {
-  id: string;
-  name: string;
-}
-
-interface Segment {
-  start: number;
-  end: number;
-  text: string;
-  speaker?: string;
-}
-
 const VoiceRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -168,7 +156,7 @@ const VoiceRecorder = () => {
         
         {transcript && (
           <TranscriptDisplay
-            text={transcript}
+            transcript={transcript}
             speakers={speakers}
             segments={segments}
           />

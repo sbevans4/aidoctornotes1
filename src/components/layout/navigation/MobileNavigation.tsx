@@ -1,8 +1,9 @@
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { NavLink, Separator } from "@/components/ui/nav-link";
-import { LayoutDashboard, User, FileText, CreditCard, LogOut, LogIn } from "@/components/ui/icons";
+import { LayoutDashboard, User, FileText, CreditCard, LogOut, LogIn } from "lucide-react";
 
 interface MobileNavigationProps {
   isMenuOpen: boolean;

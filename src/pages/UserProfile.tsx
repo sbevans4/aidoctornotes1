@@ -26,6 +26,21 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { UserCircle, Clock, Check, AlertTriangle } from "lucide-react";
 
+interface ProfileData {
+  created_at: string;
+  email: string;
+  full_name: string;
+  has_used_trial: boolean;
+  id: string;
+  purchase_date: string;
+  refund_request_date: string;
+  refund_requested: boolean;
+  updated_at: string;
+  organization?: string;
+  title?: string;
+  phone?: string;
+}
+
 interface UserProfileData {
   email: string;
   fullName: string;
@@ -68,12 +83,15 @@ const UserProfile = () => {
         throw error;
       }
       
+      // Type assertion to handle the extended profile fields
+      const typedProfile = profile as ProfileData | null;
+      
       setProfileData({
         email: user.email || "",
-        fullName: profile?.full_name || "",
-        organization: profile?.organization || "",
-        title: profile?.title || "",
-        phone: profile?.phone || "",
+        fullName: typedProfile?.full_name || "",
+        organization: typedProfile?.organization || "",
+        title: typedProfile?.title || "",
+        phone: typedProfile?.phone || "",
       });
     } catch (error) {
       console.error("Error fetching profile data:", error);
