@@ -15,6 +15,13 @@ export interface AnalysisResult {
     recommendations?: string[];
     tags?: string[];
   };
+  interpretation?: string;
+  findings?: Array<{
+    name: string;
+    probability: number;
+    description: string;
+  }>;
+  suggestedCodes?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -82,5 +89,46 @@ export interface MedicalDocumentationWireframe {
   };
   workflows: {
     recordingToNote: string[];
+  };
+}
+
+export interface AndroidAppWireframe {
+  appName: string;
+  appId: string;
+  screens: {
+    id: string;
+    name: string;
+    route: string;
+    components: string[];
+    description: string;
+  }[];
+  components: {
+    id: string;
+    name: string;
+    description: string;
+    props: string[];
+    androidSpecific?: boolean;
+  }[];
+  nativeFeatures: {
+    id: string;
+    name: string;
+    description: string;
+    androidPermission?: string;
+    capacitorPlugin?: string;
+  }[];
+  dataFlow: {
+    id: string;
+    source: string;
+    destination: string;
+    dataType: string;
+    description: string;
+  }[];
+  stateManagement: string;
+  apiIntegration: string[];
+  buildConfiguration: {
+    targetSdk: number;
+    minSdk: number;
+    buildTools: string;
+    capacitorVersion: string;
   };
 }

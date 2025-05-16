@@ -45,15 +45,45 @@ export const analyzeImage = async (base64Image: string): Promise<AnalysisResult>
     try {
       const jsonContent = data.choices[0].message.content;
       parsedResult = JSON.parse(jsonContent);
+      
+      // Create a properly formatted AnalysisResult object
+      const result: AnalysisResult = {
+        id: crypto.randomUUID(),
+        type: 'image',
+        content: {
+          url: base64Image,
+        },
+        analysis: {
+          summary: parsedResult.interpretation,
+          confidence: parsedResult.diagnosisConfidence || 0,
+        },
+        interpretation: parsedResult.interpretation,
+        findings: parsedResult.findings || [],
+        suggestedCodes: parsedResult.suggestedCodes || [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      return result;
     } catch (e) {
       // If JSON parsing fails, use the raw text as interpretation
-      parsedResult = {
+      const fallbackResult: AnalysisResult = {
+        id: crypto.randomUUID(),
+        type: 'image',
+        content: {
+          url: base64Image,
+        },
+        analysis: {
+          summary: data.choices[0].message.content,
+        },
         interpretation: data.choices[0].message.content,
         suggestedCodes: [],
+        findings: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
+      return fallbackResult;
     }
-
-    return parsedResult;
   } catch (error) {
     console.error('Error analyzing image:', error);
     toast({
