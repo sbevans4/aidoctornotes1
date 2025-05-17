@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -23,6 +22,8 @@ import SecurityDashboard from "./pages/SecurityDashboard";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import UserProfile from "./pages/UserProfile";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCanceled from "./pages/PaymentCanceled";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -208,6 +209,14 @@ function App() {
                 </Layout>
               }
             />
+            {
+              path: "payment-success",
+              element: <PaymentSuccess />,
+            },
+            {
+              path: "payment-canceled",
+              element: <PaymentCanceled />,
+            },
           </Routes>
           <Toaster />
         </AuthProvider>

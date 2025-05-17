@@ -85,6 +85,30 @@ export type Database = {
           },
         ]
       }
+      features: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          feature: string
+          id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          feature: string
+          id?: never
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          feature?: string
+          id?: never
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           card_brand: string | null
@@ -416,10 +440,16 @@ export type Database = {
     Views: {
       user_features: {
         Row: {
-          features: Json | null
-          tier: Database["public"]["Enums"]["subscription_tier"] | null
-          tier_level: number | null
+          feature: string | null
           user_id: string | null
+        }
+        Insert: {
+          feature?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          feature?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
