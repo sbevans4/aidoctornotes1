@@ -425,8 +425,25 @@ export type Database = {
       }
     }
     Functions: {
+      current_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_features: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          features: Json
+          tier_level: number
+        }[]
+      }
       has_feature: {
         Args: { user_id: string; feature_name: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: { role_name: string }
         Returns: boolean
       }
     }

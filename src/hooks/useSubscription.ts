@@ -66,21 +66,27 @@ export const useSubscription = () => {
   });
 
   const checkFeatureAccess = async (featureName: string): Promise<boolean> => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
 
-    const { data, error } = await supabase
-      .rpc('has_feature', { 
-        user_id: user.id,
-        feature_name: featureName
-      });
+      // Use the RPC function to check feature access
+      const { data, error } = await supabase
+        .rpc('has_feature', { 
+          user_id: user.id,
+          feature_name: featureName
+        });
 
-    if (error) {
-      console.error('Error checking feature access:', error);
+      if (error) {
+        console.error('Error checking feature access:', error);
+        return false;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in checkFeatureAccess:', error);
       return false;
     }
-
-    return data;
   };
 
   const subscribeToPlan = useMutation({
