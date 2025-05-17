@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import {
 } from "lucide-react";
 
 interface RoleSelectionProps {
-  onRoleSelected: () => void;
+  onRoleSelected: (role: string) => void;
 }
 
 const roles = [
@@ -59,7 +60,7 @@ const RoleSelection = ({ onRoleSelected }: RoleSelectionProps) => {
       title: "Role selected",
       description: `You have selected the ${selectedRole} role`,
     });
-    onRoleSelected();
+    onRoleSelected(selectedRole);
   };
 
   return (
