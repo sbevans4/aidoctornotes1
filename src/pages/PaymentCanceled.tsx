@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,11 @@ import { XCircle } from "lucide-react";
 
 export default function PaymentCanceled() {
   const navigate = useNavigate();
+  
+  // Clean up any payment-related data on cancel
+  useEffect(() => {
+    localStorage.removeItem('paypal_order_id');
+  }, []);
 
   return (
     <div className="container mx-auto py-16 px-4 max-w-md">
