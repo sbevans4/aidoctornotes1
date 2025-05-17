@@ -61,7 +61,7 @@ const AITherapyNotes = () => {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button 
                     size="lg"
-                    onClick={() => navigate("/auth")}
+                    onClick={() => navigate("/auth?tab=therapy-notes")}
                     className="bg-white text-blue-600 hover:bg-gray-100"
                   >
                     Start Free 14-Day Trial <ArrowRight className="ml-2 h-4 w-4" />
@@ -223,7 +223,7 @@ const AITherapyNotes = () => {
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button 
                 size="lg"
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/auth?tab=therapy-notes")}
                 className="bg-white text-blue-600 hover:bg-gray-100"
               >
                 Start Free 14-Day Trial
