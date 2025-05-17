@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -209,14 +210,14 @@ function App() {
                 </Layout>
               }
             />
-            {
-              path: "payment-success",
-              element: <PaymentSuccess />,
-            },
-            {
-              path: "payment-canceled",
-              element: <PaymentCanceled />,
-            },
+            <Route
+              path="/payment-success"
+              element={<PaymentSuccess />}
+            />
+            <Route
+              path="/payment-canceled"
+              element={<PaymentCanceled />}
+            />
           </Routes>
           <Toaster />
         </AuthProvider>
