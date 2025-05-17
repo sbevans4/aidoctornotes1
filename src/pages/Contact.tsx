@@ -73,7 +73,7 @@ const Contact = () => {
     {
       icon: Mail,
       title: "Email Us",
-      details: ["info@convonotes.com", "support@convonotes.com"]
+      details: ["info@aidoctornotes.com", "support@aidoctornotes.com"]
     },
     {
       icon: MapPin,
