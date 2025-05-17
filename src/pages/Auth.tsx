@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SignInForm } from "@/components/auth/SignInForm";
@@ -8,7 +7,7 @@ import { AINotesPlans } from "@/components/auth/AINotesPlans";
 import { TherapyNotesPlans } from "@/components/auth/TherapyNotesPlans";
 import { DocumentationExample } from "@/components/auth/DocumentationExample";
 import { EnterpriseCTA } from "@/components/auth/EnterpriseCTA";
-import { RoleSelection } from "@/components/RoleSelection";
+import RoleSelection from "@/components/RoleSelection";
 import { OnboardingTour } from "@/components/auth/OnboardingTour";
 
 interface Plan {
@@ -253,7 +252,7 @@ const Auth = () => {
                   </TabsContent>
 
                   <TabsContent value="signup">
-                    <SignUpForm selectedPlan={selectedPlan} />
+                    <SignUpForm />
                   </TabsContent>
                 </Tabs>
 

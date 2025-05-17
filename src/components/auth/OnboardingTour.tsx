@@ -11,6 +11,10 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
+interface OnboardingTourProps {
+  onComplete?: () => void;
+}
+
 const tourSteps = [
   {
     title: "Welcome to Medical Transcription!",
@@ -34,7 +38,7 @@ const tourSteps = [
   },
 ];
 
-export function OnboardingTour() {
+export function OnboardingTour({ onComplete }: OnboardingTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 
@@ -53,6 +57,9 @@ export function OnboardingTour() {
   const handleClose = () => {
     setIsVisible(false);
     localStorage.setItem("onboardingCompleted", "true");
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   if (!isVisible || localStorage.getItem("onboardingCompleted")) {
