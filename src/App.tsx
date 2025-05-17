@@ -1,18 +1,31 @@
 
-import { BrowserRouter as Router, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "./components/ui/toaster";
-import { MainRoutes } from "./routes/MainRoutes";
-import { ServiceRoutes } from "./routes/ServiceRoutes";
-import { BlogRoutes } from "./routes/BlogRoutes";
-import { SecurityRoutes } from "./routes/SecurityRoutes";
-import { AuthenticatedRoutes } from "./routes/AuthenticatedRoutes";
-import { PaymentRoutes } from "./routes/PaymentRoutes";
-import NotFound from "./pages/NotFound";
-import { Route } from "react-router-dom";
-import { Layout } from "./components/layout/Layout";
+import { Layout } from "@/components/layout/Layout";
+import { PrivateRoute } from "./routes/PrivateRoute";
+
+// Pages
+import Index from "./pages/Index";
+import Enterprise from "./pages/Enterprise";
 import Auth from "./pages/Auth";
+import Services from "./pages/Services";
+import AIDoctorNotes from "./pages/Services/AIDoctorNotes";
+import AITherapyNotes from "./pages/Services/AITherapyNotes";
+import AIMedicalTranscription from "./pages/Services/AIMedicalTranscription";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
+import Security from "./pages/Security";
+import SecurityDashboard from "./pages/SecurityDashboard";
+import Contact from "./pages/Contact";
+import Dashboard from "./pages/Dashboard";
+import MedicalDocumentation from "./pages/MedicalDocumentation";
+import SubscriptionPlans from "./pages/SubscriptionPlans";
+import UserProfile from "./pages/UserProfile";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCanceled from "./pages/PaymentCanceled";
+import NotFound from "./pages/NotFound";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -24,22 +37,149 @@ function App() {
         <AuthProvider>
           <Routes>
             {/* Main Routes */}
-            <MainRoutes />
+            <Route
+              path="/"
+              element={
+                <Layout>
+                  <Index />
+                </Layout>
+              }
+            />
+            <Route path="/auth" element={<Auth />} />
+            <Route
+              path="/enterprise"
+              element={
+                <Layout>
+                  <Enterprise />
+                </Layout>
+              }
+            />
             
             {/* Service Routes */}
-            <ServiceRoutes />
+            <Route
+              path="/services"
+              element={
+                <Layout>
+                  <Services />
+                </Layout>
+              }
+            />
+            <Route
+              path="/services/ai-doctor-notes"
+              element={
+                <Layout>
+                  <AIDoctorNotes />
+                </Layout>
+              }
+            />
+            <Route
+              path="/services/ai-therapy-notes"
+              element={
+                <Layout>
+                  <AITherapyNotes />
+                </Layout>
+              }
+            />
+            <Route
+              path="/services/ai-medical-transcription"
+              element={
+                <Layout>
+                  <AIMedicalTranscription />
+                </Layout>
+              }
+            />
             
             {/* Blog Routes */}
-            <BlogRoutes />
+            <Route
+              path="/blog"
+              element={
+                <Layout>
+                  <Blog />
+                </Layout>
+              }
+            />
+            <Route
+              path="/blog/:slug"
+              element={
+                <Layout>
+                  <BlogPost />
+                </Layout>
+              }
+            />
             
             {/* Security Routes */}
-            <SecurityRoutes />
+            <Route
+              path="/security"
+              element={
+                <Layout>
+                  <Security />
+                </Layout>
+              }
+            />
+            <Route
+              path="/security/dashboard"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <SecurityDashboard />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <Layout>
+                  <Contact />
+                </Layout>
+              }
+            />
             
             {/* Authenticated Routes */}
-            <AuthenticatedRoutes />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/medical-documentation"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <MedicalDocumentation />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/subscription-plans"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <SubscriptionPlans />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <UserProfile />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
             
             {/* Payment Routes */}
-            <PaymentRoutes />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-canceled" element={<PaymentCanceled />} />
             
             {/* 404 Route */}
             <Route
