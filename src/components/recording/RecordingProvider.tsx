@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface RecordingProviderProps {
-  children: ReactNode;
+  children: ReactNode | ((context: RecordingContextValue) => ReactNode);
   onAudioProcessed: (audioBlob: Blob) => void;
 }
 
@@ -138,7 +138,9 @@ const RecordingProvider = ({ children, onAudioProcessed }: RecordingProviderProp
   
   return (
     <>
-      {children instanceof Function ? children(value) : children}
+      {typeof children === 'function' 
+        ? children(value) 
+        : children}
     </>
   );
 };

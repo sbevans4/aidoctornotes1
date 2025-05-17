@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
@@ -9,7 +8,7 @@ import SoapNoteDisplay from "./SoapNoteDisplay";
 import { templateOptions } from "./advanced-documentation/TemplateSelector";
 import TemplateSelector from "./advanced-documentation/TemplateSelector";
 import { Skeleton } from "@/components/ui/skeleton";
-import RecordingProvider from "./recording/RecordingProvider";
+import RecordingProvider, { RecordingContextValue } from "./recording/RecordingProvider";
 import { processAudioBlob } from "@/utils/audioProcessing";
 
 interface Speaker {
@@ -111,6 +110,20 @@ const VoiceRecorder = () => {
     }
   };
   
+  const renderRecordingControls = (recordingContext: RecordingContextValue) => {
+    return (
+      <RecordingControls
+        isRecording={recordingContext.isRecording}
+        isPaused={recordingContext.isPaused}
+        isProcessing={isProcessing}
+        onStartRecording={recordingContext.startRecording}
+        onStopRecording={recordingContext.stopRecording}
+        onPauseRecording={recordingContext.pauseRecording}
+        onResumeRecording={recordingContext.resumeRecording}
+      />
+    );
+  };
+  
   return (
     <div className="space-y-6">
       <TemplateSelector 
@@ -120,17 +133,7 @@ const VoiceRecorder = () => {
       
       <Card className="p-6">
         <RecordingProvider onAudioProcessed={handleAudioProcessed}>
-          {(recordingContext) => (
-            <RecordingControls
-              isRecording={recordingContext.isRecording}
-              isPaused={recordingContext.isPaused}
-              isProcessing={isProcessing}
-              onStartRecording={recordingContext.startRecording}
-              onStopRecording={recordingContext.stopRecording}
-              onPauseRecording={recordingContext.pauseRecording}
-              onResumeRecording={recordingContext.resumeRecording}
-            />
-          )}
+          {(recordingContext: RecordingContextValue) => renderRecordingControls(recordingContext)}
         </RecordingProvider>
         
         {isProcessing && (
