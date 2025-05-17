@@ -8,9 +8,9 @@ const Contact = () => {
   return (
     <>
       <Helmet>
-        <title>Contact Us | ConvoNotes Genius</title>
+        <title>Contact Us | AIDoctorNotes</title>
         <meta name="description" content="Get in touch with our team for questions about AI medical documentation, pricing, demo requests, or technical support." />
-        <meta property="og:title" content="Contact Us | ConvoNotes Genius" />
+        <meta property="og:title" content="Contact Us | AIDoctorNotes" />
         <meta property="og:description" content="Get in touch with our team for questions about AI medical documentation, pricing, demo requests, or technical support." />
       </Helmet>
 
