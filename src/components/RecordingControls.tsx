@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, Square, Pause, Play, Loader2 } from "lucide-react";
 import {
@@ -8,6 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import RecordingTimer from "./recording/RecordingTimer";
 
 interface RecordingControlsProps {
   isRecording: boolean;
@@ -28,31 +28,6 @@ const RecordingControls = ({
   onPauseRecording,
   onResumeRecording,
 }: RecordingControlsProps) => {
-  const [elapsedTime, setElapsedTime] = useState(0);
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-    
-    if (isRecording && !isPaused) {
-      intervalId = setInterval(() => {
-        setElapsedTime(prev => prev + 1);
-      }, 1000);
-    } else if (!isRecording) {
-      setElapsedTime(0);
-    }
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [isRecording, isPaused]);
-
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const handleKeyPress = (event: React.KeyboardEvent) => {
     if (event.key === ' ' || event.key === 'Enter') {
@@ -127,13 +102,7 @@ const RecordingControls = ({
 
           <div className="flex flex-col items-center gap-1">
             {isRecording && (
-              <span 
-                className={`text-sm font-semibold ${isPaused ? "text-amber-500" : "text-red-500"}`}
-                role="timer"
-                aria-label="Recording duration"
-              >
-                {formatTime(elapsedTime)} {isPaused && "(Paused)"}
-              </span>
+              <RecordingTimer isRecording={isRecording} isPaused={isPaused} />
             )}
             <span 
               className="text-sm font-medium text-gray-600"
