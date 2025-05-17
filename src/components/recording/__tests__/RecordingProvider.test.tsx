@@ -39,9 +39,12 @@ describe('RecordingProvider', () => {
 
   beforeEach(() => {
     // Mock the getUserMedia
-    global.navigator.mediaDevices = {
-      getUserMedia: vi.fn().mockResolvedValue(mockStream),
-    } as any;
+    Object.defineProperty(global.navigator, 'mediaDevices', {
+      writable: true,
+      value: {
+        getUserMedia: vi.fn().mockResolvedValue(mockStream),
+      }
+    });
 
     // Mock MediaRecorder
     global.MediaRecorder = vi.fn().mockImplementation(() => mockMediaRecorder) as any;
