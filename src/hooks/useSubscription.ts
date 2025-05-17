@@ -79,13 +79,13 @@ export const useSubscription = () => {
 
       if (error) {
         console.error('Error checking feature access:', error);
-        return false;
+        throw error;
       }
 
-      return data;
+      return !!data;
     } catch (error) {
       console.error('Error in checkFeatureAccess:', error);
-      return false;
+      throw error;
     }
   };
 
