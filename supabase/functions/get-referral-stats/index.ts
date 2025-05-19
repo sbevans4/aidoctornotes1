@@ -49,9 +49,13 @@ serve(async (req) => {
       );
     }
 
-    // Return the stats
+    // Return the stats with additional metadata
     return new Response(
-      JSON.stringify(data || {}),
+      JSON.stringify({
+        ...data,
+        retrieved_at: new Date().toISOString(),
+        version: '1.1'
+      }),
       { 
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" }

@@ -1,8 +1,23 @@
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ReferralBanner } from '../ReferralBanner';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { useToast } from '@/components/ui/use-toast';
+
+// Mock useToast
+vi.mock('@/components/ui/use-toast', () => ({
+  useToast: vi.fn().mockReturnValue({
+    toast: vi.fn()
+  })
+}));
+
+// Mock clipboard API
+Object.assign(navigator, {
+  clipboard: {
+    writeText: vi.fn().mockResolvedValue(undefined)
+  }
+});
 
 describe('ReferralBanner Component', () => {
   it('renders null when no discount is provided', () => {
@@ -43,6 +58,24 @@ describe('ReferralBanner Component', () => {
     
     // Banner should be hidden after dismissal
     expect(screen.queryByText(/Special Discount Applied!/i)).not.toBeInTheDocument();
+  });
+
+  it('copies referral code to clipboard when clicked', async () => {
+    render(<ReferralBanner discount={10} referralCode="TESTCODE" />);
+    
+    const codeElement = screen.getByText('TESTCODE');
+    fireEvent.click(codeElement.parentElement as HTMLElement);
+    
+    await waitFor(() => {
+      // Check if clipboard API was called
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('TESTCODE');
+      
+      // Check if toast was displayed
+      const { toast } = useToast() as { toast: vi.Mock };
+      expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Copied!'
+      }));
+    });
   });
 
   it('has a link to view subscription plans', () => {

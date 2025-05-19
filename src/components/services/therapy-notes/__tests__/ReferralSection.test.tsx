@@ -112,6 +112,25 @@ describe('ReferralSection Component', () => {
     });
   });
 
+  it('displays referral statistics when available', () => {
+    setupMocks({
+      isAuthenticated: true,
+      referralData: {
+        totalReferrals: 5,
+        pendingReferrals: 2,
+        completedReferrals: 3,
+        successfulConversions: 2,
+        earnings: 30
+      }
+    });
+    
+    render(<ReferralSection />);
+    
+    expect(screen.getByText(/5/)).toBeInTheDocument(); // Total referrals
+    expect(screen.getByText(/3/)).toBeInTheDocument(); // Completed referrals
+    expect(screen.getByText(/2/)).toBeInTheDocument(); // Conversions
+  });
+
   it('handles error when sending invitation', async () => {
     const mockToast = vi.fn();
     (useToast as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ toast: mockToast });

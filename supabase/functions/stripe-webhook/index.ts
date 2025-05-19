@@ -90,7 +90,7 @@ serve(async (req) => {
     }
     
     // Handle subscription creation - this is where we process referrals
-    if (event.type === "customer.subscription.created") {
+    if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
       const subscription = event.data.object;
       const customerId = subscription.customer;
       
@@ -132,7 +132,7 @@ serve(async (req) => {
         if (!referralError && referralData) {
           const referrerId = referralData.referrer_id;
           
-          logStep(`User was referred by ${referrerId}`);
+          logStep(`User was referred by ${referrerId}`, { referralData });
           
           // Create a completed referral record
           const { error: insertError } = await supabaseAdmin
@@ -159,10 +159,18 @@ serve(async (req) => {
               .eq("referrer_id", referrerId);
               
             // Send notification to the referrer (would typically be done via a separate function)
-            // In a real implementation, you'd queue a notification or email here
-            
-            // Create a discount for the referrer (e.g., $10 off next invoice)
-            // This would typically be done through Stripe API or by adding a credit to their account
+            try {
+              await supabaseAdmin.functions.invoke('send-referral-email', {
+                body: { 
+                  type: 'conversion_success',
+                  referrerId: referrerId,
+                  referredEmail: customerEmail
+                }
+              });
+              logStep("Referral notification sent successfully");
+            } catch (notifyError) {
+              logStep(`Error sending referral notification: ${notifyError instanceof Error ? notifyError.message : 'Unknown error'}`);
+            }
             
             logStep("Referral process completed");
           }

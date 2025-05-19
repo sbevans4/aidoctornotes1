@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -11,6 +10,13 @@ export interface ReferralData {
   pendingReferrals?: number;
   completedReferrals?: number;
   successfulConversions?: number;
+  earnings?: number;
+  recentReferrals?: Array<{
+    id: string;
+    status: string;
+    created_at: string;
+    email: string;
+  }>;
 }
 
 export const useReferral = () => {
@@ -40,7 +46,7 @@ export const useReferral = () => {
           .single();
 
         // Get statistics about referrals
-        const { data: statsData, error: statsError } = await supabase.functions.invoke('get_referral_stats', {
+        const { data: statsData, error: statsError } = await supabase.functions.invoke('get-referral-stats', {
           body: { user_id: user.id }
         });
 
@@ -49,6 +55,10 @@ export const useReferral = () => {
             (discountError && discountError.code !== 'PGRST116')) {
           console.error("Error fetching referral data:", codeError || discountError);
           return {};
+        }
+
+        if (statsError) {
+          console.error("Error fetching referral stats:", statsError);
         }
 
         let result: ReferralData = {};
@@ -89,7 +99,9 @@ export const useReferral = () => {
             totalReferrals: statsData.total_referrals || 0,
             pendingReferrals: statsData.pending_referrals || 0,
             completedReferrals: statsData.completed_referrals || 0,
-            successfulConversions: statsData.successful_conversions || 0
+            successfulConversions: statsData.successful_conversions || 0,
+            earnings: statsData.earnings || 0,
+            recentReferrals: statsData.recent_referrals || []
           };
         }
 
