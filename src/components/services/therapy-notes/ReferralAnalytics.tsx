@@ -25,7 +25,7 @@ export const ReferralAnalytics: React.FC = () => {
   
   const handleRefresh = () => {
     refetch();
-    toast({
+    toast.success({ // Changed from toast(...) to toast.success(...)
       title: "Data Refreshed",
       description: "Your referral data has been updated.",
     });

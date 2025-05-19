@@ -118,8 +118,8 @@ export const ReferralAdminPanel: React.FC = () => {
   };
 
   // Handle status update
-  const handleStatusUpdate = (id: string, newStatus: string) => {
-    updateStatus.mutate({ id, newStatus });
+  const handleStatusUpdate = (id: string, status: string) => {
+    updateStatus.mutate({ id, status }); // Changed from 'newStatus' to 'status'
     setIsDetailsOpen(false);
   };
 
