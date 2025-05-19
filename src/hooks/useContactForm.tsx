@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 // Define the form schema using Zod
 const contactFormSchema = z.object({
@@ -27,6 +26,7 @@ export const useContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [networkError, setNetworkError] = useState<string | null>(null);
+  const [attemptCount, setAttemptCount] = useState(0);
   
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -46,15 +46,23 @@ export const useContactForm = () => {
     setNetworkError(null);
   };
 
+  const retrySubmit = (submitFn: () => Promise<void>) => {
+    setNetworkError(null);
+    setAttemptCount(prev => prev + 1);
+    submitFn();
+  };
+
   return {
     form,
     isSubmitting,
     isSubmitted,
     networkError,
+    attemptCount,
     setIsSubmitting,
     setIsSubmitted,
     setNetworkError,
     resetForm,
+    retrySubmit,
     schema: contactFormSchema,
   };
 };

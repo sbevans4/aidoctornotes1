@@ -24,6 +24,7 @@ type SignInFormValues = z.infer<typeof signInSchema>;
 export function SignInForm() {
   const [loading, setLoading] = useState(false);
   const [networkError, setNetworkError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -44,6 +45,12 @@ export function SignInForm() {
     }
   }, []);
 
+  const handleRetry = () => {
+    setNetworkError(null);
+    setRetryCount(prevCount => prevCount + 1);
+    form.handleSubmit(handleSignIn)();
+  };
+
   const handleSignIn = async (values: SignInFormValues) => {
     setLoading(true);
     setNetworkError(null);
@@ -57,12 +64,19 @@ export function SignInForm() {
         return;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       });
 
       if (error) throw error;
+
+      // Check if email is verified
+      if (data.user && !data.user.email_confirmed_at) {
+        // Redirect to verification page
+        navigate("/auth/verify");
+        return;
+      }
 
       toast({
         title: "Welcome back",
@@ -125,11 +139,30 @@ export function SignInForm() {
     }
   };
 
+  const handleForgotPassword = () => {
+    const email = form.getValues("email");
+    if (email) {
+      navigate(`/auth/forgot-password?email=${encodeURIComponent(email)}`);
+    } else {
+      navigate("/auth/forgot-password");
+    }
+  };
+
   return (
     <div>
       {networkError && (
         <Alert variant="destructive" className="mb-4" role="alert">
-          <AlertDescription>{networkError}</AlertDescription>
+          <AlertDescription>
+            {networkError}
+            <Button 
+              variant="link" 
+              onClick={handleRetry}
+              className="p-0 h-auto ml-2 underline"
+              disabled={loading}
+            >
+              Retry
+            </Button>
+          </AlertDescription>
         </Alert>
       )}
       
@@ -138,13 +171,16 @@ export function SignInForm() {
           onSubmit={form.handleSubmit(handleSignIn)} 
           className="space-y-4"
           aria-label="Sign in form"
+          key={`sign-in-form-${retryCount}`}
         >
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor="email">Email</FormLabel>
+                <FormLabel htmlFor="email">
+                  Email <span className="text-red-500" aria-hidden="true">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input
                     id="email"
@@ -155,9 +191,18 @@ export function SignInForm() {
                     aria-required="true"
                     ref={emailInputRef}
                     {...field}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const passwordField = document.getElementById('password');
+                        if (passwordField) {
+                          passwordField.focus();
+                        }
+                      }
+                    }}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage aria-live="polite" />
               </FormItem>
             )}
           />
@@ -168,14 +213,24 @@ export function SignInForm() {
             render={({ field }) => (
               <FormItem>
                 <div className="flex justify-between items-center">
-                  <FormLabel htmlFor="password">Password</FormLabel>
-                  <Link 
-                    to="/auth/forgot-password" 
-                    className="text-xs text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  <FormLabel htmlFor="password">
+                    Password <span className="text-red-500" aria-hidden="true">*</span>
+                  </FormLabel>
+                  <Button 
+                    type="button"
+                    variant="link" 
+                    className="text-xs p-0 h-auto"
+                    onClick={handleForgotPassword}
                     tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleForgotPassword();
+                      }
+                    }}
                   >
                     Forgot Password?
-                  </Link>
+                  </Button>
                 </div>
                 <FormControl>
                   <Input
@@ -186,9 +241,15 @@ export function SignInForm() {
                     disabled={loading}
                     aria-required="true"
                     {...field}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        form.handleSubmit(handleSignIn)();
+                      }
+                    }}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage aria-live="polite" />
               </FormItem>
             )}
           />

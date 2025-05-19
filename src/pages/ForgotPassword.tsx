@@ -1,7 +1,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { z } from "zod";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { Loader2, MailCheck } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, MailCheck, ArrowLeft } from "lucide-react";
 import { validateEmail, isNetworkError, formatAuthError } from "@/utils/formValidation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -25,8 +25,10 @@ export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [networkError, setNetworkError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -81,6 +83,15 @@ export default function ForgotPassword() {
     }
   };
 
+  const handleRetry = () => {
+    setNetworkError(null);
+    setRetryCount(prevCount => prevCount + 1);
+    const email = form.getValues("email");
+    if (email) {
+      form.handleSubmit(onSubmit)();
+    }
+  };
+
   const handleResendLink = () => {
     form.reset();
     setIsSubmitted(false);
@@ -88,9 +99,20 @@ export default function ForgotPassword() {
 
   return (
     <div className="container mx-auto py-16 max-w-md">
-      <Card>
+      <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Reset Your Password</CardTitle>
+          <div className="flex items-center mb-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate("/auth")}
+              className="mr-2 p-0 h-auto"
+              aria-label="Back to login"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <CardTitle className="text-2xl text-center flex-1">Reset Your Password</CardTitle>
+          </div>
           <CardDescription className="text-center">
             {isSubmitted 
               ? "Check your email for a reset link" 
@@ -100,7 +122,17 @@ export default function ForgotPassword() {
         <CardContent>
           {networkError && (
             <Alert variant="destructive" className="mb-4" role="alert">
-              <AlertDescription>{networkError}</AlertDescription>
+              <AlertDescription>
+                {networkError}
+                <Button 
+                  variant="link" 
+                  onClick={handleRetry}
+                  className="p-0 h-auto ml-2 underline"
+                  disabled={isLoading}
+                >
+                  Retry
+                </Button>
+              </AlertDescription>
             </Alert>
           )}
         
@@ -134,13 +166,16 @@ export default function ForgotPassword() {
                 onSubmit={form.handleSubmit(onSubmit)} 
                 className="space-y-4"
                 aria-label="Password reset request form"
+                key={`forgot-password-form-${retryCount}`}
               >
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="email">Email</FormLabel>
+                      <FormLabel htmlFor="email" className="text-foreground">
+                        Email <span className="text-red-500" aria-hidden="true">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           id="email"
@@ -150,9 +185,12 @@ export default function ForgotPassword() {
                           ref={emailInputRef}
                           disabled={isLoading}
                           aria-required="true"
+                          aria-describedby="email-error"
+                          className="bg-background"
+                          autoComplete="email"
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage id="email-error" aria-live="polite" />
                     </FormItem>
                   )}
                 />
