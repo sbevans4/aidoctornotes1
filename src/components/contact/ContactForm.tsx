@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +37,7 @@ export default function ContactForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [networkError, setNetworkError] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   // Initialize form with enhanced validation
   const form = useForm<ContactFormValues>({
