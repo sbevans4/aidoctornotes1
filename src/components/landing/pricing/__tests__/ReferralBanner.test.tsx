@@ -5,7 +5,7 @@ import { ReferralBanner } from '../ReferralBanner';
 import { describe, it, expect, vi } from 'vitest';
 import { useToast } from '@/components/ui/use-toast';
 
-// Mock useToast
+// Mock useToast with a proper mock function that Vitest can track
 vi.mock('@/components/ui/use-toast', () => ({
   useToast: vi.fn().mockReturnValue({
     toast: vi.fn()
@@ -70,8 +70,12 @@ describe('ReferralBanner Component', () => {
       // Check if clipboard API was called
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith('TESTCODE');
       
-      // Check if toast was displayed
-      const { toast } = useToast() as { toast: ReturnType<typeof vi.fn> };
+      // Get the mocked useToast function result
+      const mockToast = vi.mocked(useToast);
+      // Access the toast method from the mock return value
+      const { toast } = mockToast();
+      
+      // Check if toast was called with the expected arguments
       expect(toast).toHaveBeenCalledWith(expect.objectContaining({
         title: 'Copied!'
       }));
