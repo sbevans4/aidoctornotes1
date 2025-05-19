@@ -1,5 +1,5 @@
 
-import { ContactForm } from "@/components/contact/ContactForm";
+import ContactForm from "@/components/contact/ContactForm";
 import { ContactInfoSection } from "@/components/contact/ContactInfoSection";
 import { Helmet } from "react-helmet";
 
