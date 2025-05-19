@@ -1,16 +1,23 @@
 
 import { useState } from "react";
-import { Scroll, Mic, Brain, Gift, Percent, Check, Clock, Users, Award } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PaymentForm } from "@/components/PaymentForm";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useReferral } from "@/hooks/useReferral";
-import { FeaturesComparison } from "./FeaturesComparison";
-import { KeyFeatures } from "./pricing/KeyFeatures";
-import { PricingCard } from "./pricing/PricingCard";
 import { supabase } from "@/integrations/supabase/client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// Import our new components
+import { KeyFeatures } from "./pricing/KeyFeatures";
+import { SocialProofSection } from "./pricing/SocialProofSection";
+import { TrialBanner } from "./pricing/TrialBanner";
+import { UrgencyBanner } from "./pricing/UrgencyBanner";
+import { ReferralBanner } from "./pricing/ReferralBanner";
+import { TestimonialsSection } from "./pricing/TestimonialsSection";
+import { EnterpriseSection } from "./pricing/EnterpriseSection";
+import { PlanDetailsDialog } from "./pricing/PlanDetailsDialog";
+import { PaymentDialog } from "./pricing/PaymentDialog";
+import { MobilePlanSelector } from "./pricing/MobilePlanSelector";
+import { DesktopPlanDisplay } from "./pricing/DesktopPlanDisplay";
+import { socialProofNumbers } from "./pricing/pricingUtils";
+import { Scroll, Mic, Brain } from "lucide-react";
 
 interface PricingSectionProps {
   handleLogin: () => Promise<void>;
@@ -88,83 +95,8 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
     return tierOrder[a.tier] - tierOrder[b.tier];
   });
 
-  // Function to get active plans based on tab selection (for mobile view)
-  const getActivePlans = () => {
-    if (!displayPlans) return [];
-    
-    if (activeTab === "all") return displayPlans;
-    if (activeTab === "popular") return displayPlans.filter(plan => plan.tier === "professional");
-    if (activeTab === "basic") return displayPlans.filter(plan => ["basic", "standard"].includes(plan.tier));
-    if (activeTab === "advanced") return displayPlans.filter(plan => ["unlimited", "professional", "image_analysis"].includes(plan.tier));
-    
-    return displayPlans;
-  };
-
-  // Plan highlights for better clarity about what's included
-  const planHighlights = {
-    basic: {
-      title: "Basic",
-      subtitle: "For getting started",
-      includedFeatures: [
-        "Limited transcription (60 min/month)",
-        "5 SOAP notes per month",
-        "PDF export",
-        "Basic email support"
-      ]
-    },
-    standard: {
-      title: "Standard",
-      subtitle: "Most affordable",
-      includedFeatures: [
-        "Everything in Basic +",
-        "Unlimited transcription",
-        "Unlimited SOAP notes",
-        "Code suggestions",
-        "EHR copy-paste format"
-      ]
-    },
-    unlimited: {
-      title: "Unlimited",
-      subtitle: "For power users",
-      includedFeatures: [
-        "Everything in Standard +",
-        "Real-time code validation",
-        "Custom templates",
-        "Limited image analysis (5/month)",
-        "24/7 premium support"
-      ]
-    },
-    professional: {
-      title: "Professional",
-      subtitle: "Most popular plan",
-      includedFeatures: [
-        "Everything in Unlimited +",
-        "Direct EHR integration",
-        "Team accounts (up to 5)",
-        "Searchable code database",
-        "Priority processing"
-      ]
-    },
-    image_analysis: {
-      title: "Image Analysis",
-      subtitle: "For specialists",
-      includedFeatures: [
-        "Everything in Professional +",
-        "Unlimited image analysis",
-        "Real-time image interpretation",
-        "Diagnostic suggestions",
-        "Specialist templates"
-      ]
-    }
-  };
-
-  // Social proof data
-  const socialProofNumbers = {
-    doctors: "5,000+",
-    notes: "1 million+",
-    saved: "2 hours",
-    satisfaction: "98%"
-  };
+  // Get the currently displayed plan details for the dialog
+  const currentPlanDetails = plans?.find(p => p.id === showDetailsForPlan);
 
   return (
     <section className="py-16 bg-gray-50" id="pricing">
@@ -175,252 +107,78 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
         </p>
         
         {/* Social Proof Numbers */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 max-w-4xl mx-auto">
-          <div className="text-center p-4">
-            <p className="text-3xl font-bold text-primary">{socialProofNumbers.doctors}</p>
-            <p className="text-sm text-gray-600">Doctors Trust Us</p>
-          </div>
-          <div className="text-center p-4">
-            <p className="text-3xl font-bold text-primary">{socialProofNumbers.notes}</p>
-            <p className="text-sm text-gray-600">Notes Generated</p>
-          </div>
-          <div className="text-center p-4">
-            <p className="text-3xl font-bold text-primary">{socialProofNumbers.saved}</p>
-            <p className="text-sm text-gray-600">Saved Daily</p>
-          </div>
-          <div className="text-center p-4">
-            <p className="text-3xl font-bold text-primary">{socialProofNumbers.satisfaction}</p>
-            <p className="text-sm text-gray-600">Satisfaction Rate</p>
-          </div>
-        </div>
+        <SocialProofSection 
+          doctors={socialProofNumbers.doctors}
+          notes={socialProofNumbers.notes}
+          saved={socialProofNumbers.saved}
+          satisfaction={socialProofNumbers.satisfaction}
+        />
         
         {/* Trial Banner - Behavioral Economics */}
         {showTrialBanner && (
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-blue-100 border border-blue-200 rounded-lg p-4 flex items-center justify-between gap-2 text-blue-700">
-              <div className="flex items-center gap-2">
-                <Gift className="w-5 h-5" />
-                <span className="font-semibold">
-                  Try Professional free for 7 days! No credit card required.
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={() => handleStartTrial('professional')}
-                >
-                  Start Trial
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="border-blue-300 hover:bg-blue-200 text-blue-700"
-                  onClick={() => setShowTrialBanner(false)}
-                >
-                  Dismiss
-                </Button>
-              </div>
-            </div>
-          </div>
+          <TrialBanner 
+            onStartTrial={() => handleStartTrial('professional')}
+            onDismiss={() => setShowTrialBanner(false)}
+          />
         )}
         
         {/* Urgency Banner - Behavioral Economics */}
         {showUrgencyBanner && (
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-amber-100 border border-amber-200 rounded-lg p-4 flex items-center justify-between gap-2 text-amber-700">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center">
-                  <Percent className="w-5 h-5 mr-2" />
-                  <span className="font-semibold mr-2">
-                    Limited time offer: 20% off Professional plan for the first 3 months!
-                  </span>
-                  <div className="hidden md:flex items-center bg-amber-200 text-amber-800 px-2 py-1 rounded">
-                    <Clock className="w-3 h-3 mr-1" />
-                    <span className="text-xs font-bold">Offer ends in 3 days</span>
-                  </div>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="border-amber-300 hover:bg-amber-200 text-amber-700"
-                onClick={() => setShowUrgencyBanner(false)}
-              >
-                Dismiss
-              </Button>
-            </div>
-          </div>
+          <UrgencyBanner 
+            onDismiss={() => setShowUrgencyBanner(false)}
+          />
         )}
 
         {/* Referral Discount Banner */}
-        {referralData?.activeDiscount && (
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-green-100 border border-green-200 rounded-lg p-4 flex items-center justify-center gap-2 text-green-700">
-              <Gift className="w-5 h-5" />
-              <span className="font-semibold">
-                You have a {referralData.activeDiscount}% discount available on all plans!
-              </span>
-              <Percent className="w-4 h-4" />
-            </div>
-          </div>
-        )}
+        <ReferralBanner discount={referralData?.activeDiscount} />
 
         {/* Mobile View - Tab Navigation for Plans */}
-        <div className="md:hidden mb-6">
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full grid grid-cols-4">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="popular">Popular</TabsTrigger>
-              <TabsTrigger value="basic">Basic</TabsTrigger>
-              <TabsTrigger value="advanced">Advanced</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        <MobilePlanSelector
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          plans={displayPlans || []}
+          currentSubscriptionId={currentSubscription?.plan_id}
+          onShowDetails={setShowDetailsForPlan}
+          onSubscribe={handleSubscribe}
+          onStartTrial={handleStartTrial}
+          referralDiscount={referralData?.activeDiscount}
+          getDiscountedPrice={getDiscountedPrice}
+        />
 
         <KeyFeatures features={keyFeatures} />
         
         {/* Desktop View */}
-        <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
-          {displayPlans?.map((plan) => {
-            const isCurrentPlan = currentSubscription?.plan_id === plan.id;
-            const isProfessional = plan.tier === "professional";
-            const originalPrice = plan.price;
-            const discountedPrice = getDiscountedPrice(originalPrice);
-            const highlights = planHighlights[plan.tier as keyof typeof planHighlights];
-            
-            return (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                isCurrentPlan={isCurrentPlan}
-                isProfessional={isProfessional}
-                originalPrice={originalPrice}
-                discountedPrice={discountedPrice}
-                referralDiscount={referralData?.activeDiscount}
-                onShowDetails={() => setShowDetailsForPlan(plan.id)}
-                onSubscribe={() => handleSubscribe(plan.id)}
-                onStartTrial={() => handleStartTrial(plan.id)}
-                includesText={highlights?.title !== "Basic" ? `Everything in ${getPreviousTier(plan.tier)} +` : undefined}
-                highlights={highlights?.includedFeatures}
-                showTrial={plan.tier !== "basic" && plan.tier !== "enterprise"}
-              />
-            );
-          })}
-        </div>
+        <DesktopPlanDisplay
+          plans={displayPlans || []}
+          currentSubscriptionId={currentSubscription?.plan_id}
+          onShowDetails={setShowDetailsForPlan}
+          onSubscribe={handleSubscribe}
+          onStartTrial={handleStartTrial}
+          referralDiscount={referralData?.activeDiscount}
+          getDiscountedPrice={getDiscountedPrice}
+        />
 
-        {/* Mobile View */}
-        <div className="md:hidden space-y-6">
-          {getActivePlans().map((plan) => {
-            const isCurrentPlan = currentSubscription?.plan_id === plan.id;
-            const isProfessional = plan.tier === "professional";
-            const originalPrice = plan.price;
-            const discountedPrice = getDiscountedPrice(originalPrice);
-            const highlights = planHighlights[plan.tier as keyof typeof planHighlights];
-            
-            return (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                isCurrentPlan={isCurrentPlan}
-                isProfessional={isProfessional}
-                originalPrice={originalPrice}
-                discountedPrice={discountedPrice}
-                referralDiscount={referralData?.activeDiscount}
-                onShowDetails={() => setShowDetailsForPlan(plan.id)}
-                onSubscribe={() => handleSubscribe(plan.id)}
-                onStartTrial={() => handleStartTrial(plan.id)}
-                includesText={highlights?.title !== "Basic" ? `Everything in ${getPreviousTier(plan.tier)} +` : undefined}
-                highlights={highlights?.includedFeatures}
-                showTrial={plan.tier !== "basic" && plan.tier !== "enterprise"}
-                mobileView={true}
-              />
-            );
-          })}
-        </div>
+        {/* Testimonials Section */}
+        <TestimonialsSection />
 
-        {/* Satisfied Customers Section - Social Proof */}
-        <div className="mt-16 max-w-4xl mx-auto">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <Award className="h-5 w-5 text-amber-500" />
-            <h3 className="text-2xl font-bold text-center">Trusted by Healthcare Professionals</h3>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="bg-white p-5 rounded-lg shadow-sm">
-              <p className="text-gray-600 italic">"AIDoctorNotes saves me nearly 2 hours every day on documentation. The Professional plan is worth every penny."</p>
-              <p className="font-semibold mt-3">Dr. Emily Chen</p>
-              <p className="text-sm text-gray-500">Family Medicine</p>
-            </div>
-            <div className="bg-white p-5 rounded-lg shadow-sm">
-              <p className="text-gray-600 italic">"The team accounts feature has transformed our clinic's workflow. We're all on the same page now."</p>
-              <p className="font-semibold mt-3">Dr. James Wilson</p>
-              <p className="text-sm text-gray-500">Internal Medicine</p>
-            </div>
-            <div className="bg-white p-5 rounded-lg shadow-sm">
-              <p className="text-gray-600 italic">"Image analysis capabilities are game-changing for my dermatology practice. Highly recommend."</p>
-              <p className="font-semibold mt-3">Dr. Sarah Lopez</p>
-              <p className="text-sm text-gray-500">Dermatology</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="text-center mt-16">
-          <h3 className="text-2xl font-bold mb-4">Need Enterprise Features?</h3>
-          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-            Looking for custom features, dedicated support, or special requirements? Our enterprise plan is tailored to your organization's needs.
-          </p>
-          <Button 
-            variant="outline" 
-            size="lg" 
-            onClick={() => window.location.href = "/enterprise"}
-          >
-            Contact Sales
-          </Button>
-        </div>
+        {/* Enterprise Section */}
+        <EnterpriseSection />
       </div>
 
-      <Dialog open={!!selectedPlanId} onOpenChange={() => setSelectedPlanId(null)}>
-        <DialogContent className="sm:max-w-[500px]">
-          {selectedPlanId && (
-            <PaymentForm
-              planId={selectedPlanId}
-              onSuccess={() => setSelectedPlanId(null)}
-              onCancel={() => setSelectedPlanId(null)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Payment Dialog */}
+      <PaymentDialog
+        open={!!selectedPlanId}
+        onOpenChange={() => setSelectedPlanId(null)}
+        planId={selectedPlanId}
+        onSuccess={() => setSelectedPlanId(null)}
+      />
 
-      <Dialog open={!!showDetailsForPlan} onOpenChange={() => setShowDetailsForPlan(null)}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>
-              {plans?.find(p => p.id === showDetailsForPlan)?.name} Plan Features
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-4">
-            <ul className="space-y-3">
-              {plans?.find(p => p.id === showDetailsForPlan)?.features.map((feature, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                  <span className="text-muted-foreground">{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Plan Details Dialog */}
+      <PlanDetailsDialog
+        open={!!showDetailsForPlan}
+        onOpenChange={() => setShowDetailsForPlan(null)}
+        plan={currentPlanDetails}
+      />
     </section>
   );
 };
-
-// Helper function to get the previous tier name for the "Everything in X +" text
-function getPreviousTier(tier: string): string {
-  switch(tier) {
-    case 'standard': return 'Basic';
-    case 'unlimited': return 'Standard';
-    case 'professional': return 'Unlimited';
-    case 'image_analysis': return 'Professional';
-    default: return '';
-  }
-}
