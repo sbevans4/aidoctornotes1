@@ -11,7 +11,9 @@ import { useReferral } from "@/hooks/useReferral";
 
 export const FeaturesSection = () => {
   const [activeTab, setActiveTab] = useState("all");
-  const { discount } = useReferral();
+  const { referralData } = useReferral();
+  // Extract discount from referralData correctly
+  const discount = referralData?.activeDiscount;
 
   return (
     <section className="py-16 bg-gray-50" id="features">

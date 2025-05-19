@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { Check, ChevronDown, ChevronUp, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { featureData } from "./featureData";
+// Import correctly - there's no featureData export
+// Removed the incorrect import
 
 interface FeatureComparisonProps {
   tierOrder: string[];
