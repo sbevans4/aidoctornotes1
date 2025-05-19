@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { CodeHeader } from "./CodeHeader";
 import { CodeInput } from "./CodeInput";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 
 interface ProcedureCodeValidatorProps {
   onValidate: (codes: string[]) => void;
@@ -42,6 +43,7 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
       }
     } catch (error) {
       console.error("Error loading procedure codes:", error);
+      setError("Failed to load procedure codes");
       toast({
         title: "Error",
         description: "Failed to load procedure codes",
@@ -143,47 +145,49 @@ const ProcedureCodeValidator = ({ onValidate }: ProcedureCodeValidatorProps) => 
 
   return (
     <Card className="p-4" role="form" aria-label="Procedure Code Entry Form">
-      <div className="space-y-4">
-        <CodeHeader 
-          autoSave={autoSave}
-          onAutoSaveChange={setAutoSave}
-          showValidation={showValidation}
-          onShowValidationChange={setShowValidation}
-        />
-        {error && (
+      <LoadingOverlay loading={isLoading} message="Loading procedure codes..." fullOverlay={false}>
+        <div className="space-y-4">
+          <CodeHeader 
+            autoSave={autoSave}
+            onAutoSaveChange={setAutoSave}
+            showValidation={showValidation}
+            onShowValidationChange={setShowValidation}
+          />
+          {error && (
+            <div 
+              className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded" 
+              role="alert"
+              aria-live="polite"
+            >
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
           <div 
-            className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded" 
-            role="alert"
-            aria-live="polite"
+            className="grid grid-cols-1 md:grid-cols-5 gap-4" 
+            role="group" 
+            aria-labelledby="procedure-codes-heading"
           >
-            <p className="text-sm">{error}</p>
+            {codes.map((code, index) => (
+              <CodeInput
+                key={index}
+                code={code}
+                onChange={(value) => handleCodeChange(index, value)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                isLoading={isLoading}
+                error={error}
+                validationResult={validations[index] ? 
+                  { isValid: true, message: "Valid code" } : 
+                  { isValid: false, message: "Invalid code format" }
+                }
+                showValidation={showValidation}
+                id={`code-${index}`}
+                placeholder={`Code ${index + 1}`}
+                aria-label={`Procedure code ${index + 1}`}
+              />
+            ))}
           </div>
-        )}
-        <div 
-          className="grid grid-cols-1 md:grid-cols-5 gap-4" 
-          role="group" 
-          aria-labelledby="procedure-codes-heading"
-        >
-          {codes.map((code, index) => (
-            <CodeInput
-              key={index}
-              code={code}
-              onChange={(value) => handleCodeChange(index, value)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              isLoading={isLoading}
-              error={error}
-              validationResult={validations[index] ? 
-                { isValid: true, message: "Valid code" } : 
-                { isValid: false, message: "Invalid code format" }
-              }
-              showValidation={showValidation}
-              id={`code-${index}`}
-              placeholder={`Code ${index + 1}`}
-              aria-label={`Procedure code ${index + 1}`}
-            />
-          ))}
         </div>
-      </div>
+      </LoadingOverlay>
     </Card>
   );
 };

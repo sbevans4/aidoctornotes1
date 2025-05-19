@@ -1,7 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -49,62 +49,51 @@ export const UsageStats = ({ isLoading }: UsageStatsProps) => {
     }
   }, [isLoading]);
 
-  if (isLoading) {
-    return (
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Usage Statistics</h2>
-        <div className="space-y-4">
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-        </div>
-      </Card>
-    );
-  }
-
   return (
     <Card className="p-6">
       <h2 className="text-xl font-semibold mb-4">Usage Statistics</h2>
-      <div className="space-y-4">
-        <div>
-          <div className="flex justify-between mb-2">
-            <span className="text-sm font-medium">Recordings this month</span>
-            <span className="text-sm text-gray-500">
-              {usage.recordingsThisMonth} / {usage.recordingsLimit}
-            </span>
+      <LoadingOverlay loading={isLoading} message="Loading usage statistics..." fullOverlay={false}>
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between mb-2">
+              <span className="text-sm font-medium">Recordings this month</span>
+              <span className="text-sm text-gray-500">
+                {usage.recordingsThisMonth} / {usage.recordingsLimit}
+              </span>
+            </div>
+            <Progress 
+              value={(usage.recordingsThisMonth / usage.recordingsLimit) * 100} 
+              className="h-2" 
+            />
           </div>
-          <Progress 
-            value={(usage.recordingsThisMonth / usage.recordingsLimit) * 100} 
-            className="h-2" 
-          />
-        </div>
 
-        <div>
-          <div className="flex justify-between mb-2">
-            <span className="text-sm font-medium">Transcription minutes</span>
-            <span className="text-sm text-gray-500">
-              {usage.transcriptionMinutesUsed} / {usage.transcriptionMinutesLimit}
-            </span>
+          <div>
+            <div className="flex justify-between mb-2">
+              <span className="text-sm font-medium">Transcription minutes</span>
+              <span className="text-sm text-gray-500">
+                {usage.transcriptionMinutesUsed} / {usage.transcriptionMinutesLimit}
+              </span>
+            </div>
+            <Progress 
+              value={(usage.transcriptionMinutesUsed / usage.transcriptionMinutesLimit) * 100} 
+              className="h-2" 
+            />
           </div>
-          <Progress 
-            value={(usage.transcriptionMinutesUsed / usage.transcriptionMinutesLimit) * 100} 
-            className="h-2" 
-          />
-        </div>
 
-        <div>
-          <div className="flex justify-between mb-2">
-            <span className="text-sm font-medium">Images Analyzed</span>
-            <span className="text-sm text-gray-500">
-              {usage.imagesProcessed} / {usage.imagesLimit}
-            </span>
+          <div>
+            <div className="flex justify-between mb-2">
+              <span className="text-sm font-medium">Images Analyzed</span>
+              <span className="text-sm text-gray-500">
+                {usage.imagesProcessed} / {usage.imagesLimit}
+              </span>
+            </div>
+            <Progress 
+              value={(usage.imagesProcessed / usage.imagesLimit) * 100} 
+              className="h-2" 
+            />
           </div>
-          <Progress 
-            value={(usage.imagesProcessed / usage.imagesLimit) * 100} 
-            className="h-2" 
-          />
         </div>
-      </div>
+      </LoadingOverlay>
     </Card>
   );
 };

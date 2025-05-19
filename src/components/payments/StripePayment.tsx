@@ -6,6 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { StripeCheckoutForm } from "./StripeCheckoutForm";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import type { Stripe, StripeElementsOptions } from '@stripe/stripe-js';
 
 interface StripePaymentProps {
@@ -16,6 +17,8 @@ interface StripePaymentProps {
 export const StripePayment = ({ planId, onSuccess }: StripePaymentProps) => {
   const [clientSecret, setClientSecret] = useState<string>();
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null>>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Initialize Stripe and payment when component mounts
   useEffect(() => {
@@ -31,6 +34,7 @@ export const StripePayment = ({ planId, onSuccess }: StripePaymentProps) => {
         setStripePromise(loadStripe(response.publishableKey));
       } catch (error) {
         console.error('Failed to initialize Stripe:', error);
+        setError('Failed to initialize Stripe');
         toast({
           title: "Error",
           description: "Failed to initialize Stripe",
@@ -62,19 +66,29 @@ export const StripePayment = ({ planId, onSuccess }: StripePaymentProps) => {
         setClientSecret(response.clientSecret);
       } catch (error) {
         console.error('Failed to initialize payment:', error);
+        setError('Failed to initialize payment');
         toast({
           title: "Error",
           description: "Failed to initialize payment",
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     initializePayment();
   }, [planId]);
 
-  if (!clientSecret || !stripePromise) {
-    return <div>Loading...</div>;
+  if (error) {
+    return (
+      <div className="p-4 text-center">
+        <div className="text-red-500 mb-4">{error}</div>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Retry
+        </Button>
+      </div>
+    );
   }
 
   const options: StripeElementsOptions = {
@@ -85,8 +99,12 @@ export const StripePayment = ({ planId, onSuccess }: StripePaymentProps) => {
   };
 
   return (
-    <Elements stripe={stripePromise} options={options}>
-      <StripeCheckoutForm planId={planId} onSuccess={onSuccess} />
-    </Elements>
+    <LoadingOverlay loading={isLoading} message="Initializing payment...">
+      {clientSecret && stripePromise && (
+        <Elements stripe={stripePromise} options={options}>
+          <StripeCheckoutForm planId={planId} onSuccess={onSuccess} />
+        </Elements>
+      )}
+    </LoadingOverlay>
   );
 };

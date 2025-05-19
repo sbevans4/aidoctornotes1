@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { usePayPalScript } from "@/hooks/use-paypal-script";
 import { PayPalButtonContainer } from "./PayPalButtonContainer";
-import { Loader2 } from "lucide-react";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { useEffect, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -37,18 +37,17 @@ export const PayPalPayment = ({ planId, onSuccess, onCancel }: PayPalPaymentProp
 
   return (
     <div className="space-y-6">
-      {isLoading || !isPayPalReady ? (
-        <div className="flex flex-col items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p className="text-sm text-muted-foreground">Loading PayPal payment options...</p>
-        </div>
-      ) : (
+      <LoadingOverlay 
+        loading={isLoading || !isPayPalReady} 
+        message="Loading PayPal payment options..."
+        fullOverlay={false}
+      >
         <PayPalButtonContainer 
           planId={planId}
           onSuccess={onSuccess}
           onCancel={onCancel}
         />
-      )}
+      </LoadingOverlay>
       
       <div className="flex justify-end mt-4">
         <Button
