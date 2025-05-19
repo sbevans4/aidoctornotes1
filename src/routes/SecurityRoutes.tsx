@@ -2,10 +2,16 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
-import Security from '@/pages/Security';
-import SecurityDashboard from '@/pages/SecurityDashboard';
-import Contact from '@/pages/Contact';
 import { PrivateRoute } from './PrivateRoute';
+import { lazyWithFallback } from "@/utils/lazyWithFallback";
+import { PageLoading } from "@/components/ui/page-loading";
+
+// Lazy loading with fallback
+const PageLoadingFallback = () => <PageLoading isLoading={true} centered={true} />;
+
+// Lazy load security-related pages
+const Security = lazyWithFallback(() => import('@/pages/Security'), PageLoadingFallback);
+const SecurityDashboard = lazyWithFallback(() => import('@/pages/SecurityDashboard'), PageLoadingFallback);
 
 export const SecurityRoutes = () => {
   return (
@@ -26,14 +32,6 @@ export const SecurityRoutes = () => {
               <SecurityDashboard />
             </Layout>
           </PrivateRoute>
-        }
-      />
-      <Route
-        path="/contact"
-        element={
-          <Layout>
-            <Contact />
-          </Layout>
         }
       />
     </>

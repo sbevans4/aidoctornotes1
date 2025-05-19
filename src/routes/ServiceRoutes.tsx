@@ -2,44 +2,54 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
-import Services from '@/pages/Services';
-import AIDoctorNotes from '@/pages/Services/AIDoctorNotes';
-import AITherapyNotes from '@/pages/Services/AITherapyNotes';
-import AIMedicalTranscription from '@/pages/Services/AIMedicalTranscription';
+import { lazyWithFallback } from "@/utils/lazyWithFallback";
+import { PageLoading } from "@/components/ui/page-loading";
+import { PrivateRoute } from './PrivateRoute';
+
+// Lazy loading with fallback
+const PageLoadingFallback = () => <PageLoading isLoading={true} centered={true} />;
+
+// Lazy load service-related pages
+const DoctorNotes = lazyWithFallback(() => import('@/pages/services/DoctorNotes'), PageLoadingFallback);
+const TherapyNotes = lazyWithFallback(() => import('@/pages/services/TherapyNotes'), PageLoadingFallback);
+const Transcription = lazyWithFallback(() => import('@/pages/services/Transcription'), PageLoadingFallback);
+const ImageAnalysis = lazyWithFallback(() => import('@/pages/services/ImageAnalysis'), PageLoadingFallback);
 
 export const ServiceRoutes = () => {
   return (
     <>
       <Route
-        path="/services"
+        path="/services/doctor-notes"
         element={
           <Layout>
-            <Services />
+            <DoctorNotes />
           </Layout>
         }
       />
       <Route
-        path="/services/ai-doctor-notes"
+        path="/services/therapy-notes"
         element={
           <Layout>
-            <AIDoctorNotes />
+            <TherapyNotes />
           </Layout>
         }
       />
       <Route
-        path="/services/ai-therapy-notes"
+        path="/services/transcription"
         element={
           <Layout>
-            <AITherapyNotes />
+            <Transcription />
           </Layout>
         }
       />
       <Route
-        path="/services/ai-medical-transcription"
+        path="/services/image-analysis"
         element={
-          <Layout>
-            <AIMedicalTranscription />
-          </Layout>
+          <PrivateRoute requiredFeature="image_analysis">
+            <Layout>
+              <ImageAnalysis />
+            </Layout>
+          </PrivateRoute>
         }
       />
     </>

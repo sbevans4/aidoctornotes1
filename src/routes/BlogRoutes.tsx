@@ -2,8 +2,15 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
-import Blog from '@/pages/Blog';
-import BlogPost from '@/pages/BlogPost';
+import { lazyWithFallback } from "@/utils/lazyWithFallback";
+import { PageLoading } from "@/components/ui/page-loading";
+
+// Lazy loading with fallback
+const PageLoadingFallback = () => <PageLoading isLoading={true} centered={true} />;
+
+// Lazy load blog-related pages
+const Blog = lazyWithFallback(() => import('@/pages/Blog'), PageLoadingFallback);
+const BlogPost = lazyWithFallback(() => import('@/pages/BlogPost'), PageLoadingFallback);
 
 export const BlogRoutes = () => {
   return (
@@ -17,7 +24,7 @@ export const BlogRoutes = () => {
         }
       />
       <Route
-        path="/blog/:slug"
+        path="/blog/:id"
         element={
           <Layout>
             <BlogPost />

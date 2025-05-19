@@ -2,11 +2,17 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
-import Dashboard from '@/pages/Dashboard';
-import MedicalDocumentation from '@/pages/MedicalDocumentation';
-import SubscriptionPlans from '@/pages/SubscriptionPlans';
-import UserProfile from '@/pages/UserProfile';
 import { PrivateRoute } from './PrivateRoute';
+import { lazyWithFallback } from "@/utils/lazyWithFallback";
+import { PageLoading } from "@/components/ui/page-loading";
+
+// Lazy loading with fallback
+const PageLoadingFallback = () => <PageLoading isLoading={true} centered={true} />;
+
+const Dashboard = lazyWithFallback(() => import('@/pages/Dashboard'), PageLoadingFallback);
+const MedicalDocumentation = lazyWithFallback(() => import('@/pages/MedicalDocumentation'), PageLoadingFallback);
+const UserProfile = lazyWithFallback(() => import('@/pages/UserProfile'), PageLoadingFallback);
+const SubscriptionPlans = lazyWithFallback(() => import('@/pages/SubscriptionPlans'), PageLoadingFallback);
 
 export const AuthenticatedRoutes = () => {
   return (

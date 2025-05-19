@@ -2,15 +2,21 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
-import Index from '@/pages/Index';
-import Enterprise from '@/pages/Enterprise';
-import Auth from '@/pages/Auth';
-import Contact from '@/pages/Contact';
 import { PrivateRoute } from './PrivateRoute';
-import MedicalDocumentation from '@/pages/MedicalDocumentation';
-import Dashboard from '@/pages/Dashboard';
-import UserProfile from '@/pages/UserProfile';
-import SubscriptionPlans from '@/pages/SubscriptionPlans';
+import { lazyWithFallback } from "@/utils/lazyWithFallback";
+import { PageLoading } from "@/components/ui/page-loading";
+
+// Lazy loading with fallback
+const PageLoadingFallback = () => <PageLoading isLoading={true} centered={true} />;
+
+const Index = lazyWithFallback(() => import('@/pages/Index'), PageLoadingFallback);
+const Enterprise = lazyWithFallback(() => import('@/pages/Enterprise'), PageLoadingFallback);
+const Auth = lazyWithFallback(() => import('@/pages/Auth'), PageLoadingFallback);
+const Contact = lazyWithFallback(() => import('@/pages/Contact'), PageLoadingFallback);
+const Dashboard = lazyWithFallback(() => import('@/pages/Dashboard'), PageLoadingFallback);
+const MedicalDocumentation = lazyWithFallback(() => import('@/pages/MedicalDocumentation'), PageLoadingFallback);
+const UserProfile = lazyWithFallback(() => import('@/pages/UserProfile'), PageLoadingFallback);
+const SubscriptionPlans = lazyWithFallback(() => import('@/pages/SubscriptionPlans'), PageLoadingFallback);
 
 export const MainRoutes = () => {
   return (

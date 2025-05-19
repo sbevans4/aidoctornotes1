@@ -1,115 +1,58 @@
 
 import React from 'react';
-import { LoadingOverlay } from './loading-overlay';
+import { PageLoading } from './page-loading';
 
 interface WithLoadingProps<T> {
   /**
-   * Whether the component is in a loading state
+   * Loading state
    */
   isLoading: boolean;
   
   /**
-   * Optional loading message to display
+   * The data that will be passed to the children
+   */
+  data: T | null;
+  
+  /**
+   * Custom loading message
    */
   loadingMessage?: string;
   
   /**
-   * Data to be passed to the component
+   * Center loading indicator
    */
-  data: T | null | undefined;
+  centered?: boolean;
   
   /**
-   * Component to render when data is available
+   * Render function that will be called with the data
    */
   children: (data: T) => React.ReactNode;
-  
-  /**
-   * Component to render when no data is available (and not loading)
-   */
-  EmptyComponent?: React.ComponentType<any>;
-  
-  /**
-   * Whether to use a full overlay (absolute positioning)
-   */
-  fullOverlay?: boolean;
-  
-  /**
-   * Additional CSS classes for the container
-   */
-  className?: string;
 }
 
 /**
- * HOC that wraps a component with loading, empty, and error states
- * @example
- * <WithLoading
- *   isLoading={isLoading}
- *   data={userData}
- *   loadingMessage="Loading user profile..."
- * >
- *   {(data) => <UserProfile user={data} />}
- * </WithLoading>
+ * HOC that shows a loading indicator while data is loading
+ * and renders the children when data is available
  */
-export function WithLoading<T>({
-  isLoading,
-  data,
-  children,
-  loadingMessage,
-  EmptyComponent,
-  fullOverlay = true,
-  className
+export function WithLoading<T>({ 
+  isLoading, 
+  data, 
+  loadingMessage = "Loading...", 
+  centered = true,
+  children 
 }: WithLoadingProps<T>) {
-  // If no data and not loading, show empty state
-  if (!data && !isLoading && EmptyComponent) {
-    return <EmptyComponent />;
+  // Show loading indicator when loading or when data is null
+  if (isLoading || !data) {
+    return (
+      <PageLoading 
+        isLoading={true} 
+        message={loadingMessage}
+        centered={centered}
+      />
+    );
   }
   
-  // If loading or has data, use LoadingOverlay
-  return (
-    <LoadingOverlay 
-      loading={isLoading} 
-      message={loadingMessage}
-      fullOverlay={fullOverlay}
-      className={className}
-    >
-      {data ? children(data) : null}
-    </LoadingOverlay>
-  );
-}
-
-/**
- * Higher-order component that adds loading state to a component
- */
-export function withLoading<P extends object>(
-  Component: React.ComponentType<P>,
-  loadingProps: {
-    loadingProp?: keyof P;
-    dataProp?: keyof P;
-    loadingMessage?: string;
-    fullOverlay?: boolean;
-  } = {}
-) {
-  const {
-    loadingProp = 'isLoading',
-    dataProp = 'data',
-    loadingMessage = 'Loading...',
-    fullOverlay = true
-  } = loadingProps;
-  
-  return (props: P) => {
-    const isLoading = props[loadingProp as keyof P] as boolean;
-    const data = props[dataProp as keyof P];
-    
-    return (
-      <LoadingOverlay 
-        loading={isLoading} 
-        message={loadingMessage}
-        fullOverlay={fullOverlay}
-      >
-        <Component {...props} />
-      </LoadingOverlay>
-    );
-  };
+  // Render children with data
+  return <>{children(data)}</>;
 }
 
 export default WithLoading;

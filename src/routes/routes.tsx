@@ -27,66 +27,138 @@ const PasswordReset = lazyWithFallback(() => import("../pages/PasswordReset"), P
 const EmailVerification = lazyWithFallback(() => import("../pages/EmailVerification"), PageLoadingFallback);
 const Contact = lazyWithFallback(() => import("../pages/Contact"), PageLoadingFallback);
 const NotFound = lazyWithFallback(() => import("../pages/NotFound"), PageLoadingFallback);
+const Dashboard = lazyWithFallback(() => import("../pages/Dashboard"), PageLoadingFallback);
+const MedicalDocumentation = lazyWithFallback(() => import("../pages/MedicalDocumentation"), PageLoadingFallback);
+const SubscriptionPlans = lazyWithFallback(() => import("../pages/SubscriptionPlans"), PageLoadingFallback);
+const UserProfile = lazyWithFallback(() => import("../pages/UserProfile"), PageLoadingFallback);
+const PaymentSuccess = lazyWithFallback(() => import("../pages/PaymentSuccess"), PageLoadingFallback);
+const PaymentCanceled = lazyWithFallback(() => import("../pages/PaymentCanceled"), PageLoadingFallback);
 
-// Import route groups
-import { MainRoutes } from './MainRoutes';
-import { ServiceRoutes } from './ServiceRoutes';
-import { BlogRoutes } from './BlogRoutes';
-import { SecurityRoutes } from './SecurityRoutes';
-import { AuthenticatedRoutes } from './AuthenticatedRoutes';
-import { PaymentRoutes } from './PaymentRoutes';
+// Index Routes
+export const IndexRoutes = () => (
+  <>
+    <Route
+      path="/"
+      element={
+        <Layout>
+          <Index />
+        </Layout>
+      }
+    />
+  </>
+);
 
-export const AppRoutes = () => {
-  return (
-    <>
-      {/* Main Routes */}
-      <Route
-        path="/"
-        element={
+// Auth Routes
+export const AuthRoutes = () => (
+  <>
+    <Route path="/auth" element={<Auth />} />
+    <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+    <Route path="/auth/reset-password" element={<PasswordReset />} />
+    <Route path="/auth/verify" element={<EmailVerification />} />
+    <Route
+      path="/enterprise"
+      element={
+        <Layout>
+          <Enterprise />
+        </Layout>
+      }
+    />
+    <Route
+      path="/contact"
+      element={
+        <Layout>
+          <Contact />
+        </Layout>
+      }
+    />
+  </>
+);
+
+// Service routes will be imported from ServiceRoutes.tsx
+export { ServiceRoutes } from './ServiceRoutes';
+
+// Blog routes will be imported from BlogRoutes.tsx
+export { BlogRoutes } from './BlogRoutes';
+
+// Security routes will be imported from SecurityRoutes.tsx
+export { SecurityRoutes } from './SecurityRoutes';
+
+// Authenticated routes
+export const AuthenticatedRoutes = () => (
+  <>
+    <Route
+      path="/dashboard"
+      element={
+        <PrivateRoute>
           <Layout>
-            <Index />
+            <Dashboard />
           </Layout>
-        }
-      />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-      <Route path="/auth/reset-password" element={<PasswordReset />} />
-      <Route path="/auth/verify" element={<EmailVerification />} />
-      
-      <Route
-        path="/enterprise"
-        element={
+        </PrivateRoute>
+      }
+    />
+    <Route
+      path="/medical-documentation"
+      element={
+        <PrivateRoute>
           <Layout>
-            <Enterprise />
+            <MedicalDocumentation />
           </Layout>
-        }
-      />
-      
-      <Route
-        path="/contact"
-        element={
+        </PrivateRoute>
+      }
+    />
+    <Route
+      path="/subscription-plans"
+      element={
+        <PrivateRoute>
           <Layout>
-            <Contact />
+            <SubscriptionPlans />
           </Layout>
-        }
-      />
-      
-      {/* Import grouped routes */}
-      <ServiceRoutes />
-      <BlogRoutes />
-      <SecurityRoutes />
-      <AuthenticatedRoutes />
-      <PaymentRoutes />
-      
-      {/* 404 Route */}
-      <Route
-        path="*"
-        element={
+        </PrivateRoute>
+      }
+    />
+    <Route
+      path="/profile"
+      element={
+        <PrivateRoute>
           <Layout>
-            <NotFound />
+            <UserProfile />
           </Layout>
-        }
-      />
-    </>
-  );
-};
+        </PrivateRoute>
+      }
+    />
+  </>
+);
+
+// Payment routes
+export const PaymentRoutes = () => (
+  <>
+    <Route
+      path="/payment-success"
+      element={
+        <Layout>
+          <PaymentSuccess />
+        </Layout>
+      }
+    />
+    <Route
+      path="/payment-canceled"
+      element={
+        <Layout>
+          <PaymentCanceled />
+        </Layout>
+      }
+    />
+  </>
+);
+
+// 404 Route
+export const NotFoundRoute = () => (
+  <Route
+    path="*"
+    element={
+      <Layout>
+        <NotFound />
+      </Layout>
+    }
+  />
+);
