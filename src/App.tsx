@@ -10,6 +10,9 @@ import { PrivateRoute } from "./routes/PrivateRoute";
 import Index from "./pages/Index";
 import Enterprise from "./pages/Enterprise";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
+import PasswordReset from "./pages/PasswordReset";
+import EmailVerification from "./pages/EmailVerification";
 import Services from "./pages/Services";
 import AIDoctorNotes from "./pages/Services/AIDoctorNotes";
 import AITherapyNotes from "./pages/Services/AITherapyNotes";
@@ -46,6 +49,9 @@ function App() {
               }
             />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/reset-password" element={<PasswordReset />} />
+            <Route path="/auth/verify" element={<EmailVerification />} />
             <Route
               path="/enterprise"
               element={

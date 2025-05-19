@@ -1,180 +1,208 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Session, User } from "@supabase/supabase-js";
+import React, { createContext, useState, useEffect, useContext } from "react";
+import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { SubscriptionTier } from "@/hooks/useSubscription";
 
-interface AuthContextType {
-  session: Session | null;
+interface AuthContextProps {
   user: User | null;
-  profile: any | null;
+  session: Session | null;
+  profile: UserProfile | null;
+  isAuthenticated: boolean;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  subscriptionStatus: {
+    isSubscribed: boolean;
+    tier: SubscriptionTier | null;
+    expiresAt: Date | null;
+  };
   signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
+  checkHasFeature: (featureName: string) => boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
+interface UserProfile {
+  id: string;
+  full_name: string | null;
+  email: string;
+  has_used_trial: boolean;
+  purchase_date: string | null;
+  refund_requested: boolean;
+  refund_request_date: string | null;
 }
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [session, setSession] = useState<Session | null>(null);
+const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const navigate = useNavigate();
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [subscriptionStatus, setSubscriptionStatus] = useState({
+    isSubscribed: false,
+    tier: null as SubscriptionTier | null,
+    expiresAt: null as Date | null,
+  });
+  const { toast } = useToast();
 
-  const refreshProfile = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    }
+  // Feature access matrix based on subscription tier
+  const FEATURE_ACCESS: Record<string, Set<SubscriptionTier>> = {
+    basic_transcription: new Set(['basic', 'standard', 'unlimited', 'professional', 'image_analysis']),
+    unlimited_soap_notes: new Set(['standard', 'unlimited', 'professional', 'image_analysis']),
+    code_suggestions: new Set(['standard', 'unlimited', 'professional', 'image_analysis']),
+    unlimited_transcription: new Set(['standard', 'unlimited', 'professional', 'image_analysis']),
+    image_analysis: new Set(['unlimited', 'professional', 'image_analysis']),
+    unlimited_image_analysis: new Set(['image_analysis']),
+    team_accounts: new Set(['professional', 'image_analysis']),
+    ehr_integration: new Set(['professional', 'image_analysis']),
   };
 
   useEffect(() => {
-    // Set up the auth state listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        // Use setTimeout to prevent deadlock
-        setTimeout(() => {
-          refreshProfile();
-        }, 0);
-      } else {
-        setProfile(null);
+    // Set up auth state listener FIRST (before checking session)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        // Important: Don't call supabase inside this callback! Just update state.
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
       }
-    });
+    );
 
-    // Then check for an existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        refreshProfile();
+    // THEN check for existing session
+    const initializeAuth = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Get session
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        setSession(existingSession);
+        setUser(existingSession?.user ?? null);
+        
+        // If user is authenticated, fetch profile and subscription
+        if (existingSession?.user) {
+          // Get profile data
+          setTimeout(async () => {
+            await fetchUserProfile(existingSession.user.id);
+            await fetchSubscriptionStatus(existingSession.user.id);
+          }, 0);
+        }
+      } catch (error) {
+        console.error("Error initializing auth:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  // Fetch user profile information
+  const fetchUserProfile = async (userId: string) => {
     try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
       if (error) throw error;
-      navigate("/dashboard");
-      toast({
-        title: "Successfully signed in",
-        description: "Welcome back!",
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Sign in failed",
-        description: error.message || "Failed to sign in",
-      });
-      throw error;
-    } finally {
-      setIsLoading(false);
+      
+      if (data) {
+        setProfile(data as UserProfile);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  // Check subscription status
+  const fetchSubscriptionStatus = async (userId: string) => {
     try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-        },
-      });
+      const { data, error } = await supabase
+        .from("user_subscriptions")
+        .select("*, subscription_plans(*)")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .single();
 
-      if (error) throw error;
+      if (error && error.code !== "PGRST116") {
+        throw error;
+      }
 
-      toast({
-        title: "Account created",
-        description: "Please check your email to verify your account.",
-      });
-      navigate("/dashboard");
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Sign up failed",
-        description: error.message || "Failed to create account",
-      });
-      throw error;
-    } finally {
-      setIsLoading(false);
+      if (data) {
+        setSubscriptionStatus({
+          isSubscribed: true,
+          tier: data.subscription_plans?.tier as SubscriptionTier ?? null,
+          expiresAt: data.current_period_end ? new Date(data.current_period_end) : null,
+        });
+      } else {
+        setSubscriptionStatus({
+          isSubscribed: false,
+          tier: null,
+          expiresAt: null,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching subscription status:", error);
     }
   };
 
+  // Check if the user has access to a specific feature
+  const checkHasFeature = (featureName: string): boolean => {
+    if (!subscriptionStatus.isSubscribed || !subscriptionStatus.tier) {
+      return false;
+    }
+
+    const featureAccess = FEATURE_ACCESS[featureName];
+    if (!featureAccess) {
+      return false;
+    }
+
+    return featureAccess.has(subscriptionStatus.tier);
+  };
+
+  // Sign out function
   const signOut = async () => {
     try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      navigate("/auth");
-    } catch (error: any) {
+      await supabase.auth.signOut();
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+    } catch (error) {
+      console.error("Error signing out:", error);
       toast({
         variant: "destructive",
-        title: "Sign out failed",
-        description: error.message || "Failed to sign out",
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
     <AuthContext.Provider
       value={{
-        session,
         user,
+        session,
         profile,
+        isAuthenticated: !!user,
         isLoading,
-        signIn,
-        signUp,
+        subscriptionStatus,
         signOut,
-        refreshProfile,
+        checkHasFeature,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
-};
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}

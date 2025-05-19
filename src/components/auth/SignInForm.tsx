@@ -1,37 +1,72 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+// Schema for sign in validation
+const signInSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type SignInFormValues = z.infer<typeof signInSchema>;
 
 export function SignInForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [networkError, setNetworkError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Initialize form with validation schema
+  const form = useForm<SignInFormValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const handleSignIn = async (values: SignInFormValues) => {
     setLoading(true);
+    setNetworkError(null);
     
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: values.email,
+        password: values.password,
       });
 
       if (error) throw error;
 
+      toast({
+        title: "Welcome back",
+        description: "You've successfully signed in.",
+      });
+
       navigate("/medical-documentation");
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
+      // Handle specific error cases with user-friendly messages
+      if (!navigator.onLine) {
+        setNetworkError("No internet connection. Please check your network and try again.");
+      } else if (error.message.includes("Invalid login")) {
+        form.setError("email", { message: "Invalid email or password" });
+        form.setError("password", { message: "Invalid email or password" });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Sign In Failed",
+          description: error.message || "An unexpected error occurred. Please try again.",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -39,6 +74,7 @@ export function SignInForm() {
 
   const handleTestSignIn = async () => {
     setLoading(true);
+    setNetworkError(null);
     
     try {
       const testEmail = "dr.note.tester@example.com";
@@ -58,39 +94,104 @@ export function SignInForm() {
       
       navigate("/medical-documentation");
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
+      if (!navigator.onLine) {
+        setNetworkError("No internet connection. Please check your network and try again.");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Demo Access Failed",
+          description: error.message || "An unexpected error occurred. Please try again.",
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSignIn} className="space-y-4">
-      <div>
-        <Input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <Input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Loading..." : "Sign In"}
-      </Button>
+    <div>
+      {networkError && (
+        <Alert variant="destructive" className="mb-4" role="alert">
+          <AlertDescription>{networkError}</AlertDescription>
+        </Alert>
+      )}
+      
+      <Form {...form}>
+        <form 
+          onSubmit={form.handleSubmit(handleSignIn)} 
+          className="space-y-4"
+          aria-label="Sign in form"
+        >
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="email">Email</FormLabel>
+                <FormControl>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    disabled={loading}
+                    aria-required="true"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex justify-between items-center">
+                  <FormLabel htmlFor="password">Password</FormLabel>
+                  <Link 
+                    to="/auth/forgot-password" 
+                    className="text-xs text-primary hover:underline"
+                    tabIndex={0}
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
+                <FormControl>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    disabled={loading}
+                    aria-required="true"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={loading}
+            aria-busy={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                Signing In...
+              </>
+            ) : (
+              "Sign In"
+            )}
+          </Button>
+        </form>
+      </Form>
       
       <div className="relative mt-4">
         <div className="absolute inset-0 flex items-center">
@@ -107,9 +208,17 @@ export function SignInForm() {
         className="w-full mt-4" 
         onClick={handleTestSignIn}
         disabled={loading}
+        aria-label="Sign in with demo account"
       >
-        {loading ? "Loading..." : "Demo Account Access"}
+        {loading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+            Loading...
+          </>
+        ) : (
+          "Demo Account Access"
+        )}
       </Button>
-    </form>
+    </div>
   );
 }
