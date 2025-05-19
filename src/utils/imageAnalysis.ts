@@ -37,9 +37,16 @@ export const validateImageFile = (file: File): boolean => {
 
 export const checkImageAnalysisAccess = async (): Promise<boolean> => {
   try {
-    return await supabase.rpc('has_feature', { 
+    const { data, error } = await supabase.rpc('has_feature', { 
       feature_name: 'image_analysis'
     });
+    
+    if (error) {
+      console.error("Error checking image analysis access:", error);
+      return false;
+    }
+    
+    return !!data; // Convert to boolean
   } catch (error) {
     console.error("Error checking image analysis access:", error);
     return false;

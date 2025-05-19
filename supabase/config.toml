@@ -15,4 +15,3 @@ verify_jwt = true
 
 [functions.cleanup-expired-data]
 verify_jwt = false
-

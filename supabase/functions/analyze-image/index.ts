@@ -55,13 +55,31 @@ serve(async (req: Request) => {
       throw new Error("Unauthorized");
     }
     
-    // Check if the user has access to image analysis feature
-    const { data: hasAccess, error: accessError } = await supabase.rpc("has_feature", {
-      user_id: user.id,
-      feature_name: "image_analysis",
-    });
+    // Check if the user has access to image analysis feature using a direct query
+    // instead of the RPC call that expects user_id parameter
+    const { data: userProfiles, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
     
-    if (accessError || !hasAccess) {
+    if (profileError || !userProfiles) {
+      throw new Error("User profile not found");
+    }
+    
+    const { data: rolePermissions, error: roleError } = await supabase
+      .from('roles')
+      .select('permissions')
+      .eq('role', userProfiles.role)
+      .single();
+    
+    if (roleError || !rolePermissions) {
+      throw new Error("Role permissions not found");
+    }
+    
+    const hasAccess = rolePermissions.permissions?.image_analysis === true;
+    
+    if (!hasAccess) {
       throw new Error("Feature not available with your current subscription");
     }
     
