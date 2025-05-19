@@ -6,7 +6,10 @@ import {
   FeaturesSection,
   HowItWorksSection,
   TestimonialsSection,
-  CtaSection 
+  CtaSection,
+  PricingSection,
+  FAQSection,
+  ReferralSection
 } from "@/components/services/therapy-notes";
 
 const AITherapyNotes = () => {
@@ -43,7 +46,10 @@ const AITherapyNotes = () => {
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />
+        <PricingSection />
         <TestimonialsSection />
+        <FAQSection />
+        <ReferralSection />
         <CtaSection />
       </div>
     </>
