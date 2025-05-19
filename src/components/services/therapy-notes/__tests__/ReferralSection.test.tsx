@@ -5,11 +5,12 @@ import { ReferralSection } from '../ReferralSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { useReferral } from '@/hooks/useReferral';
 import { useToast } from '@/components/ui/use-toast';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock dependencies
-jest.mock('@/contexts/AuthContext');
-jest.mock('@/hooks/useReferral');
-jest.mock('@/components/ui/use-toast');
+vi.mock('@/contexts/AuthContext');
+vi.mock('@/hooks/useReferral');
+vi.mock('@/components/ui/use-toast');
 
 describe('ReferralSection Component', () => {
   // Helper to setup mocks
@@ -17,21 +18,21 @@ describe('ReferralSection Component', () => {
     isAuthenticated = true, 
     referralData = {}, 
     sendReferralInvite = { 
-      mutateAsync: jest.fn().mockResolvedValue('Referral sent') 
+      mutateAsync: vi.fn().mockResolvedValue('Referral sent') 
     } 
   }) => {
-    (useAuth as jest.Mock).mockReturnValue({ isAuthenticated });
-    (useReferral as jest.Mock).mockReturnValue({ 
+    (useAuth as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ isAuthenticated });
+    (useReferral as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ 
       referralData, 
       sendReferralInvite 
     });
-    (useToast as jest.Mock).mockReturnValue({ 
-      toast: jest.fn() 
+    (useToast as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ 
+      toast: vi.fn() 
     });
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders sign up message when user is not authenticated', () => {
@@ -65,7 +66,7 @@ describe('ReferralSection Component', () => {
   });
 
   it('handles sending a referral invitation', async () => {
-    const mockSendReferral = jest.fn().mockResolvedValue('Success');
+    const mockSendReferral = vi.fn().mockResolvedValue('Success');
     setupMocks({
       isAuthenticated: true,
       sendReferralInvite: {
@@ -89,7 +90,7 @@ describe('ReferralSection Component', () => {
 
   it('handles copy referral link', async () => {
     // Mock clipboard API
-    const mockWriteText = jest.fn().mockResolvedValue(undefined);
+    const mockWriteText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', {
       value: { writeText: mockWriteText },
       configurable: true
@@ -112,10 +113,10 @@ describe('ReferralSection Component', () => {
   });
 
   it('handles error when sending invitation', async () => {
-    const mockToast = jest.fn();
-    (useToast as jest.Mock).mockReturnValue({ toast: mockToast });
+    const mockToast = vi.fn();
+    (useToast as unknown as ReturnType<typeof vi.fn>).mockReturnValue({ toast: mockToast });
     
-    const mockSendReferral = jest.fn().mockRejectedValue(new Error('Test error'));
+    const mockSendReferral = vi.fn().mockRejectedValue(new Error('Test error'));
     setupMocks({
       isAuthenticated: true,
       sendReferralInvite: {

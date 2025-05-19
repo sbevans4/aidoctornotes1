@@ -10,6 +10,7 @@ export interface ReferralData {
   totalReferrals?: number;
   pendingReferrals?: number;
   completedReferrals?: number;
+  successfulConversions?: number;
 }
 
 export const useReferral = () => {
@@ -39,8 +40,8 @@ export const useReferral = () => {
           .single();
 
         // Get statistics about referrals
-        const { data: statsData, error: statsError } = await supabase.rpc('get_referral_stats', {
-          user_id: user.id
+        const { data: statsData, error: statsError } = await supabase.functions.invoke('get_referral_stats', {
+          body: { user_id: user.id }
         });
 
         // Handle no data or errors
@@ -60,11 +61,16 @@ export const useReferral = () => {
         // Calculate discount info if available
         if (discountData) {
           const discountStartDate = new Date(discountData.updated_at);
-          const discountDuration = discountData.subscription_duration;
+          let durationMonths = 3; // Default to 3 months
           
-          // Parse the duration (e.g., "3 mons")
-          const durationMatch = discountDuration?.match(/(\d+) mons/);
-          const durationMonths = durationMatch ? parseInt(durationMatch[1]) : 0;
+          // Parse the duration if present
+          const subscriptionDuration = discountData.subscription_duration;
+          if (typeof subscriptionDuration === 'string') {
+            const durationMatch = subscriptionDuration.match(/(\d+)\s*mons/i);
+            if (durationMatch && durationMatch[1]) {
+              durationMonths = parseInt(durationMatch[1], 10);
+            }
+          }
           
           const expiryDate = new Date(discountStartDate);
           expiryDate.setMonth(expiryDate.getMonth() + durationMonths);
@@ -82,7 +88,8 @@ export const useReferral = () => {
             ...result,
             totalReferrals: statsData.total_referrals || 0,
             pendingReferrals: statsData.pending_referrals || 0,
-            completedReferrals: statsData.completed_referrals || 0
+            completedReferrals: statsData.completed_referrals || 0,
+            successfulConversions: statsData.successful_conversions || 0
           };
         }
 

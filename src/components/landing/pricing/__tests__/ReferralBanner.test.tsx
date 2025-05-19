@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ReferralBanner } from '../ReferralBanner';
+import { describe, it, expect } from 'vitest';
 
 describe('ReferralBanner Component', () => {
   it('renders null when no discount is provided', () => {

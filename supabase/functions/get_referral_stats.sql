@@ -23,6 +23,11 @@ BEGIN
       SELECT count(*) 
       FROM referrals 
       WHERE referrer_id = user_id AND status = 'completed'
+    ),
+    'successful_conversions', (
+      SELECT count(*) 
+      FROM referrals 
+      WHERE referrer_id = user_id AND discount_applied = true
     )
   ) INTO result;
   
