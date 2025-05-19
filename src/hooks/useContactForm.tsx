@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,17 +40,49 @@ export const useContactForm = () => {
     },
   });
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     form.reset();
     setIsSubmitted(false);
     setNetworkError(null);
-  };
+  }, [form]);
 
-  const retrySubmit = (submitFn: () => Promise<void>) => {
+  const retrySubmit = useCallback((submitFn: () => Promise<void>) => {
     setNetworkError(null);
     setAttemptCount(prev => prev + 1);
     submitFn();
-  };
+  }, []);
+
+  const handleSubmit = useCallback(async (
+    values: ContactFormValues, 
+    onSuccess?: () => void,
+    onError?: (error: Error) => void
+  ) => {
+    setIsSubmitting(true);
+    setNetworkError(null);
+    
+    try {
+      // API call would go here
+      
+      setIsSubmitted(true);
+      toast({
+        title: "Message sent",
+        description: "Your message has been sent successfully. We'll get back to you soon.",
+      });
+      
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      setNetworkError("Failed to send message. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Failed to send message",
+        description: "There was a problem sending your message. Please try again.",
+      });
+      
+      if (onError && error instanceof Error) onError(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [toast]);
 
   return {
     form,
@@ -63,6 +95,7 @@ export const useContactForm = () => {
     setNetworkError,
     resetForm,
     retrySubmit,
+    handleSubmit,
     schema: contactFormSchema,
   };
 };

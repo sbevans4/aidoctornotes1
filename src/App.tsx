@@ -1,5 +1,3 @@
-
-import { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/toaster";
@@ -7,48 +5,63 @@ import { Layout } from "@/components/layout/Layout";
 import { PrivateRoute } from "./routes/PrivateRoute";
 import { AppProvider } from "./providers/AppProvider";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { DefaultLoadingFallback, lazyWithFallback } from "./utils/lazyWithFallback";
 
-// Lazy loaded pages for better performance
-const Index = lazy(() => import("./pages/Index"));
-const Enterprise = lazy(() => import("./pages/Enterprise"));
-const Auth = lazy(() => import("./pages/Auth"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const PasswordReset = lazy(() => import("./pages/PasswordReset"));
-const EmailVerification = lazy(() => import("./pages/EmailVerification"));
-const Services = lazy(() => import("./pages/Services"));
-const AIDoctorNotes = lazy(() => import("./pages/Services/AIDoctorNotes"));
-const AITherapyNotes = lazy(() => import("./pages/Services/AITherapyNotes"));
-const AIMedicalTranscription = lazy(() => import("./pages/Services/AIMedicalTranscription"));
-const Blog = lazy(() => import("./pages/Blog"));
-const BlogPost = lazy(() => import("./pages/BlogPost"));
-const Security = lazy(() => import("./pages/Security"));
-const SecurityDashboard = lazy(() => import("./pages/SecurityDashboard"));
-const Contact = lazy(() => import("./pages/Contact"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const MedicalDocumentation = lazy(() => import("./pages/MedicalDocumentation"));
-const SubscriptionPlans = lazy(() => import("./pages/SubscriptionPlans"));
-const UserProfile = lazy(() => import("./pages/UserProfile"));
-const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
-const PaymentCanceled = lazy(() => import("./pages/PaymentCanceled"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-
-// Loading fallback component
-const LoadingFallback = () => (
-  <div className="h-screen w-full flex items-center justify-center">
-    <div className="animate-pulse text-primary flex flex-col items-center">
-      <div className="h-12 w-12 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full animate-spin mb-4"></div>
-      <p className="text-lg font-medium">Loading...</p>
+// Enhanced loading fallback with size customization
+const PageLoadingFallback = () => (
+  <div className="min-h-screen w-full flex items-center justify-center p-4">
+    <div className="animate-pulse text-primary flex flex-col items-center max-w-md mx-auto">
+      <div className="h-12 w-12 border-4 border-t-primary border-r-transparent border-b-primary border-l-transparent rounded-full animate-spin mb-4" 
+           role="status" 
+           aria-label="Loading page">
+      </div>
+      <p className="text-lg font-medium" aria-live="polite">Loading...</p>
     </div>
   </div>
 );
 
-// Create a QueryClient instance
+// Lazy load pages with custom loading states
+const Index = lazyWithFallback(() => import("./pages/Index"), PageLoadingFallback);
+const Enterprise = lazyWithFallback(() => import("./pages/Enterprise"), PageLoadingFallback);
+const Auth = lazyWithFallback(() => import("./pages/Auth"), PageLoadingFallback);
+const ForgotPassword = lazyWithFallback(() => import("./pages/ForgotPassword"), PageLoadingFallback);
+const PasswordReset = lazyWithFallback(() => import("./pages/PasswordReset"), PageLoadingFallback);
+const EmailVerification = lazyWithFallback(() => import("./pages/EmailVerification"), PageLoadingFallback);
+
+// Service pages - load them in a separate chunk
+const Services = lazyWithFallback(() => import("./pages/Services"), PageLoadingFallback);
+const AIDoctorNotes = lazyWithFallback(() => import("./pages/Services/AIDoctorNotes"), PageLoadingFallback);
+const AITherapyNotes = lazyWithFallback(() => import("./pages/Services/AITherapyNotes"), PageLoadingFallback);
+const AIMedicalTranscription = lazyWithFallback(() => import("./pages/Services/AIMedicalTranscription"), PageLoadingFallback);
+
+// Blog pages - load them in a separate chunk
+const Blog = lazyWithFallback(() => import("./pages/Blog"), PageLoadingFallback);
+const BlogPost = lazyWithFallback(() => import("./pages/BlogPost"), PageLoadingFallback);
+
+// Security pages - load them in a separate chunk
+const Security = lazyWithFallback(() => import("./pages/Security"), PageLoadingFallback);
+const SecurityDashboard = lazyWithFallback(() => import("./pages/SecurityDashboard"), PageLoadingFallback);
+const Contact = lazyWithFallback(() => import("./pages/Contact"), PageLoadingFallback);
+
+// Dashboard and user pages - load them in a separate chunk
+const Dashboard = lazyWithFallback(() => import("./pages/Dashboard"), PageLoadingFallback);
+const MedicalDocumentation = lazyWithFallback(() => import("./pages/MedicalDocumentation"), PageLoadingFallback);
+const SubscriptionPlans = lazyWithFallback(() => import("./pages/SubscriptionPlans"), PageLoadingFallback);
+const UserProfile = lazyWithFallback(() => import("./pages/UserProfile"), PageLoadingFallback);
+
+// Payment pages - load them in a separate chunk
+const PaymentSuccess = lazyWithFallback(() => import("./pages/PaymentSuccess"), PageLoadingFallback);
+const PaymentCanceled = lazyWithFallback(() => import("./pages/PaymentCanceled"), PageLoadingFallback);
+const NotFound = lazyWithFallback(() => import("./pages/NotFound"), PageLoadingFallback);
+
+// Create a QueryClient instance with improved error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes
+      useErrorBoundary: true, // Use error boundaries for query errors
     },
   },
 });
@@ -64,54 +77,22 @@ function App() {
               <Route
                 path="/"
                 element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Layout>
-                      <Index />
-                    </Layout>
-                  </Suspense>
+                  <Layout>
+                    <Index />
+                  </Layout>
                 }
               />
-              <Route 
-                path="/auth" 
-                element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Auth />
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/auth/forgot-password" 
-                element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <ForgotPassword />
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/auth/reset-password" 
-                element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <PasswordReset />
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/auth/verify" 
-                element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <EmailVerification />
-                  </Suspense>
-                } 
-              />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<PasswordReset />} />
+              <Route path="/auth/verify" element={<EmailVerification />} />
               
               <Route
                 path="/enterprise"
                 element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Layout>
-                      <Enterprise />
-                    </Layout>
-                  </Suspense>
+                  <Layout>
+                    <Enterprise />
+                  </Layout>
                 }
               />
               
@@ -119,41 +100,33 @@ function App() {
               <Route
                 path="/services"
                 element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Layout>
-                      <Services />
-                    </Layout>
-                  </Suspense>
+                  <Layout>
+                    <Services />
+                  </Layout>
                 }
               />
               <Route
                 path="/services/ai-doctor-notes"
                 element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Layout>
-                      <AIDoctorNotes />
-                    </Layout>
-                  </Suspense>
+                  <Layout>
+                    <AIDoctorNotes />
+                  </Layout>
                 }
               />
               <Route
                 path="/services/ai-therapy-notes"
                 element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Layout>
-                      <AITherapyNotes />
-                    </Layout>
-                  </Suspense>
+                  <Layout>
+                    <AITherapyNotes />
+                  </Layout>
                 }
               />
               <Route
                 path="/services/ai-medical-transcription"
                 element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Layout>
-                      <AIMedicalTranscription />
-                    </Layout>
-                  </Suspense>
+                  <Layout>
+                    <AIMedicalTranscription />
+                  </Layout>
                 }
               />
               
@@ -161,21 +134,17 @@ function App() {
               <Route
                 path="/blog"
                 element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Layout>
-                      <Blog />
-                    </Layout>
-                  </Suspense>
+                  <Layout>
+                    <Blog />
+                  </Layout>
                 }
               />
               <Route
                 path="/blog/:slug"
                 element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Layout>
-                      <BlogPost />
-                    </Layout>
-                  </Suspense>
+                  <Layout>
+                    <BlogPost />
+                  </Layout>
                 }
               />
               
@@ -183,33 +152,27 @@ function App() {
               <Route
                 path="/security"
                 element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Layout>
-                      <Security />
-                    </Layout>
-                  </Suspense>
+                  <Layout>
+                    <Security />
+                  </Layout>
                 }
               />
               <Route
                 path="/security/dashboard"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback />}>
-                      <Layout>
-                        <SecurityDashboard />
-                      </Layout>
-                    </Suspense>
+                    <Layout>
+                      <SecurityDashboard />
+                    </Layout>
                   </PrivateRoute>
                 }
               />
               <Route
                 path="/contact"
                 element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Layout>
-                      <Contact />
-                    </Layout>
-                  </Suspense>
+                  <Layout>
+                    <Contact />
+                  </Layout>
                 }
               />
               
@@ -218,11 +181,9 @@ function App() {
                 path="/dashboard"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback />}>
-                      <Layout>
-                        <Dashboard />
-                      </Layout>
-                    </Suspense>
+                    <Layout>
+                      <Dashboard />
+                    </Layout>
                   </PrivateRoute>
                 }
               />
@@ -230,11 +191,9 @@ function App() {
                 path="/medical-documentation"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback />}>
-                      <Layout>
-                        <MedicalDocumentation />
-                      </Layout>
-                    </Suspense>
+                    <Layout>
+                      <MedicalDocumentation />
+                    </Layout>
                   </PrivateRoute>
                 }
               />
@@ -242,11 +201,9 @@ function App() {
                 path="/subscription-plans"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback />}>
-                      <Layout>
-                        <SubscriptionPlans />
-                      </Layout>
-                    </Suspense>
+                    <Layout>
+                      <SubscriptionPlans />
+                    </Layout>
                   </PrivateRoute>
                 }
               />
@@ -254,42 +211,24 @@ function App() {
                 path="/profile"
                 element={
                   <PrivateRoute>
-                    <Suspense fallback={<LoadingFallback />}>
-                      <Layout>
-                        <UserProfile />
-                      </Layout>
-                    </Suspense>
+                    <Layout>
+                      <UserProfile />
+                    </Layout>
                   </PrivateRoute>
                 }
               />
               
               {/* Payment Routes */}
-              <Route 
-                path="/payment-success" 
-                element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <PaymentSuccess />
-                  </Suspense>
-                } 
-              />
-              <Route 
-                path="/payment-canceled" 
-                element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <PaymentCanceled />
-                  </Suspense>
-                } 
-              />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-canceled" element={<PaymentCanceled />} />
               
               {/* 404 Route */}
               <Route
                 path="*"
                 element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Layout>
-                      <NotFound />
-                    </Layout>
-                  </Suspense>
+                  <Layout>
+                    <NotFound />
+                  </Layout>
                 }
               />
             </Routes>
