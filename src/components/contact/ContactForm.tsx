@@ -20,6 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useContactForm } from "@/hooks/useContactForm";
+import { Loader2 } from "lucide-react";
 
 export const ContactForm = () => {
   const { form, isSubmitting, onSubmit } = useContactForm();
@@ -141,7 +142,12 @@ export const ContactForm = () => {
             className="w-full md:w-auto bg-blue-600 hover:bg-blue-700" 
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Sending..." : "Send Message"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : "Send Message"}
           </Button>
         </form>
       </Form>
