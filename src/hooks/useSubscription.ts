@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Json } from "@/integrations/supabase/types";
 
-export type SubscriptionTier = 'trial' | 'basic' | 'standard' | 'professional' | 'unlimited' | 'enterprise';
+export type SubscriptionTier = 'trial' | 'basic' | 'standard' | 'professional' | 'image_analysis' | 'enterprise';
 
 interface Plan {
   id: string;

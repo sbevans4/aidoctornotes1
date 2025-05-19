@@ -28,7 +28,7 @@ BEGIN
     WHEN 'basic' THEN 2
     WHEN 'standard' THEN 3
     WHEN 'professional' THEN 4
-    WHEN 'unlimited' THEN 5
+    WHEN 'image_analysis' THEN 5
     WHEN 'enterprise' THEN 6
     ELSE 0
   END;
@@ -50,9 +50,9 @@ BEGIN
     WHEN 'limited_image_analysis' THEN tier_level >= 4
     
     -- Image Analysis tier features
-    WHEN 'unlimited_image_analysis' THEN tier_level >= 6
-    WHEN 'image_interpretation' THEN tier_level >= 6
-    WHEN 'specialist_templates' THEN tier_level >= 6
+    WHEN 'unlimited_image_analysis' THEN tier_level >= 5
+    WHEN 'image_interpretation' THEN tier_level >= 5
+    WHEN 'specialist_templates' THEN tier_level >= 5
     
     -- Default: no access
     ELSE FALSE
