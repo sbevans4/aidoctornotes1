@@ -13,10 +13,10 @@ export const HeroSection: React.FC = () => {
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              AI Doctor Notes: Automate Your Documentation
+              AI Doctor Notes: Clinical Documentation in Seconds
             </h1>
             <p className="text-xl mb-6">
-              Transform patient conversations into accurate clinical documentation in seconds, saving you hours every day.
+              Convert medical conversations into structured SOAP notes and clinical documentation with proper medical terminology and coding suggestions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 

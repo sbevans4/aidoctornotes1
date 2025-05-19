@@ -1,76 +1,38 @@
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-interface Testimonial {
-  quote: string;
-  author: string;
-  title: string;
-  image?: string;
-  organization?: string;
-}
-
-export const TestimonialsSection = () => {
-  const testimonials: Testimonial[] = [
-    {
-      quote: "AIDoctorNotes has saved me over 2 hours every day on documentation. The AI accurately captures my patient conversations and generates perfect SOAP notes.",
-      author: "Dr. Sarah Chen",
-      title: "Family Medicine",
-      organization: "Westside Medical Group",
-      image: "/testimonial-1.jpg"
-    },
-    {
-      quote: "The HIPAA compliance and EHR integration make this tool invaluable. I can focus on my patients instead of my computer screen.",
-      author: "Dr. Michael Rodriguez",
-      title: "Internal Medicine",
-      organization: "Central Health Partners",
-      image: "/testimonial-2.jpg"
-    },
-    {
-      quote: "The documentation quality is exceptional. AIDoctorNotes captures nuances in patient conversations that I would miss when taking notes manually during appointments.",
-      author: "Dr. Jessica Williams",
-      title: "Pediatrician",
-      organization: "Children's Health Center",
-      image: "/testimonial-3.jpg"
-    },
-  ];
-  
+export const TestimonialsSection: React.FC = () => {
   return (
-    <section className="py-16 bg-gray-50" id="testimonials">
+    <section className="py-16">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Trusted by Healthcare Professionals</h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            See how our AI-powered medical documentation is transforming workflows for doctors nationwide
-          </p>
-        </div>
+        <h2 className="text-3xl font-bold mb-12 text-center">What Physicians Say</h2>
         
-        <div className="grid md:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
-            <Card key={index} className="border-none shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-6 flex flex-col h-full">
-                <div className="mb-4 text-lg italic text-gray-600">
-                  "{testimonial.quote}"
-                </div>
-                
-                <div className="mt-auto flex items-center gap-3 pt-4 border-t">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={testimonial.image} alt={testimonial.author} />
-                    <AvatarFallback>{testimonial.author.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                  </Avatar>
-                  
-                  <div>
-                    <div className="font-semibold">{testimonial.author}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {testimonial.title}
-                      {testimonial.organization && `, ${testimonial.organization}`}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <p className="italic mb-4 text-gray-600">
+              "ConvoNotes Genius has changed my workflow completely. I save at least 2 hours daily on documentation, giving me more time with patients and for myself."
+            </p>
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
+              <div>
+                <h4 className="font-semibold">Dr. Sarah Johnson</h4>
+                <p className="text-sm text-gray-500">Family Medicine, Boston</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+            <p className="italic mb-4 text-gray-600">
+              "The accuracy of the medical terminology and coding suggestions is impressive. I've tried other AI tools but this one truly understands medical contexts."
+            </p>
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
+              <div>
+                <h4 className="font-semibold">Dr. Michael Chen</h4>
+                <p className="text-sm text-gray-500">Cardiologist, Chicago</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
