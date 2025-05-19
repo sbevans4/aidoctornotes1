@@ -52,7 +52,7 @@ const SecurityDashboardPage = () => {
   return (
     <>
       <Helmet>
-        <title>Security Dashboard | ConvoNotes Genius</title>
+        <title>Security Dashboard | AIDoctorNotes</title>
         <meta name="description" content="Track compliance with healthcare security standards and manage your HIPAA compliance requirements." />
       </Helmet>
 

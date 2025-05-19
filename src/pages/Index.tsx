@@ -42,12 +42,12 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>ConvoNotes Genius - AI-Powered Medical Documentation Assistant</title>
+        <title>AIDoctorNotes - AI-Powered Medical Documentation Assistant</title>
         <meta name="description" content="AI-powered medical transcription and documentation assistant that converts conversations into accurate clinical notes, saving healthcare professionals hours every day." />
         <meta name="keywords" content="AI doctor notes, AI medical transcription, clinical documentation, medical AI, SOAP notes, healthcare documentation, medical transcription software" />
         
         {/* Open Graph / Social Media Tags */}
-        <meta property="og:title" content="ConvoNotes Genius - AI-Powered Medical Documentation Assistant" />
+        <meta property="og:title" content="AIDoctorNotes - AI-Powered Medical Documentation Assistant" />
         <meta property="og:description" content="AI-powered medical transcription that saves healthcare professionals hours on documentation every day." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://aidoctornotes.com" />
@@ -55,7 +55,7 @@ const Index = () => {
         
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="ConvoNotes Genius - Save Hours on Medical Documentation" />
+        <meta name="twitter:title" content="AIDoctorNotes - Save Hours on Medical Documentation" />
         <meta name="twitter:description" content="AI-powered medical transcription that converts conversations into accurate clinical notes." />
         <meta name="twitter:image" content="https://aidoctornotes.com/og-image.png" />
         
@@ -65,7 +65,7 @@ const Index = () => {
             {
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
-              "name": "ConvoNotes Genius",
+              "name": "AIDoctorNotes",
               "applicationCategory": "HealthcareApplication",
               "operatingSystem": "Web",
               "offers": {

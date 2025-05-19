@@ -1,9 +1,8 @@
-
 import { AndroidAppWireframe } from "../types/analysis";
 
 export const medicalDocumentationWireframe: AndroidAppWireframe = {
-  appName: "ConvoNotes Medical",
-  appId: "app.lovable.convonotes.medical",
+  appName: "AIDoctorNotes Medical",
+  appId: "app.lovable.aidoctornotes.medical",
   
   screens: [
     {

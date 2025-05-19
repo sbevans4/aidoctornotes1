@@ -38,9 +38,9 @@ const AIDoctorNotes = () => {
   return (
     <>
       <Helmet>
-        <title>AI Doctor Notes | ConvoNotes Genius</title>
+        <title>AI Doctor Notes | AIDoctorNotes</title>
         <meta name="description" content="AI-powered doctor notes that convert medical conversations into accurate clinical documentation in seconds. Save hours on paperwork daily." />
-        <meta property="og:title" content="AI Doctor Notes | ConvoNotes Genius" />
+        <meta property="og:title" content="AI Doctor Notes | AIDoctorNotes" />
         <meta property="og:description" content="AI-powered doctor notes that convert medical conversations into accurate clinical documentation in seconds. Save hours on paperwork daily." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://aidoctornotes.com/services/ai-doctor-notes" />
@@ -50,7 +50,7 @@ const AIDoctorNotes = () => {
             {
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
-              "name": "ConvoNotes Genius AI Doctor Notes",
+              "name": "AIDoctorNotes AI Doctor Notes",
               "applicationCategory": "HealthcareApplication",
               "operatingSystem": "Web",
               "offers": {

@@ -10,7 +10,7 @@ export const Logo = ({ textColor }: LogoProps) => {
   return (
     <div className="flex items-center">
       <Link to="/" className={`text-2xl font-bold ${textColor}`}>
-        ConvoNotes <span className="text-medical-primary">Genius</span>
+        AIDoctorNotes <span className="text-medical-primary">Genius</span>
       </Link>
     </div>
   );

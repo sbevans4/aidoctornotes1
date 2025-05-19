@@ -33,9 +33,9 @@ const Security = () => {
   return (
     <>
       <Helmet>
-        <title>Security & Compliance | ConvoNotes Genius</title>
+        <title>Security & Compliance | AIDoctorNotes</title>
         <meta name="description" content="HIPAA-compliant security measures and data protection protocols for healthcare documentation. Learn how we safeguard your patient information." />
-        <meta property="og:title" content="Security & Compliance | ConvoNotes Genius" />
+        <meta property="og:title" content="Security & Compliance | AIDoctorNotes" />
         <meta property="og:description" content="HIPAA-compliant security measures and data protection protocols for healthcare documentation." />
       </Helmet>
 
