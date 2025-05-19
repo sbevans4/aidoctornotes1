@@ -71,16 +71,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 )}
                 <div className="flex gap-3 flex-col sm:flex-row">
                   <Button 
-                    className="flex-1" 
+                    className="flex-1 flex items-center justify-center" 
                     onClick={this.handleRetry}
-                    leftIcon={<RefreshCw className="mr-2 h-4 w-4" />}
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Try Again
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="flex-1"
+                    className="flex-1 flex items-center justify-center"
                     onClick={this.navigateHome}
                   >
                     <Home className="mr-2 h-4 w-4" />
