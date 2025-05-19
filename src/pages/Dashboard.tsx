@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { UsageStats } from "@/components/dashboard/UsageStats";
+import { UsageStatsCard } from "@/components/dashboard/UsageStatsCard";
 import RoleSelection from "@/components/RoleSelection";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "@/hooks/use-toast";
@@ -12,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
-import { FileText, Clock, AlertCircle } from "lucide-react";
+import { FileText, Clock, AlertCircle, Gift } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const Dashboard = () => {
     completedNotes: 0,
     pendingNotes: 0
   });
+  const [showTrialBanner, setShowTrialBanner] = useState(true);
 
   useEffect(() => {
     const fetchRecentNotes = async () => {
@@ -74,6 +76,11 @@ const Dashboard = () => {
     fetchRecentNotes();
   }, [user]);
 
+  const getPlanTier = () => {
+    if (!currentSubscription?.subscription_plans?.tier) return 'basic';
+    return currentSubscription.subscription_plans.tier;
+  };
+
   const handleCreateNewNote = () => {
     navigate("/medical-documentation");
   }
@@ -108,6 +115,36 @@ const Dashboard = () => {
         </p>
       </div>
 
+      {/* Trial Banner */}
+      {getPlanTier() === 'basic' && showTrialBanner && (
+        <div className="mb-6">
+          <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center">
+              <Gift className="h-5 w-5 text-blue-500 mr-2" />
+              <div>
+                <p className="font-medium text-blue-800">Try Professional free for 7 days!</p>
+                <p className="text-sm text-blue-600">Experience unlimited SOAP notes, team accounts, and more.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                size="sm"
+                onClick={() => navigate("/subscription-plans")}
+              >
+                Start Trial
+              </Button>
+              <Button 
+                size="sm" 
+                variant="ghost"
+                onClick={() => setShowTrialBanner(false)}
+              >
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -136,7 +173,8 @@ const Dashboard = () => {
           
           <RoleSelection onRoleSelected={() => {}} />
 
-          <UsageStats isLoading={false} />
+          {/* Replace the old UsageStats with our new enhanced UsageStatsCard */}
+          <UsageStatsCard isLoading={isLoading} currentSubscription={currentSubscription} />
           
           <div className="bg-white shadow rounded-lg p-6">
             <div className="flex justify-between items-center mb-4">

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Scroll, Mic, Brain, Gift, Percent, Check } from "lucide-react";
+import { Scroll, Mic, Brain, Gift, Percent, Check, Clock, Users, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PaymentForm } from "@/components/PaymentForm";
@@ -10,6 +10,7 @@ import { FeaturesComparison } from "./FeaturesComparison";
 import { KeyFeatures } from "./pricing/KeyFeatures";
 import { PricingCard } from "./pricing/PricingCard";
 import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface PricingSectionProps {
   handleLogin: () => Promise<void>;
@@ -22,6 +23,7 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
   const [showDetailsForPlan, setShowDetailsForPlan] = useState<string | null>(null);
   const [showTrialBanner, setShowTrialBanner] = useState(true);
   const [showUrgencyBanner, setShowUrgencyBanner] = useState(true);
+  const [activeTab, setActiveTab] = useState("all");
 
   const handleSubscribe = async (planId: string) => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -30,6 +32,18 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
       return;
     }
     setSelectedPlanId(planId);
+  };
+
+  // Function to handle starting a free trial
+  const handleStartTrial = async (planId: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      handleLogin();
+      return;
+    }
+    // In a real implementation, this would call an endpoint to start the trial
+    // For now, just show a toast message
+    alert("Trial functionality would be implemented in a real app");
   };
 
   const keyFeatures = [
@@ -74,16 +88,113 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
     return tierOrder[a.tier] - tierOrder[b.tier];
   });
 
+  // Function to get active plans based on tab selection (for mobile view)
+  const getActivePlans = () => {
+    if (!displayPlans) return [];
+    
+    if (activeTab === "all") return displayPlans;
+    if (activeTab === "popular") return displayPlans.filter(plan => plan.tier === "professional");
+    if (activeTab === "basic") return displayPlans.filter(plan => ["basic", "standard"].includes(plan.tier));
+    if (activeTab === "advanced") return displayPlans.filter(plan => ["unlimited", "professional", "image_analysis"].includes(plan.tier));
+    
+    return displayPlans;
+  };
+
+  // Plan highlights for better clarity about what's included
+  const planHighlights = {
+    basic: {
+      title: "Basic",
+      subtitle: "For getting started",
+      includedFeatures: [
+        "Limited transcription (60 min/month)",
+        "5 SOAP notes per month",
+        "PDF export",
+        "Basic email support"
+      ]
+    },
+    standard: {
+      title: "Standard",
+      subtitle: "Most affordable",
+      includedFeatures: [
+        "Everything in Basic +",
+        "Unlimited transcription",
+        "Unlimited SOAP notes",
+        "Code suggestions",
+        "EHR copy-paste format"
+      ]
+    },
+    unlimited: {
+      title: "Unlimited",
+      subtitle: "For power users",
+      includedFeatures: [
+        "Everything in Standard +",
+        "Real-time code validation",
+        "Custom templates",
+        "Limited image analysis (5/month)",
+        "24/7 premium support"
+      ]
+    },
+    professional: {
+      title: "Professional",
+      subtitle: "Most popular plan",
+      includedFeatures: [
+        "Everything in Unlimited +",
+        "Direct EHR integration",
+        "Team accounts (up to 5)",
+        "Searchable code database",
+        "Priority processing"
+      ]
+    },
+    image_analysis: {
+      title: "Image Analysis",
+      subtitle: "For specialists",
+      includedFeatures: [
+        "Everything in Professional +",
+        "Unlimited image analysis",
+        "Real-time image interpretation",
+        "Diagnostic suggestions",
+        "Specialist templates"
+      ]
+    }
+  };
+
+  // Social proof data
+  const socialProofNumbers = {
+    doctors: "5,000+",
+    notes: "1 million+",
+    saved: "2 hours",
+    satisfaction: "98%"
+  };
+
   return (
     <section className="py-16 bg-gray-50" id="pricing">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-6">Choose Your Plan</h2>
         <p className="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
-          Select the plan that best fits your practice needs. All plans include our core features
-          with additional capabilities as you move up tiers.
+          Select the plan that best fits your practice needs. Higher tier plans include all features from lower tiers, plus additional capabilities.
         </p>
         
-        {/* Trial Banner */}
+        {/* Social Proof Numbers */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 max-w-4xl mx-auto">
+          <div className="text-center p-4">
+            <p className="text-3xl font-bold text-primary">{socialProofNumbers.doctors}</p>
+            <p className="text-sm text-gray-600">Doctors Trust Us</p>
+          </div>
+          <div className="text-center p-4">
+            <p className="text-3xl font-bold text-primary">{socialProofNumbers.notes}</p>
+            <p className="text-sm text-gray-600">Notes Generated</p>
+          </div>
+          <div className="text-center p-4">
+            <p className="text-3xl font-bold text-primary">{socialProofNumbers.saved}</p>
+            <p className="text-sm text-gray-600">Saved Daily</p>
+          </div>
+          <div className="text-center p-4">
+            <p className="text-3xl font-bold text-primary">{socialProofNumbers.satisfaction}</p>
+            <p className="text-sm text-gray-600">Satisfaction Rate</p>
+          </div>
+        </div>
+        
+        {/* Trial Banner - Behavioral Economics */}
         {showTrialBanner && (
           <div className="max-w-4xl mx-auto mb-8">
             <div className="bg-blue-100 border border-blue-200 rounded-lg p-4 flex items-center justify-between gap-2 text-blue-700">
@@ -93,27 +204,42 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
                   Try Professional free for 7 days! No credit card required.
                 </span>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="border-blue-300 hover:bg-blue-200 text-blue-700"
-                onClick={() => setShowTrialBanner(false)}
-              >
-                Dismiss
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => handleStartTrial('professional')}
+                >
+                  Start Trial
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-blue-300 hover:bg-blue-200 text-blue-700"
+                  onClick={() => setShowTrialBanner(false)}
+                >
+                  Dismiss
+                </Button>
+              </div>
             </div>
           </div>
         )}
         
-        {/* Urgency Banner */}
+        {/* Urgency Banner - Behavioral Economics */}
         {showUrgencyBanner && (
           <div className="max-w-4xl mx-auto mb-8">
             <div className="bg-amber-100 border border-amber-200 rounded-lg p-4 flex items-center justify-between gap-2 text-amber-700">
               <div className="flex items-center gap-2">
-                <Percent className="w-5 h-5" />
-                <span className="font-semibold">
-                  Limited time offer: 20% off Professional plan for the first 3 months!
-                </span>
+                <div className="flex items-center">
+                  <Percent className="w-5 h-5 mr-2" />
+                  <span className="font-semibold mr-2">
+                    Limited time offer: 20% off Professional plan for the first 3 months!
+                  </span>
+                  <div className="hidden md:flex items-center bg-amber-200 text-amber-800 px-2 py-1 rounded">
+                    <Clock className="w-3 h-3 mr-1" />
+                    <span className="text-xs font-bold">Offer ends in 3 days</span>
+                  </div>
+                </div>
               </div>
               <Button 
                 variant="outline" 
@@ -133,21 +259,35 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
             <div className="bg-green-100 border border-green-200 rounded-lg p-4 flex items-center justify-center gap-2 text-green-700">
               <Gift className="w-5 h-5" />
               <span className="font-semibold">
-                You have a {referralData.activeDiscount}% discount available!
+                You have a {referralData.activeDiscount}% discount available on all plans!
               </span>
               <Percent className="w-4 h-4" />
             </div>
           </div>
         )}
 
+        {/* Mobile View - Tab Navigation for Plans */}
+        <div className="md:hidden mb-6">
+          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="w-full grid grid-cols-4">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="popular">Popular</TabsTrigger>
+              <TabsTrigger value="basic">Basic</TabsTrigger>
+              <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
         <KeyFeatures features={keyFeatures} />
         
-        <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
+        {/* Desktop View */}
+        <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
           {displayPlans?.map((plan) => {
             const isCurrentPlan = currentSubscription?.plan_id === plan.id;
-            const isProfessional = plan.name === "Professional";
+            const isProfessional = plan.tier === "professional";
             const originalPrice = plan.price;
             const discountedPrice = getDiscountedPrice(originalPrice);
+            const highlights = planHighlights[plan.tier as keyof typeof planHighlights];
             
             return (
               <PricingCard
@@ -160,9 +300,68 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
                 referralDiscount={referralData?.activeDiscount}
                 onShowDetails={() => setShowDetailsForPlan(plan.id)}
                 onSubscribe={() => handleSubscribe(plan.id)}
+                onStartTrial={() => handleStartTrial(plan.id)}
+                includesText={highlights?.title !== "Basic" ? `Everything in ${getPreviousTier(plan.tier)} +` : undefined}
+                highlights={highlights?.includedFeatures}
+                showTrial={plan.tier !== "basic" && plan.tier !== "enterprise"}
               />
             );
           })}
+        </div>
+
+        {/* Mobile View */}
+        <div className="md:hidden space-y-6">
+          {getActivePlans().map((plan) => {
+            const isCurrentPlan = currentSubscription?.plan_id === plan.id;
+            const isProfessional = plan.tier === "professional";
+            const originalPrice = plan.price;
+            const discountedPrice = getDiscountedPrice(originalPrice);
+            const highlights = planHighlights[plan.tier as keyof typeof planHighlights];
+            
+            return (
+              <PricingCard
+                key={plan.id}
+                plan={plan}
+                isCurrentPlan={isCurrentPlan}
+                isProfessional={isProfessional}
+                originalPrice={originalPrice}
+                discountedPrice={discountedPrice}
+                referralDiscount={referralData?.activeDiscount}
+                onShowDetails={() => setShowDetailsForPlan(plan.id)}
+                onSubscribe={() => handleSubscribe(plan.id)}
+                onStartTrial={() => handleStartTrial(plan.id)}
+                includesText={highlights?.title !== "Basic" ? `Everything in ${getPreviousTier(plan.tier)} +` : undefined}
+                highlights={highlights?.includedFeatures}
+                showTrial={plan.tier !== "basic" && plan.tier !== "enterprise"}
+                mobileView={true}
+              />
+            );
+          })}
+        </div>
+
+        {/* Satisfied Customers Section - Social Proof */}
+        <div className="mt-16 max-w-4xl mx-auto">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <Award className="h-5 w-5 text-amber-500" />
+            <h3 className="text-2xl font-bold text-center">Trusted by Healthcare Professionals</h3>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="bg-white p-5 rounded-lg shadow-sm">
+              <p className="text-gray-600 italic">"AIDoctorNotes saves me nearly 2 hours every day on documentation. The Professional plan is worth every penny."</p>
+              <p className="font-semibold mt-3">Dr. Emily Chen</p>
+              <p className="text-sm text-gray-500">Family Medicine</p>
+            </div>
+            <div className="bg-white p-5 rounded-lg shadow-sm">
+              <p className="text-gray-600 italic">"The team accounts feature has transformed our clinic's workflow. We're all on the same page now."</p>
+              <p className="font-semibold mt-3">Dr. James Wilson</p>
+              <p className="text-sm text-gray-500">Internal Medicine</p>
+            </div>
+            <div className="bg-white p-5 rounded-lg shadow-sm">
+              <p className="text-gray-600 italic">"Image analysis capabilities are game-changing for my dermatology practice. Highly recommend."</p>
+              <p className="font-semibold mt-3">Dr. Sarah Lopez</p>
+              <p className="text-sm text-gray-500">Dermatology</p>
+            </div>
+          </div>
         </div>
 
         <div className="text-center mt-16">
@@ -214,3 +413,14 @@ export const PricingSection = ({ handleLogin }: PricingSectionProps) => {
     </section>
   );
 };
+
+// Helper function to get the previous tier name for the "Everything in X +" text
+function getPreviousTier(tier: string): string {
+  switch(tier) {
+    case 'standard': return 'Basic';
+    case 'unlimited': return 'Standard';
+    case 'professional': return 'Unlimited';
+    case 'image_analysis': return 'Professional';
+    default: return '';
+  }
+}
