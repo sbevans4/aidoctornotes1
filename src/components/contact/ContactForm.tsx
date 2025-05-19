@@ -14,20 +14,20 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { validateEmail, isNetworkError, formatAuthError } from "@/utils/formValidation";
 
-// Validation schema for contact form
+// Validation schema for contact form with enhanced validation messages
 const contactFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name cannot exceed 100 characters"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().optional(),
   organization: z.string().optional(),
-  subject: z.string().min(3, "Subject must be at least 3 characters"),
-  message: z.string().min(10, "Message must be at least 10 characters"),
+  subject: z.string().min(3, "Subject must be at least 3 characters").max(200, "Subject cannot exceed 200 characters"),
+  message: z.string().min(10, "Message must be at least 10 characters").max(2000, "Message cannot exceed 2000 characters"),
 });
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
@@ -38,7 +38,7 @@ export default function ContactForm() {
   const [networkError, setNetworkError] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize form
+  // Initialize form with enhanced validation
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
@@ -51,7 +51,7 @@ export default function ContactForm() {
     },
   });
 
-  // Focus name input on mount - accessibility improvement
+  // Focus name input on mount for better UX
   useEffect(() => {
     if (nameInputRef.current) {
       nameInputRef.current.focus();
@@ -126,13 +126,17 @@ export default function ContactForm() {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="rounded-full bg-green-100 p-4">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <CheckCircle2 className="h-8 w-8 text-green-600" aria-hidden="true" />
             </div>
             <h3 className="text-xl font-bold">Thank You!</h3>
             <p className="text-gray-600">
               Your message has been successfully sent. We'll get back to you as soon as possible.
             </p>
-            <Button onClick={handleReset} className="mt-4">
+            <Button 
+              onClick={handleReset} 
+              className="mt-4"
+              aria-label="Send another message"
+            >
               Send Another Message
             </Button>
           </div>
@@ -142,8 +146,10 @@ export default function ContactForm() {
           <form 
             onSubmit={form.handleSubmit(onSubmit)} 
             className="space-y-6"
-            aria-label="Contact form"
+            aria-labelledby="contact-form-heading"
           >
+            <h2 id="contact-form-heading" className="sr-only">Contact Form</h2>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -151,7 +157,7 @@ export default function ContactForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel htmlFor="name">
-                      Name <span className="text-red-500">*</span>
+                      Name <span className="text-red-500" aria-hidden="true">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -163,7 +169,7 @@ export default function ContactForm() {
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage aria-live="polite" />
                   </FormItem>
                 )}
               />
@@ -174,7 +180,7 @@ export default function ContactForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel htmlFor="email">
-                      Email <span className="text-red-500">*</span>
+                      Email <span className="text-red-500" aria-hidden="true">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -183,10 +189,11 @@ export default function ContactForm() {
                         placeholder="you@example.com"
                         disabled={isSubmitting}
                         aria-required="true"
+                        aria-describedby="email-error"
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage id="email-error" aria-live="polite" />
                   </FormItem>
                 )}
               />
@@ -205,10 +212,12 @@ export default function ContactForm() {
                         type="tel"
                         placeholder="(123) 456-7890"
                         disabled={isSubmitting}
+                        aria-describedby="phone-description"
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <p id="phone-description" className="text-xs text-gray-500">Optional</p>
+                    <FormMessage aria-live="polite" />
                   </FormItem>
                 )}
               />
@@ -224,10 +233,12 @@ export default function ContactForm() {
                         id="organization"
                         placeholder="Your organization or practice"
                         disabled={isSubmitting}
+                        aria-describedby="org-description"
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <p id="org-description" className="text-xs text-gray-500">Optional</p>
+                    <FormMessage aria-live="polite" />
                   </FormItem>
                 )}
               />
@@ -239,7 +250,7 @@ export default function ContactForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel htmlFor="subject">
-                    Subject <span className="text-red-500">*</span>
+                    Subject <span className="text-red-500" aria-hidden="true">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -250,7 +261,7 @@ export default function ContactForm() {
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage aria-live="polite" />
                 </FormItem>
               )}
             />
@@ -261,19 +272,19 @@ export default function ContactForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel htmlFor="message">
-                    Message <span className="text-red-500">*</span>
+                    Message <span className="text-red-500" aria-hidden="true">*</span>
                   </FormLabel>
                   <FormControl>
                     <Textarea
                       id="message"
                       placeholder="Tell us more about your inquiry..."
-                      className="min-h-[120px]"
+                      className="min-h-[150px] resize-y"
                       disabled={isSubmitting}
                       aria-required="true"
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage aria-live="polite" />
                 </FormItem>
               )}
             />
@@ -286,8 +297,8 @@ export default function ContactForm() {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                  <span>Sending...</span>
                 </>
               ) : (
                 "Send Message"
