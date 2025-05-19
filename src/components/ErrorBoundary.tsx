@@ -3,6 +3,7 @@ import React, { Component, ErrorInfo, ReactNode } from "react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
+import { MobileResponsiveWrapper } from "@/components/layout/MobileResponsiveWrapper";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -40,24 +41,27 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       }
 
       return (
-        <div className="p-6 max-w-md mx-auto">
-          <Alert variant="destructive" className="mb-6">
-            <AlertTitle className="text-lg font-semibold">Something went wrong</AlertTitle>
-            <AlertDescription className="mt-2">
-              {this.state.error?.message || "An unexpected error occurred. Please try again."}
-            </AlertDescription>
-          </Alert>
-          <div className="text-center">
-            <Button 
-              onClick={this.handleRetry} 
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <RefreshCcw className="h-4 w-4" /> 
-              Try Again
-            </Button>
+        <MobileResponsiveWrapper className="py-12">
+          <div className="max-w-md mx-auto">
+            <Alert variant="destructive" className="mb-6">
+              <AlertTitle className="text-lg font-semibold">Something went wrong</AlertTitle>
+              <AlertDescription className="mt-2">
+                {this.state.error?.message || "An unexpected error occurred. Please try again."}
+              </AlertDescription>
+            </Alert>
+            <div className="text-center">
+              <Button 
+                onClick={this.handleRetry} 
+                variant="outline"
+                className="flex items-center gap-2"
+                aria-label="Retry"
+              >
+                <RefreshCcw className="h-4 w-4" /> 
+                Try Again
+              </Button>
+            </div>
           </div>
-        </div>
+        </MobileResponsiveWrapper>
       );
     }
 

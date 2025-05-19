@@ -51,7 +51,7 @@ export default function ContactForm() {
     },
   });
 
-  // Focus name input on mount
+  // Focus name input on mount - accessibility improvement
   useEffect(() => {
     if (nameInputRef.current) {
       nameInputRef.current.focus();
