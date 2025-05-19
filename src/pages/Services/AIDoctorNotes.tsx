@@ -1,12 +1,6 @@
 
 import React from "react";
 import { Helmet } from "react-helmet";
-import { HeroSection } from "@/components/services/doctor-notes/HeroSection";
-import { BenefitsSection } from "@/components/services/doctor-notes/BenefitsSection";
-import { HowItWorksSection } from "@/components/services/doctor-notes/HowItWorksSection";
-import { FeaturesSection } from "@/components/services/doctor-notes/FeaturesSection";
-import { TestimonialsSection } from "@/components/services/doctor-notes/TestimonialsSection";
-import { CtaSection } from "@/components/services/doctor-notes/CtaSection";
 
 const AIDoctorNotes = () => {
   return (
@@ -39,12 +33,17 @@ const AIDoctorNotes = () => {
       </Helmet>
 
       <div className="pt-20">
-        <HeroSection />
-        <BenefitsSection />
-        <HowItWorksSection />
-        <FeaturesSection />
-        <TestimonialsSection />
-        <CtaSection />
+        <section className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">AI Doctor Notes</h1>
+          <p className="text-lg text-gray-600 max-w-3xl mb-10">
+            Convert medical conversations into structured clinical documentation in seconds. Save hours on paperwork daily.
+          </p>
+          
+          {/* Placeholder for actual content */}
+          <div className="bg-gray-100 p-10 rounded-lg text-center">
+            <p>Doctor Notes Content</p>
+          </div>
+        </section>
       </div>
     </>
   );

@@ -21,6 +21,7 @@ const PageLoadingFallback = () => (
 // Lazy load pages with custom loading states
 const Index = lazyWithFallback(() => import("../pages/Index"), PageLoadingFallback);
 const Enterprise = lazyWithFallback(() => import("../pages/Enterprise"), PageLoadingFallback);
+const Services = lazyWithFallback(() => import("../pages/Services"), PageLoadingFallback);
 const Auth = lazyWithFallback(() => import("../pages/Auth"), PageLoadingFallback);
 const ForgotPassword = lazyWithFallback(() => import("../pages/ForgotPassword"), PageLoadingFallback);
 const PasswordReset = lazyWithFallback(() => import("../pages/PasswordReset"), PageLoadingFallback);
@@ -42,6 +43,14 @@ export const IndexRoutes = () => (
       element={
         <Layout>
           <Index />
+        </Layout>
+      }
+    />
+    <Route
+      path="/services"
+      element={
+        <Layout>
+          <Services />
         </Layout>
       }
     />

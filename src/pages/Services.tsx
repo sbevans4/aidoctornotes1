@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, FileText, Mic, Brain, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 
 const Services = () => {
   const navigate = useNavigate();
@@ -15,7 +14,7 @@ const Services = () => {
       title: "AI Doctor Notes",
       description: "Transform patient encounters into structured clinical documentation in seconds, saving hours on paperwork daily.",
       icon: FileText,
-      link: "/services/ai-doctor-notes",
+      link: "/services/doctor-notes",
       features: [
         "SOAP note generation",
         "Medical terminology recognition",
@@ -27,7 +26,7 @@ const Services = () => {
       title: "AI Medical Transcription",
       description: "High-accuracy, real-time conversion of medical conversations to text with specialty-specific terminology.",
       icon: Mic,
-      link: "/services/ai-medical-transcription",
+      link: "/services/transcription",
       features: [
         "Real-time transcription",
         "Multi-speaker recognition",
@@ -39,7 +38,7 @@ const Services = () => {
       title: "AI Therapy Notes",
       description: "Purpose-built for mental health providers with templates for therapy sessions, assessments, and treatment plans.",
       icon: Brain,
-      link: "/services/ai-therapy-notes",
+      link: "/services/therapy-notes",
       features: [
         "Therapy-specific templates",
         "Treatment planning tools",
@@ -48,27 +47,6 @@ const Services = () => {
       ]
     }
   ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5
-      }
-    }
-  };
 
   return (
     <>
@@ -90,70 +68,36 @@ const Services = () => {
         </div>
 
         {/* Services Grid */}
-        <motion.div 
-          className="grid md:grid-cols-3 gap-8 mb-16"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
           {services.map((service, index) => (
-            <motion.div key={index} variants={itemVariants}>
-              <Card className="h-full flex flex-col hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="mb-4 bg-blue-100 inline-block p-3 rounded-lg">
-                    <service.icon className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <CardTitle className="text-2xl">{service.title}</CardTitle>
-                  <CardDescription className="text-base">{service.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <ul className="space-y-2">
-                    {service.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full"
-                    onClick={() => navigate(service.link)}
-                  >
-                    Learn More <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            </motion.div>
+            <Card key={index} className="h-full flex flex-col hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="mb-4 bg-blue-100 inline-block p-3 rounded-lg">
+                  <service.icon className="h-8 w-8 text-blue-600" />
+                </div>
+                <CardTitle className="text-2xl">{service.title}</CardTitle>
+                <CardDescription className="text-base">{service.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <ul className="space-y-2">
+                  {service.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full"
+                  onClick={() => navigate(service.link)}
+                >
+                  Learn More <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </CardFooter>
+            </Card>
           ))}
-        </motion.div>
-
-        {/* Why Choose Us */}
-        <div className="bg-gray-50 rounded-xl p-8 mb-16">
-          <h2 className="text-3xl font-bold mb-8 text-center">Why Choose ConvoNotes Genius?</h2>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold mb-3">Save Time</h3>
-              <p className="text-gray-600">Reduce documentation time by up to 75%, giving you more time to focus on patient care.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold mb-3">Improve Accuracy</h3>
-              <p className="text-gray-600">Our AI models are trained on millions of medical records for unmatched accuracy and terminology.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold mb-3">HIPAA Compliant</h3>
-              <p className="text-gray-600">End-to-end encryption and secure processing ensures patient data remains protected.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-bold mb-3">Seamless Integration</h3>
-              <p className="text-gray-600">Integrates with major EHR systems for a streamlined documentation workflow.</p>
-            </div>
-          </div>
         </div>
 
         {/* CTA Section */}
