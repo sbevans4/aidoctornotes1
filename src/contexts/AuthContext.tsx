@@ -18,6 +18,7 @@ interface AuthContextProps {
   };
   signOut: () => Promise<void>;
   checkHasFeature: (featureName: string) => boolean;
+  refreshProfile: () => Promise<void>; // Added this function
 }
 
 interface UserProfile {
@@ -117,6 +118,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Function to manually refresh the profile
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchUserProfile(user.id);
+    }
+  };
+
   // Check subscription status
   const fetchSubscriptionStatus = async (userId: string) => {
     try {
@@ -192,6 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         subscriptionStatus,
         signOut,
         checkHasFeature,
+        refreshProfile, // Added this to the context value
       }}
     >
       {children}

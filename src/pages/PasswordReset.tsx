@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
@@ -36,18 +35,15 @@ export default function PasswordReset() {
   // Get the access token from the URL
   const accessToken = searchParams.get("access_token");
   const refreshToken = searchParams.get("refresh_token");
-  const expiresIn = searchParams.get("expires_in");
-  const tokenType = searchParams.get("token_type");
   
   useEffect(() => {
     // Set the session if we have all the required tokens
     const setSession = async () => {
-      if (accessToken && refreshToken && expiresIn && tokenType) {
+      if (accessToken && refreshToken) {
         // Set the session with the provided tokens
         const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
-          expires_in: parseInt(expiresIn),
         });
         
         if (error) {
@@ -70,7 +66,7 @@ export default function PasswordReset() {
     };
     
     setSession();
-  }, [accessToken, refreshToken, expiresIn, tokenType, navigate]);
+  }, [accessToken, refreshToken, navigate]);
 
   const form = useForm<PasswordResetFormValues>({
     resolver: zodResolver(passwordResetSchema),

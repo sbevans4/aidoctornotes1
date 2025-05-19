@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function EmailVerification() {
   const [searchParams] = useSearchParams();
   const [isVerifying, setIsVerifying] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Get the access token and other parameters from the URL
   const accessToken = searchParams.get("access_token");
@@ -62,8 +64,13 @@ export default function EmailVerification() {
   const resendVerificationEmail = async () => {
     setIsVerifying(true);
     try {
+      if (!user || !user.email) {
+        throw new Error("User email not available. Please try logging in again.");
+      }
+      
       const { error } = await supabase.auth.resend({
         type: "signup",
+        email: user.email,
       });
       
       if (error) throw error;
