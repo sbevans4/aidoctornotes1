@@ -5,13 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { isNetworkError, formatAuthError } from "@/utils/formValidation";
 
 export default function EmailVerification() {
   const [searchParams] = useSearchParams();
   const [isVerifying, setIsVerifying] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
+  const [networkError, setNetworkError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
   
@@ -23,6 +26,7 @@ export default function EmailVerification() {
   useEffect(() => {
     const verifyEmail = async () => {
       setIsVerifying(true);
+      setNetworkError(null);
       
       try {
         // If this is an email verification link from Supabase
@@ -44,11 +48,15 @@ export default function EmailVerification() {
           throw new Error("Invalid verification link");
         }
       } catch (error: any) {
-        toast({
-          variant: "destructive",
-          title: "Verification failed",
-          description: error.message || "Failed to verify your email. Please try again.",
-        });
+        if (isNetworkError(error)) {
+          setNetworkError("No internet connection. Please check your network and try again.");
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Verification failed",
+            description: formatAuthError(error),
+          });
+        }
       } finally {
         setIsVerifying(false);
       }
@@ -63,6 +71,8 @@ export default function EmailVerification() {
   
   const resendVerificationEmail = async () => {
     setIsVerifying(true);
+    setNetworkError(null);
+    
     try {
       if (!user || !user.email) {
         throw new Error("User email not available. Please try logging in again.");
@@ -80,11 +90,15 @@ export default function EmailVerification() {
         description: "Please check your email for a new verification link.",
       });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to send verification email. Please try again.",
-      });
+      if (isNetworkError(error)) {
+        setNetworkError("No internet connection. Please check your network and try again.");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: formatAuthError(error),
+        });
+      }
     } finally {
       setIsVerifying(false);
     }
@@ -104,50 +118,33 @@ export default function EmailVerification() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
+          {networkError && (
+            <Alert variant="destructive" className="mb-4 w-full" role="alert">
+              <AlertDescription>{networkError}</AlertDescription>
+            </Alert>
+          )}
+          
           {isVerifying ? (
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           ) : isVerified ? (
             <div className="flex flex-col items-center gap-4">
               <div className="rounded-full bg-green-100 p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-green-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+                <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
               <p className="text-center text-sm text-gray-600">
                 Your email has been verified successfully. You can now access all features of AiDoctorNotes.
               </p>
-              <Button onClick={() => navigate("/medical-documentation")}>
+              <Button 
+                onClick={() => navigate("/medical-documentation")}
+                className="w-full"
+              >
                 Continue to Dashboard
               </Button>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-4 w-full">
               <div className="rounded-full bg-amber-100 p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-amber-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
+                <AlertCircle className="h-6 w-6 text-amber-600" />
               </div>
               <p className="text-center text-sm text-gray-600">
                 To continue using AiDoctorNotes, please verify your email address by clicking the link in the verification email we sent you.
@@ -157,6 +154,7 @@ export default function EmailVerification() {
                   onClick={resendVerificationEmail} 
                   className="w-full"
                   disabled={isVerifying}
+                  aria-busy={isVerifying}
                 >
                   {isVerifying ? (
                     <>

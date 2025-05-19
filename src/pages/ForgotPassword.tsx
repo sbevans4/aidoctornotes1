@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, MailCheck } from "lucide-react";
+import { validateEmail, isNetworkError, formatAuthError } from "@/utils/formValidation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Email validation schema
 const forgotPasswordSchema = z.object({
@@ -22,6 +24,8 @@ type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [networkError, setNetworkError] = useState<string | null>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const form = useForm<ForgotPasswordFormValues>({
@@ -31,10 +35,26 @@ export default function ForgotPassword() {
     },
   });
 
+  // Focus email input on mount
+  useEffect(() => {
+    if (emailInputRef.current) {
+      emailInputRef.current.focus();
+    }
+  }, []);
+
   const onSubmit = async (values: ForgotPasswordFormValues) => {
     setIsLoading(true);
+    setNetworkError(null);
     
     try {
+      // Email validation
+      const emailValidation = validateEmail(values.email);
+      if (!emailValidation.valid) {
+        form.setError("email", { message: emailValidation.message });
+        setIsLoading(false);
+        return;
+      }
+      
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
@@ -47,14 +67,23 @@ export default function ForgotPassword() {
         description: "Please check your email for a password reset link.",
       });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to send reset email. Please try again.",
-      });
+      if (isNetworkError(error)) {
+        setNetworkError("No internet connection. Please check your network and try again.");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: formatAuthError(error),
+        });
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleResendLink = () => {
+    form.reset();
+    setIsSubmitted(false);
   };
 
   return (
@@ -69,55 +98,58 @@ export default function ForgotPassword() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {networkError && (
+            <Alert variant="destructive" className="mb-4" role="alert">
+              <AlertDescription>{networkError}</AlertDescription>
+            </Alert>
+          )}
+        
           {isSubmitted ? (
             <div className="flex flex-col items-center gap-4">
               <div className="rounded-full bg-green-100 p-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-green-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
+                <MailCheck className="h-6 w-6 text-green-600" />
               </div>
               <p className="text-center text-sm text-gray-600">
                 We've sent a password reset link to your email address. Please check your inbox and follow the instructions.
               </p>
               <div className="space-y-2 w-full">
                 <Button 
-                  onClick={() => form.reset()} 
+                  onClick={handleResendLink} 
                   className="w-full"
                   variant="outline"
                 >
-                  Resend Link
+                  Need a new link? Try again
                 </Button>
-                <Button onClick={() => navigate("/auth")} className="w-full">
+                <Button 
+                  onClick={() => navigate("/auth")} 
+                  className="w-full"
+                >
                   Back to Login
                 </Button>
               </div>
             </div>
           ) : (
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form 
+                onSubmit={form.handleSubmit(onSubmit)} 
+                className="space-y-4"
+                aria-label="Password reset request form"
+              >
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel htmlFor="email">Email</FormLabel>
                       <FormControl>
                         <Input
+                          id="email"
                           type="email"
                           placeholder="you@example.com"
                           {...field}
+                          ref={emailInputRef}
                           disabled={isLoading}
+                          aria-required="true"
                         />
                       </FormControl>
                       <FormMessage />
@@ -129,6 +161,7 @@ export default function ForgotPassword() {
                     type="submit" 
                     className="w-full" 
                     disabled={isLoading}
+                    aria-busy={isLoading}
                   >
                     {isLoading ? (
                       <>

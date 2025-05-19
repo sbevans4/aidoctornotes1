@@ -1,72 +1,136 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, ChevronDown } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { validateEmail, validatePassword, isNetworkError, formatAuthError } from "@/utils/formValidation";
+
+// Enhanced schema with password validation
+const signUpSchema = z.object({
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .refine(val => /[0-9]/.test(val), {
+      message: "Password must contain at least one number",
+    })
+    .refine(val => /[^a-zA-Z0-9]/.test(val), {
+      message: "Password must contain at least one special character",
+    }),
+});
+
+type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export function SignUpForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [networkError, setNetworkError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const fullNameInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Initialize form with enhanced validation
+  const form = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  // Focus full name input on mount
+  useEffect(() => {
+    if (fullNameInputRef.current) {
+      fullNameInputRef.current.focus();
+    }
+  }, []);
+
+  const handleSignUp = async (values: SignUpFormValues) => {
     setLoading(true);
+    setNetworkError(null);
     
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
+      // Email validation
+      const emailValidation = validateEmail(values.email);
+      if (!emailValidation.valid) {
+        form.setError("email", { message: emailValidation.message });
+        setLoading(false);
+        return;
+      }
+      
+      // Password validation 
+      const passwordValidation = validatePassword(values.password);
+      if (!passwordValidation.valid) {
+        form.setError("password", { message: passwordValidation.message });
+        setLoading(false);
+        return;
+      }
+
+      const { error: signUpError, data } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
         options: {
           data: {
-            full_name: fullName,
+            full_name: values.fullName,
           },
+          emailRedirectTo: `${window.location.origin}/auth/verify`,
         },
       });
 
       if (signUpError) throw signUpError;
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: (await supabase.auth.getUser()).data.user?.id,
-            email,
-            full_name: fullName,
-            has_used_trial: false,
-            purchase_date: null,
-            refund_requested: false,
-            refund_request_date: null
-          }
-        ]);
+      // Create profile if user is created
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: data.user.id,
+              email: values.email,
+              full_name: values.fullName,
+              has_used_trial: false,
+              purchase_date: null,
+              refund_requested: false,
+              refund_request_date: null
+            }
+          ]);
 
-      if (profileError) throw profileError;
+        if (profileError) throw profileError;
+      }
 
       toast({
-        title: "Success!",
+        title: "Account created successfully!",
         description: "Please check your email to verify your account.",
       });
       
-      navigate("/medical-documentation");
+      navigate("/auth/verify");
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
+      if (isNetworkError(error)) {
+        setNetworkError("No internet connection. Please check your network and try again.");
+      } else if (error.message && error.message.includes("already registered")) {
+        form.setError("email", { message: "Email already registered. Please sign in instead." });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Sign Up Failed",
+          description: formatAuthError(error),
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -74,6 +138,7 @@ export function SignUpForm() {
 
   const handleTestSignIn = async () => {
     setLoading(true);
+    setNetworkError(null);
     
     try {
       const testEmail = "dr.note.tester@example.com";
@@ -134,11 +199,15 @@ export function SignUpForm() {
       
       navigate("/medical-documentation");
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
+      if (isNetworkError(error)) {
+        setNetworkError("No internet connection. Please check your network and try again.");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Demo Access Failed",
+          description: formatAuthError(error),
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -146,41 +215,103 @@ export function SignUpForm() {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSignUp} className="space-y-4">
-        <div>
-          <Input
-            type="text"
-            placeholder="Full Name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
+      {networkError && (
+        <Alert variant="destructive" className="mb-4" role="alert">
+          <AlertDescription>{networkError}</AlertDescription>
+        </Alert>
+      )}
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSignUp)} className="space-y-4" aria-label="Sign up form">
+          <FormField
+            control={form.control}
+            name="fullName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="fullName">Full Name</FormLabel>
+                <FormControl>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Full Name"
+                    disabled={loading}
+                    aria-required="true"
+                    ref={fullNameInputRef}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <div>
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+          
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="email">Email</FormLabel>
+                <FormControl>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    disabled={loading}
+                    aria-required="true"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <div>
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+          
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="password">Password</FormLabel>
+                <FormControl>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    disabled={loading}
+                    aria-required="true"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+                <div className="text-xs text-muted-foreground">
+                  Password must be at least 8 characters with one number and one special character.
+                </div>
+              </FormItem>
+            )}
           />
-        </div>
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Loading..." : "Start Your One-Time Trial"}
-        </Button>
-        <p className="text-sm text-gray-600 text-center mt-2">
-          100% Money-Back Guarantee - Try Risk-Free
-        </p>
-      </form>
+          
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={loading}
+            aria-busy={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                Creating Account...
+              </>
+            ) : (
+              "Start Your One-Time Trial"
+            )}
+          </Button>
+          <p className="text-sm text-gray-600 text-center mt-2">
+            100% Money-Back Guarantee - Try Risk-Free
+          </p>
+        </form>
+      </Form>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
@@ -196,18 +327,35 @@ export function SignUpForm() {
         className="w-full" 
         onClick={handleTestSignIn} 
         disabled={loading}
+        aria-label="Access demo account"
       >
-        {loading ? "Loading..." : "Demo Account Access"}
+        {loading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+            Loading...
+          </>
+        ) : (
+          "Demo Account Access"
+        )}
       </Button>
 
-      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
+      <Collapsible 
+        open={isOpen} 
+        onOpenChange={setIsOpen} 
+        className="w-full"
+      >
         <CollapsibleTrigger asChild>
-          <Button variant="outline" className="w-full flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center justify-between"
+            aria-expanded={isOpen}
+            aria-controls="example-documentation-content"
+          >
             See Example Documentation
             <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "transform rotate-180" : ""}`} />
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="mt-4">
+        <CollapsibleContent className="mt-4" id="example-documentation-content">
           <Card className="p-4 space-y-4">
             <div>
               <h3 className="font-semibold mb-2">Example 1: Orthopedic Case</h3>

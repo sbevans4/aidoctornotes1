@@ -1,10 +1,10 @@
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "./components/ui/toaster";
 import { Layout } from "@/components/layout/Layout";
 import { PrivateRoute } from "./routes/PrivateRoute";
+import { AppProvider } from "./providers/AppProvider";
 
 // Pages
 import Index from "./pages/Index";
@@ -37,7 +37,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <AuthProvider>
+        <AppProvider>
           <Routes>
             {/* Main Routes */}
             <Route
@@ -197,8 +197,7 @@ function App() {
               }
             />
           </Routes>
-          <Toaster />
-        </AuthProvider>
+        </AppProvider>
       </Router>
     </QueryClientProvider>
   );

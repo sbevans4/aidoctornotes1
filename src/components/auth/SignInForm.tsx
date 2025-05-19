@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { z } from "zod";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,8 +11,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { validateEmail, validatePassword, isNetworkError, formatAuthError } from "@/utils/formValidation";
 
-// Schema for sign in validation
+// Schema for sign in validation with enhanced validation
 const signInSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
@@ -23,6 +24,7 @@ type SignInFormValues = z.infer<typeof signInSchema>;
 export function SignInForm() {
   const [loading, setLoading] = useState(false);
   const [networkError, setNetworkError] = useState<string | null>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -35,11 +37,26 @@ export function SignInForm() {
     },
   });
 
+  // Focus email input on mount
+  useEffect(() => {
+    if (emailInputRef.current) {
+      emailInputRef.current.focus();
+    }
+  }, []);
+
   const handleSignIn = async (values: SignInFormValues) => {
     setLoading(true);
     setNetworkError(null);
     
     try {
+      // Validate email format
+      const emailValidation = validateEmail(values.email);
+      if (!emailValidation.valid) {
+        form.setError("email", { message: emailValidation.message });
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
@@ -55,16 +72,16 @@ export function SignInForm() {
       navigate("/medical-documentation");
     } catch (error: any) {
       // Handle specific error cases with user-friendly messages
-      if (!navigator.onLine) {
+      if (isNetworkError(error)) {
         setNetworkError("No internet connection. Please check your network and try again.");
-      } else if (error.message.includes("Invalid login")) {
+      } else if (error.message && error.message.includes("Invalid login")) {
         form.setError("email", { message: "Invalid email or password" });
         form.setError("password", { message: "Invalid email or password" });
       } else {
         toast({
           variant: "destructive",
           title: "Sign In Failed",
-          description: error.message || "An unexpected error occurred. Please try again.",
+          description: formatAuthError(error),
         });
       }
     } finally {
@@ -94,13 +111,13 @@ export function SignInForm() {
       
       navigate("/medical-documentation");
     } catch (error: any) {
-      if (!navigator.onLine) {
+      if (isNetworkError(error)) {
         setNetworkError("No internet connection. Please check your network and try again.");
       } else {
         toast({
           variant: "destructive",
           title: "Demo Access Failed",
-          description: error.message || "An unexpected error occurred. Please try again.",
+          description: formatAuthError(error),
         });
       }
     } finally {
@@ -136,6 +153,7 @@ export function SignInForm() {
                     autoComplete="email"
                     disabled={loading}
                     aria-required="true"
+                    ref={emailInputRef}
                     {...field}
                   />
                 </FormControl>
@@ -153,7 +171,7 @@ export function SignInForm() {
                   <FormLabel htmlFor="password">Password</FormLabel>
                   <Link 
                     to="/auth/forgot-password" 
-                    className="text-xs text-primary hover:underline"
+                    className="text-xs text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     tabIndex={0}
                   >
                     Forgot Password?
