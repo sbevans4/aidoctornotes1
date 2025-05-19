@@ -37,7 +37,16 @@ export const validateImageFile = (file: File): boolean => {
 
 export const checkImageAnalysisAccess = async (): Promise<boolean> => {
   try {
+    // Get the current user's ID
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return false;
+    }
+    
+    // Call the RPC function with both required parameters
     const { data, error } = await supabase.rpc('has_feature', { 
+      user_id: user.id,
       feature_name: 'image_analysis'
     });
     
