@@ -71,7 +71,7 @@ describe('ReferralBanner Component', () => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith('TESTCODE');
       
       // Check if toast was displayed
-      const { toast } = useToast() as { toast: vi.Mock };
+      const { toast } = useToast() as { toast: ReturnType<typeof vi.fn> };
       expect(toast).toHaveBeenCalledWith(expect.objectContaining({
         title: 'Copied!'
       }));
