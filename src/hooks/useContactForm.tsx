@@ -2,20 +2,27 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-interface ContactFormData {
-  name: string;
-  email: string;
-  phone: string;
-  organization: string;
-  subject: string;
-  message: string;
-}
+// Define form schema with validation
+const contactFormSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  phone: z.string().optional(),
+  organization: z.string().optional(),
+  subject: z.string().min(2, "Please select an inquiry type"),
+  message: z.string().min(10, "Message must be at least 10 characters"),
+});
+
+export type ContactFormData = z.infer<typeof contactFormSchema>;
 
 export const useContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ContactFormData>({
+    resolver: zodResolver(contactFormSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -29,22 +36,29 @@ export const useContactForm = () => {
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
     try {
-      // In a real application, you would send this data to your backend
-      console.log("Form data:", data);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the Supabase Edge Function
+      const { data: response, error } = await supabase.functions.invoke('contact-form', {
+        body: data
+      });
+
+      if (error) throw error;
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to send message');
+      }
       
       toast({
         title: "Message sent",
-        description: "We'll get back to you as soon as possible.",
+        description: response.message || "We'll get back to you as soon as possible.",
       });
       
       form.reset();
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Contact form submission error:", error);
+      
       toast({
         title: "Error",
-        description: "Failed to send your message. Please try again.",
+        description: error.message || "Failed to send your message. Please try again.",
         variant: "destructive"
       });
     } finally {
