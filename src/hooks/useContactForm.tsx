@@ -51,7 +51,7 @@ export const useContactForm = () => {
       if (response.error) {
         throw new Error(
           response.details 
-            ? `${response.error}: ${response.details.map((d: any) => d.message).join(", ")}` 
+            ? `${response.error}: ${response.details}` 
             : response.error
         );
       }
