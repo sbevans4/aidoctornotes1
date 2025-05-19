@@ -1,6 +1,6 @@
 
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { WithLoading, withLoading } from '../with-loading';
 
 interface TestComponentProps {
@@ -70,12 +70,14 @@ describe('withLoading HOC', () => {
   });
   
   it('uses custom prop names for loading state', () => {
+    // Fix: Changed 'loading' to 'isLoading' to match the TestComponentProps interface
     const WrappedComponent = withLoading(TestComponent, {
-      loadingProp: 'loading',
+      loadingProp: 'isLoading',
       loadingMessage: 'Custom loading message'
     });
     
-    render(<WrappedComponent name="Jane" loading={true} />);
+    // Fix: Changed 'loading' to 'isLoading' to match the TestComponentProps interface
+    render(<WrappedComponent name="Jane" isLoading={true} />);
     
     expect(screen.getByText('Custom loading message')).toBeInTheDocument();
   });
