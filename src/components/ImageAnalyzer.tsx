@@ -55,40 +55,14 @@ const ImageAnalyzer = () => {
         });
       }, 500);
       
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
+      setUploadProgress(95);
+      const analysisResult = await analyzeImage(file);
+      setResult(analysisResult);
+      setUploadProgress(100);
       
-      reader.onload = async () => {
-        try {
-          const base64Image = reader.result as string;
-          setUploadProgress(95);
-          const analysisResult = await analyzeImage(base64Image);
-          setResult(analysisResult);
-          setUploadProgress(100);
-          
-          setTimeout(() => setUploadProgress(0), 500);
-        } catch (error) {
-          toast({
-            title: "Analysis Failed",
-            description: "Failed to analyze the image. Please try again.",
-            variant: "destructive",
-          });
-        }
-      };
-
-      reader.onerror = () => {
-        toast({
-          title: "File Reading Error",
-          description: "Failed to read the image file. Please try again.",
-          variant: "destructive",
-        });
-        clearInterval(progressInterval);
-        setUploadProgress(0);
-      };
-
-      return () => clearInterval(progressInterval);
+      clearInterval(progressInterval);
+      setTimeout(() => setUploadProgress(0), 500);
     } catch (error) {
-      console.error('Error analyzing image:', error);
       toast({
         title: "Analysis Failed",
         description: "Failed to analyze the image. Please try again.",
