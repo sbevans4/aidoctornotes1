@@ -28,7 +28,7 @@ export const useReferral = () => {
 
         // Calculate if the discount is still valid based on subscription_duration
         const discountStartDate = new Date(data.updated_at);
-        const discountDuration = data.subscription_duration; // This is stored as an interval in PostgreSQL
+        const discountDuration = data.subscription_duration as string; // Type assertion here
         
         // For simplicity, we'll assume the duration is in months and parse it
         const durationMatch = discountDuration?.match(/(\d+) mons/);
