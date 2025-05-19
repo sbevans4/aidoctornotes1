@@ -24,3 +24,10 @@ verify_jwt = false
 
 [functions.check-feature-access]
 verify_jwt = false
+
+[functions.send-referral-email]
+verify_jwt = true
+
+[functions.get-referral-stats]
+verify_jwt = true
+

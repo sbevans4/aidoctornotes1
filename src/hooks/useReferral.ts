@@ -1,57 +1,97 @@
 
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export interface ReferralData {
   code?: string;
   activeDiscount?: number;
   expiryDate?: string;
+  totalReferrals?: number;
+  pendingReferrals?: number;
+  completedReferrals?: number;
 }
 
 export const useReferral = () => {
-  const { data: referralData, isLoading } = useQuery({
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: referralData, isLoading, error, refetch } = useQuery({
     queryKey: ["referral-data"],
     queryFn: async (): Promise<ReferralData> => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return {};
 
+        // Get the user's referral code
+        const { data: codeData, error: codeError } = await supabase
+          .from("referral_codes")
+          .select("code")
+          .eq("user_id", user.id)
+          .single();
+        
         // Check for active referral discount
-        const { data, error } = await supabase
+        const { data: discountData, error: discountError } = await supabase
           .from("referrals")
           .select("discount_percentage, updated_at, subscription_duration")
           .eq("referred_id", user.id)
           .eq("discount_applied", true)
           .single();
 
-        if (error || !data) return {};
+        // Get statistics about referrals
+        const { data: statsData, error: statsError } = await supabase.rpc('get_referral_stats', {
+          user_id: user.id
+        });
 
-        // Calculate if the discount is still valid based on subscription_duration
-        const discountStartDate = new Date(data.updated_at);
-        const discountDuration = data.subscription_duration as string; // Type assertion here
-        
-        // For simplicity, we'll assume the duration is in months and parse it
-        const durationMatch = discountDuration?.match(/(\d+) mons/);
-        const durationMonths = durationMatch ? parseInt(durationMatch[1]) : 0;
-        
-        const expiryDate = new Date(discountStartDate);
-        expiryDate.setMonth(expiryDate.getMonth() + durationMonths);
+        // Handle no data or errors
+        if ((codeError && codeError.code !== 'PGRST116') || 
+            (discountError && discountError.code !== 'PGRST116')) {
+          console.error("Error fetching referral data:", codeError || discountError);
+          return {};
+        }
 
-        // Check if discount is still valid
-        if (expiryDate > new Date()) {
-          return {
-            activeDiscount: data.discount_percentage,
-            expiryDate: expiryDate.toISOString()
+        let result: ReferralData = {};
+        
+        // Set code if available
+        if (codeData) {
+          result.code = codeData.code;
+        }
+        
+        // Calculate discount info if available
+        if (discountData) {
+          const discountStartDate = new Date(discountData.updated_at);
+          const discountDuration = discountData.subscription_duration;
+          
+          // Parse the duration (e.g., "3 mons")
+          const durationMatch = discountDuration?.match(/(\d+) mons/);
+          const durationMonths = durationMatch ? parseInt(durationMatch[1]) : 0;
+          
+          const expiryDate = new Date(discountStartDate);
+          expiryDate.setMonth(expiryDate.getMonth() + durationMonths);
+
+          // Check if discount is still valid
+          if (expiryDate > new Date()) {
+            result.activeDiscount = discountData.discount_percentage;
+            result.expiryDate = expiryDate.toISOString();
+          }
+        }
+
+        // Add referral statistics if available
+        if (statsData) {
+          result = {
+            ...result,
+            totalReferrals: statsData.total_referrals || 0,
+            pendingReferrals: statsData.pending_referrals || 0,
+            completedReferrals: statsData.completed_referrals || 0
           };
         }
 
-        return {};
+        return result;
       } catch (error) {
-        console.error("Error fetching referral data:", error);
+        console.error("Error in useReferral:", error);
         return {};
       }
     },
-    // Don't refetch on window focus for this query
     refetchOnWindowFocus: false
   });
 
@@ -89,7 +129,23 @@ export const useReferral = () => {
         throw new Error("Failed to apply referral code");
       }
 
+      // Invalidate the query to refresh the data
+      queryClient.invalidateQueries({ queryKey: ["referral-data"] });
+      
       return "Referral code applied successfully!";
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Referral Applied!",
+        description: data,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error Applying Referral",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
     }
   });
 
@@ -99,7 +155,7 @@ export const useReferral = () => {
       if (!user) throw new Error("User not authenticated");
 
       // Get or create referral code for the user
-      let code;
+      let code: string;
       const { data: existingCode, error: codeError } = await supabase
         .from("referral_codes")
         .select("code")
@@ -130,22 +186,75 @@ export const useReferral = () => {
         .insert({
           referrer_id: user.id,
           email,
-          code
+          code,
+          status: "pending"
         });
 
       if (inviteError) {
         throw new Error("Failed to send invite");
       }
 
-      // In a real implementation, you'd send an email here
+      // In a real implementation, you would send an email here
+      // For now, we'll just trigger a webhook to handle the email sending
+      try {
+        await supabase.functions.invoke('send-referral-email', {
+          body: { 
+            email, 
+            referrerName: user.user_metadata?.full_name || user.email,
+            code
+          }
+        });
+      } catch (emailError) {
+        console.error("Error sending referral email:", emailError);
+        // We won't throw here, as the invitation is already recorded
+      }
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["referral-data"] });
+      
       return "Referral invitation sent!";
+    },
+    onSuccess: (_, email) => {
+      toast({
+        title: "Invitation Sent!",
+        description: `Invitation email sent to ${email}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error Sending Invitation",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const checkReferralCode = useMutation({
+    mutationFn: async (code: string) => {
+      const { data, error } = await supabase
+        .from("referral_codes")
+        .select("user_id, code")
+        .eq("code", code)
+        .single();
+
+      if (error || !data) {
+        throw new Error("Invalid referral code");
+      }
+
+      return { 
+        isValid: true,
+        code: data.code
+      };
     }
   });
 
   return {
     referralData,
     isLoading,
+    error,
+    refetch,
     applyReferral,
-    sendReferralInvite
+    sendReferralInvite,
+    checkReferralCode
   };
 };

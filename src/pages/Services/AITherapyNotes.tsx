@@ -48,8 +48,10 @@ const AITherapyNotes = () => {
         <HowItWorksSection />
         <PricingSection />
         <TestimonialsSection />
+        <div id="referral">
+          <ReferralSection />
+        </div>
         <FAQSection />
-        <ReferralSection />
         <CtaSection />
       </div>
     </>
