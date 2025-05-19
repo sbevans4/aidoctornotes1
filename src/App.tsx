@@ -13,7 +13,6 @@ const queryClient = new QueryClient({
       retry: 1,
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      // Changed useErrorBoundary to use the correct property per tanstack/react-query v5+
       throwOnError: true, // Use error boundaries for query errors
     },
   },
