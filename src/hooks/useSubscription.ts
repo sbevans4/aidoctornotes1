@@ -94,7 +94,7 @@ export const useSubscription = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      const { error } = await supabase.functions.invoke('square', {
+      const { error } = await supabase.functions.invoke('stripe', {
         body: {
           action: 'create_subscription',
           userId: user.id,

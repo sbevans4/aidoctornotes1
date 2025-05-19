@@ -1,0 +1,61 @@
+
+-- Create a function to check if a user has access to a specific feature based on their subscription tier
+CREATE OR REPLACE FUNCTION public.has_feature(user_id UUID, feature_name TEXT) 
+RETURNS BOOLEAN
+SECURITY DEFINER
+SET search_path = public, pg_temp
+LANGUAGE plpgsql AS $$
+DECLARE
+  user_tier subscription_tier;
+  tier_level INT;
+BEGIN
+  -- Get the user's subscription tier
+  SELECT sp.tier INTO user_tier
+  FROM user_subscriptions us
+  JOIN subscription_plans sp ON us.plan_id = sp.id
+  WHERE us.user_id = $1
+  AND us.status = 'active'
+  LIMIT 1;
+
+  -- If no active subscription is found, default to 'trial'
+  IF user_tier IS NULL THEN
+    user_tier := 'trial'::subscription_tier;
+  END IF;
+  
+  -- Map subscription tier to a numeric level for easy comparison
+  tier_level := CASE user_tier
+    WHEN 'trial' THEN 1
+    WHEN 'basic' THEN 2
+    WHEN 'standard' THEN 3
+    WHEN 'professional' THEN 4
+    WHEN 'unlimited' THEN 5
+    WHEN 'enterprise' THEN 6
+    ELSE 0
+  END;
+
+  -- Check feature access based on feature name and subscription tier level
+  RETURN CASE feature_name
+    -- Basic features (available to all tiers)
+    WHEN 'soap_notes' THEN tier_level >= 1
+    WHEN 'pdf_export' THEN tier_level >= 2
+    
+    -- Standard tier features
+    WHEN 'unlimited_soap_notes' THEN tier_level >= 3
+    WHEN 'code_suggestions' THEN tier_level >= 3
+    WHEN 'ehr_format' THEN tier_level >= 3
+    
+    -- Professional tier features
+    WHEN 'ehr_integration' THEN tier_level >= 4
+    WHEN 'custom_templates' THEN tier_level >= 4
+    WHEN 'limited_image_analysis' THEN tier_level >= 4
+    
+    -- Image Analysis tier features
+    WHEN 'unlimited_image_analysis' THEN tier_level >= 6
+    WHEN 'image_interpretation' THEN tier_level >= 6
+    WHEN 'specialist_templates' THEN tier_level >= 6
+    
+    -- Default: no access
+    ELSE FALSE
+  END;
+END;
+$$;
