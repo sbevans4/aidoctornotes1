@@ -14,6 +14,10 @@ export interface ReferralStats {
     created_at: string;
     email: string;
   }>;
+  monthlyReferrals?: {
+    [month: string]: number;
+  };
+  conversionRate?: number;
 }
 
 export interface ReferralCode {
@@ -106,7 +110,9 @@ export const useReferralData = () => {
             completedReferrals: statsData.completed_referrals || 0,
             successfulConversions: statsData.successful_conversions || 0,
             earnings: statsData.earnings || 0,
-            recentReferrals: statsData.recent_referrals || []
+            recentReferrals: statsData.recent_referrals || [],
+            monthlyReferrals: statsData.monthly_referrals || {},
+            conversionRate: statsData.conversion_rate || 0
           };
         }
 

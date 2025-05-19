@@ -7,6 +7,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type ReferralStats = {
+  total_referrals: number;
+  pending_referrals: number;
+  completed_referrals: number;
+  successful_conversions: number;
+  earnings: number;
+  recent_referrals: Array<{
+    id: string;
+    email: string;
+    status: string;
+    created_at: string;
+  }>;
+  monthly_referrals?: {
+    [month: string]: number;
+  };
+  conversion_rate?: number;
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -49,12 +67,59 @@ serve(async (req) => {
       );
     }
 
+    // Fetch additional referral data to calculate monthly stats
+    const { data: referralInvites, error: invitesError } = await supabase
+      .from('referral_invites')
+      .select('id, created_at, status')
+      .eq('referrer_id', user_id);
+
+    if (invitesError) {
+      console.error(`[GET-REFERRAL-STATS] Error fetching invites:`, invitesError);
+    }
+
+    // Calculate monthly referrals for the past 6 months
+    const monthlyReferrals: { [key: string]: number } = {};
+    const now = new Date();
+    
+    // Initialize the last 6 months with zero values
+    for (let i = 0; i < 6; i++) {
+      const d = new Date();
+      d.setMonth(now.getMonth() - i);
+      const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      monthlyReferrals[monthKey] = 0;
+    }
+    
+    // Populate with actual data
+    if (referralInvites) {
+      referralInvites.forEach(invite => {
+        const date = new Date(invite.created_at);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        // Only count months in our tracking period
+        if (monthlyReferrals[monthKey] !== undefined) {
+          monthlyReferrals[monthKey]++;
+        }
+      });
+    }
+
+    // Calculate conversion rate
+    const conversionRate = data.total_referrals > 0 
+      ? (data.successful_conversions / data.total_referrals) * 100
+      : 0;
+
+    // Enhance the stats with additional data
+    const enhancedStats: ReferralStats = {
+      ...data,
+      monthly_referrals: monthlyReferrals,
+      conversion_rate: parseFloat(conversionRate.toFixed(2))
+    };
+
     // Return the stats with additional metadata
     return new Response(
       JSON.stringify({
-        ...data,
+        ...enhancedStats,
         retrieved_at: new Date().toISOString(),
-        version: '1.1'
+        version: '1.2'
       }),
       { 
         status: 200,
