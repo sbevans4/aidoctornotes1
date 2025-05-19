@@ -148,6 +148,42 @@ export type Database = {
         }
         Relationships: []
       }
+      image_analyses: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          detailed_findings: Json | null
+          findings: string | null
+          id: string
+          image_url: string | null
+          suggested_codes: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          detailed_findings?: Json | null
+          findings?: string | null
+          id?: string
+          image_url?: string | null
+          suggested_codes?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          detailed_findings?: Json | null
+          findings?: string | null
+          id?: string
+          image_url?: string | null
+          suggested_codes?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           card_brand: string | null

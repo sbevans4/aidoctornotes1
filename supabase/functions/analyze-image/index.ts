@@ -13,19 +13,6 @@ interface RequestBody {
   noteId?: string;
 }
 
-interface AnalysisResult {
-  id: string;
-  type: string;
-  findings: string;
-  confidence: number;
-  detailedFindings: Array<{
-    name: string;
-    probability: number;
-    description: string;
-  }>;
-  suggestedCodes: string[];
-}
-
 serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -55,29 +42,20 @@ serve(async (req: Request) => {
       throw new Error("Unauthorized");
     }
     
-    // Check if the user has access to image analysis feature using a direct query
-    // instead of the RPC call that expects user_id parameter
-    const { data: userProfiles, error: profileError } = await supabase
+    // Get the user's profile to check their role
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
-    
-    if (profileError || !userProfiles) {
+      
+    if (profileError || !profile) {
+      console.error("Error getting user profile:", profileError);
       throw new Error("User profile not found");
     }
     
-    const { data: rolePermissions, error: roleError } = await supabase
-      .from('roles')
-      .select('permissions')
-      .eq('role', userProfiles.role)
-      .single();
-    
-    if (roleError || !rolePermissions) {
-      throw new Error("Role permissions not found");
-    }
-    
-    const hasAccess = rolePermissions.permissions?.image_analysis === true;
+    // Check if the user's role has access to image analysis
+    const hasAccess = profile.role === 'enterprise';
     
     if (!hasAccess) {
       throw new Error("Feature not available with your current subscription");
@@ -94,11 +72,8 @@ serve(async (req: Request) => {
     const analysisId = crypto.randomUUID();
     
     // Simulate AI analysis of the image (replace with actual AI service)
-    // In a production environment, you would call a service like Google Cloud Vision API
-    // or a specialized medical imaging API
-    
-    // Mock analysis for demonstration
-    const mockAnalysis: AnalysisResult = {
+    // In a production environment, you would call a service like OpenAI's API
+    const analysisResult = {
       id: analysisId,
       type: "X-ray",
       findings: "The image appears to show a chest X-ray with no obvious abnormalities. The lung fields are clear, and the cardiac silhouette appears within normal limits.",
@@ -123,6 +98,16 @@ serve(async (req: Request) => {
       suggestedCodes: ["R93.1", "Z01.89", "Z87.891"]
     };
     
+    // Store the analysis in the database
+    await supabase.from("image_analyses").insert({
+      id: analysisId,
+      user_id: user.id,
+      findings: analysisResult.findings,
+      confidence: analysisResult.confidence,
+      detailed_findings: analysisResult.detailedFindings,
+      suggested_codes: analysisResult.suggestedCodes
+    });
+    
     // Log the analysis request (without the image data for privacy)
     await supabase.from("audit_logs").insert({
       user_id: user.id,
@@ -133,7 +118,7 @@ serve(async (req: Request) => {
     });
     
     // Return the analysis result
-    return new Response(JSON.stringify(mockAnalysis), {
+    return new Response(JSON.stringify(analysisResult), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
