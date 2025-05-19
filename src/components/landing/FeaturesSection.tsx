@@ -21,12 +21,13 @@ export const FeaturesSection = () => {
 
   const tierOrder = ['basic', 'standard', 'unlimited', 'professional', 'image_analysis', 'enterprise'];
 
-  const features: Record<string, Record<string, { text: string; tooltip: string; available: boolean }>> = {
+  // Updated feature structure to avoid type mismatches
+  const features: Record<string, Record<string, { text: string; tooltip: string; tiers: Record<string, boolean> }>> = {
     "Transcription": {
       "limited_transcription": { 
         text: "Limited transcription", 
         tooltip: "60 minutes per month", 
-        available: {
+        tiers: {
           basic: true,
           standard: false,
           unlimited: false,
@@ -38,7 +39,7 @@ export const FeaturesSection = () => {
       "unlimited_transcription": { 
         text: "Unlimited transcription", 
         tooltip: "No monthly limits on transcription", 
-        available: {
+        tiers: {
           basic: false,
           standard: true,
           unlimited: true,
@@ -52,7 +53,7 @@ export const FeaturesSection = () => {
       "limited_soap": { 
         text: "5 SOAP notes/month", 
         tooltip: "Limited to 5 AI-generated clinical notes per month", 
-        available: {
+        tiers: {
           basic: true,
           standard: false,
           unlimited: false,
@@ -64,7 +65,7 @@ export const FeaturesSection = () => {
       "unlimited_soap": { 
         text: "Unlimited SOAP notes", 
         tooltip: "No monthly limits on AI-generated clinical notes", 
-        available: {
+        tiers: {
           basic: false,
           standard: true,
           unlimited: true,
@@ -78,7 +79,7 @@ export const FeaturesSection = () => {
       "code_suggestions": { 
         text: "Code suggestions", 
         tooltip: "AI-powered ICD-10 and CPT code recommendations", 
-        available: {
+        tiers: {
           basic: false,
           standard: true,
           unlimited: true,
@@ -90,7 +91,7 @@ export const FeaturesSection = () => {
       "code_validation": { 
         text: "Real-time code validation", 
         tooltip: "Instant validation of selected medical codes", 
-        available: {
+        tiers: {
           basic: false,
           standard: false,
           unlimited: true,
@@ -102,7 +103,7 @@ export const FeaturesSection = () => {
       "searchable_db": { 
         text: "Searchable code database", 
         tooltip: "Comprehensive searchable ICD-10 and CPT code database", 
-        available: {
+        tiers: {
           basic: false,
           standard: false,
           unlimited: false,
@@ -116,7 +117,7 @@ export const FeaturesSection = () => {
       "ehr_format": { 
         text: "EHR copy-paste format", 
         tooltip: "Notes formatted for easy copying into EHR systems", 
-        available: {
+        tiers: {
           basic: false,
           standard: true,
           unlimited: true,
@@ -128,7 +129,7 @@ export const FeaturesSection = () => {
       "direct_integration": { 
         text: "Direct EHR integration", 
         tooltip: "Seamless integration with Epic, Cerner, and Athenahealth", 
-        available: {
+        tiers: {
           basic: false,
           standard: false,
           unlimited: false,
@@ -142,7 +143,7 @@ export const FeaturesSection = () => {
       "no_image": { 
         text: "No image analysis", 
         tooltip: "Image analysis feature not available", 
-        available: {
+        tiers: {
           basic: true,
           standard: true,
           unlimited: false,
@@ -154,7 +155,7 @@ export const FeaturesSection = () => {
       "limited_image": { 
         text: "Limited image analysis (5/month)", 
         tooltip: "Analyze up to 5 medical images per month", 
-        available: {
+        tiers: {
           basic: false,
           standard: false,
           unlimited: true,
@@ -166,7 +167,7 @@ export const FeaturesSection = () => {
       "unlimited_image": { 
         text: "Unlimited image analysis", 
         tooltip: "No limits on medical image analysis", 
-        available: {
+        tiers: {
           basic: false,
           standard: false,
           unlimited: false,
@@ -180,7 +181,7 @@ export const FeaturesSection = () => {
       "single_user": { 
         text: "Single user", 
         tooltip: "Access for one provider account", 
-        available: {
+        tiers: {
           basic: true,
           standard: true,
           unlimited: true,
@@ -192,7 +193,7 @@ export const FeaturesSection = () => {
       "team_accounts": { 
         text: "Team accounts (up to 5)", 
         tooltip: "Access for up to 5 providers", 
-        available: {
+        tiers: {
           basic: false,
           standard: false,
           unlimited: false,
@@ -204,7 +205,7 @@ export const FeaturesSection = () => {
       "enterprise_accounts": { 
         text: "Unlimited team accounts", 
         tooltip: "Unlimited provider accounts", 
-        available: {
+        tiers: {
           basic: false,
           standard: false,
           unlimited: false,
@@ -218,7 +219,7 @@ export const FeaturesSection = () => {
       "basic_support": { 
         text: "Basic support", 
         tooltip: "Email support with 48-hour response time", 
-        available: {
+        tiers: {
           basic: true,
           standard: false,
           unlimited: false,
@@ -230,7 +231,7 @@ export const FeaturesSection = () => {
       "standard_support": { 
         text: "Standard support", 
         tooltip: "Email and chat support with 24-hour response", 
-        available: {
+        tiers: {
           basic: false,
           standard: true,
           unlimited: false,
@@ -242,7 +243,7 @@ export const FeaturesSection = () => {
       "premium_support": { 
         text: "Premium support", 
         tooltip: "24/7 phone and chat support with 12-hour response", 
-        available: {
+        tiers: {
           basic: false,
           standard: false,
           unlimited: true,
@@ -254,7 +255,7 @@ export const FeaturesSection = () => {
       "priority_support": { 
         text: "Priority support", 
         tooltip: "Dedicated account manager with priority response", 
-        available: {
+        tiers: {
           basic: false,
           standard: false,
           unlimited: false,
@@ -344,7 +345,7 @@ export const FeaturesSection = () => {
                       </td>
                       {tierOrder.map(tier => (
                         <td key={`${featureKey}-${tier}`} className="p-4 text-center">
-                          {feature.available[tier] ? (
+                          {feature.tiers[tier] ? (
                             <Check className="h-5 w-5 text-green-500 mx-auto" />
                           ) : (
                             <span className="text-gray-300">—</span>
