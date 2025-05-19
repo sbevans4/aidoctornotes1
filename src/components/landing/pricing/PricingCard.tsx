@@ -29,6 +29,19 @@ export const PricingCard = ({
   onShowDetails,
   onSubscribe,
 }: PricingCardProps) => {
+  // Determine the most appropriate features to show
+  const displayFeatures = plan.features.slice(0, 4).map(feature => {
+    // Replace plan references with correct hierarchy
+    if (feature === "Everything in Professional") {
+      return "Everything in Professional";
+    } else if (feature === "Everything in Standard") {
+      return "Everything in Standard";
+    } else if (feature === "Everything in Unlimited") {
+      return "Everything in Unlimited";
+    }
+    return feature;
+  });
+
   return (
     <Card 
       className={`p-6 ${isProfessional ? "border-2 border-primary shadow-lg relative" : ""}`}
@@ -65,7 +78,7 @@ export const PricingCard = ({
         </div>
         
         <div className="space-y-4 mb-8">
-          {plan.features.slice(0, 4).map((feature, index) => (
+          {displayFeatures.map((feature, index) => (
             <div key={index} className="flex items-start gap-2">
               <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
               <span className="text-sm text-muted-foreground">{feature}</span>

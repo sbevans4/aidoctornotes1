@@ -27,9 +27,10 @@ BEGIN
     WHEN 'trial' THEN 1
     WHEN 'basic' THEN 2
     WHEN 'standard' THEN 3
-    WHEN 'professional' THEN 4
-    WHEN 'image_analysis' THEN 5
-    WHEN 'enterprise' THEN 6
+    WHEN 'unlimited' THEN 4
+    WHEN 'professional' THEN 5
+    WHEN 'image_analysis' THEN 6
+    WHEN 'enterprise' THEN 7
     ELSE 0
   END;
 
@@ -44,15 +45,21 @@ BEGIN
     WHEN 'code_suggestions' THEN tier_level >= 3
     WHEN 'ehr_format' THEN tier_level >= 3
     
-    -- Professional tier features
-    WHEN 'ehr_integration' THEN tier_level >= 4
+    -- Unlimited tier features
+    WHEN 'real_time_code_validation' THEN tier_level >= 4
     WHEN 'custom_templates' THEN tier_level >= 4
     WHEN 'limited_image_analysis' THEN tier_level >= 4
     
+    -- Professional tier features
+    WHEN 'ehr_integration' THEN tier_level >= 5
+    WHEN 'team_accounts' THEN tier_level >= 5
+    WHEN 'priority_processing' THEN tier_level >= 5
+    WHEN 'searchable_code_db' THEN tier_level >= 5
+    
     -- Image Analysis tier features
-    WHEN 'unlimited_image_analysis' THEN tier_level >= 5
-    WHEN 'image_interpretation' THEN tier_level >= 5
-    WHEN 'specialist_templates' THEN tier_level >= 5
+    WHEN 'unlimited_image_analysis' THEN tier_level >= 6
+    WHEN 'image_interpretation' THEN tier_level >= 6
+    WHEN 'specialist_templates' THEN tier_level >= 6
     
     -- Default: no access
     ELSE FALSE

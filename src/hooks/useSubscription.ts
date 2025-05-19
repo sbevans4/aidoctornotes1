@@ -5,10 +5,10 @@ import { toast } from "@/hooks/use-toast";
 import { Json } from "@/integrations/supabase/types";
 
 // The type used in our codebase
-export type SubscriptionTier = 'trial' | 'basic' | 'standard' | 'professional' | 'image_analysis' | 'enterprise';
+export type SubscriptionTier = 'trial' | 'basic' | 'standard' | 'unlimited' | 'professional' | 'image_analysis' | 'enterprise';
 
 // A type to match what's in the database until it's updated
-type DatabaseSubscriptionTier = 'trial' | 'basic' | 'standard' | 'professional' | 'unlimited' | 'enterprise';
+type DatabaseSubscriptionTier = 'trial' | 'basic' | 'standard' | 'unlimited' | 'professional' | 'enterprise';
 
 interface Plan {
   id: string;
@@ -47,8 +47,7 @@ export const useSubscription = () => {
         price: plan.price,
         features: Array.isArray(plan.features) ? plan.features as string[] : [],
         type: plan.type,
-        // Map the database tier to our application tier
-        tier: plan.tier === 'unlimited' ? 'image_analysis' : plan.tier as SubscriptionTier,
+        tier: plan.tier as SubscriptionTier,
       }));
     },
   });

@@ -21,7 +21,14 @@ export const QuickActions = ({ currentSubscription }: QuickActionsProps) => {
   useEffect(() => {
     const checkAccess = async () => {
       try {
-        const hasAccess = await checkFeatureAccess("image_analysis");
+        // First check for unlimited_image_analysis (Image Analysis tier)
+        let hasAccess = await checkFeatureAccess("unlimited_image_analysis");
+        
+        // If not, check for limited_image_analysis (Unlimited/Professional tiers)
+        if (!hasAccess) {
+          hasAccess = await checkFeatureAccess("limited_image_analysis");
+        }
+        
         setCanUseImageAnalysis(hasAccess);
       } catch (error) {
         console.error("Error checking feature access:", error);
@@ -38,11 +45,22 @@ export const QuickActions = ({ currentSubscription }: QuickActionsProps) => {
     } else {
       toast({
         title: "Feature not available",
-        description: "Image analysis requires an Enterprise subscription",
+        description: "Image analysis requires Unlimited, Professional or Image Analysis subscription",
         variant: "destructive",
       });
       navigate("/subscription-plans");
     }
+  };
+
+  const getPlanText = () => {
+    if (!currentSubscription) return "Choose a Plan";
+    
+    // Get the days left in subscription
+    const endDate = new Date(currentSubscription.current_period_end);
+    const today = new Date();
+    const daysLeft = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    return `${daysLeft} days left on ${currentSubscription.subscription_plans?.name}`;
   };
 
   return (
@@ -78,7 +96,7 @@ export const QuickActions = ({ currentSubscription }: QuickActionsProps) => {
             </TooltipTrigger>
             {canUseImageAnalysis === false && (
               <TooltipContent>
-                <p>Requires Enterprise subscription</p>
+                <p>Requires Unlimited, Professional or Image Analysis subscription</p>
               </TooltipContent>
             )}
           </Tooltip>
@@ -92,7 +110,7 @@ export const QuickActions = ({ currentSubscription }: QuickActionsProps) => {
           onClick={() => navigate("/subscription-plans")}
         >
           <CreditCard className="w-4 h-4" />
-          {currentSubscription ? "Manage Subscription" : "Choose a Plan"}
+          {currentSubscription ? getPlanText() : "Choose a Plan"}
         </Button>
       </div>
     </Card>
