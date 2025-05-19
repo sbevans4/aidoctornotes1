@@ -10,10 +10,10 @@ import { PrivateRoute } from './PrivateRoute';
 const PageLoadingFallback = () => <PageLoading isLoading={true} centered={true} />;
 
 // Lazy load service-related pages
-const DoctorNotes = lazyWithFallback(() => import('@/pages/services/DoctorNotes'), PageLoadingFallback);
-const TherapyNotes = lazyWithFallback(() => import('@/pages/services/TherapyNotes'), PageLoadingFallback);
-const Transcription = lazyWithFallback(() => import('@/pages/services/Transcription'), PageLoadingFallback);
-const ImageAnalysis = lazyWithFallback(() => import('@/pages/services/ImageAnalysis'), PageLoadingFallback);
+const DoctorNotes = lazyWithFallback(() => import('@/pages/Services/AIDoctorNotes'), PageLoadingFallback);
+const TherapyNotes = lazyWithFallback(() => import('@/pages/Services/AITherapyNotes'), PageLoadingFallback);
+const Transcription = lazyWithFallback(() => import('@/pages/Services/AIMedicalTranscription'), PageLoadingFallback);
+const ImageAnalysis = lazyWithFallback(() => import('@/components/ImageAnalyzer'), PageLoadingFallback);
 
 export const ServiceRoutes = () => {
   return (

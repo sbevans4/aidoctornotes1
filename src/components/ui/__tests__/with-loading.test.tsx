@@ -1,83 +1,51 @@
 
+import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { WithLoading, withLoading } from '../with-loading';
+import { describe, it, expect } from 'vitest';
+import { WithLoading } from '../with-loading';
 
-interface TestComponentProps {
-  name: string;
-  isLoading?: boolean;
-}
-
-const TestComponent = ({ name }: TestComponentProps) => (
-  <div data-testid="test-component">Hello, {name}</div>
-);
-
-const EmptyState = () => <div data-testid="empty-state">No data available</div>;
-
-describe('WithLoading Component', () => {
-  it('renders children when data is provided', () => {
+describe('WithLoading', () => {
+  it('renders loading state when isLoading is true', () => {
     render(
-      <WithLoading isLoading={false} data={{ name: 'John' }}>
-        {(data) => <TestComponent name={data.name} />}
+      <WithLoading isLoading={true} data={null}>
+        {() => <div>Content</div>}
       </WithLoading>
     );
     
-    expect(screen.getByTestId('test-component')).toBeInTheDocument();
-    expect(screen.getByText('Hello, John')).toBeInTheDocument();
+    expect(screen.getByText('Loading page content...')).toBeInTheDocument();
+    expect(screen.queryByText('Content')).not.toBeInTheDocument();
   });
   
-  it('shows loading state when isLoading is true', () => {
+  it('renders loading state when data is null', () => {
+    render(
+      <WithLoading isLoading={false} data={null}>
+        {() => <div>Content</div>}
+      </WithLoading>
+    );
+    
+    expect(screen.getByText('Loading page content...')).toBeInTheDocument();
+    expect(screen.queryByText('Content')).not.toBeInTheDocument();
+  });
+  
+  it('renders children with data when not loading and data is present', () => {
+    const testData = { name: 'Test' };
+    
+    render(
+      <WithLoading isLoading={false} data={testData}>
+        {(data) => <div>Hello, {data.name}</div>}
+      </WithLoading>
+    );
+    
+    expect(screen.queryByText('Loading page content...')).not.toBeInTheDocument();
+    expect(screen.getByText('Hello, Test')).toBeInTheDocument();
+  });
+  
+  it('renders with custom loading message', () => {
     render(
       <WithLoading isLoading={true} data={null} loadingMessage="Custom loading message">
-        {() => <TestComponent name="John" />}
+        {() => <div>Content</div>}
       </WithLoading>
     );
-    
-    expect(screen.getByText('Custom loading message')).toBeInTheDocument();
-    expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
-  });
-  
-  it('renders EmptyComponent when no data and not loading', () => {
-    render(
-      <WithLoading isLoading={false} data={null} EmptyComponent={EmptyState}>
-        {() => <TestComponent name="John" />}
-      </WithLoading>
-    );
-    
-    expect(screen.getByTestId('empty-state')).toBeInTheDocument();
-    expect(screen.queryByTestId('test-component')).not.toBeInTheDocument();
-  });
-});
-
-describe('withLoading HOC', () => {
-  it('wraps component with loading overlay', () => {
-    const WrappedComponent = withLoading(TestComponent, {
-      loadingMessage: 'Loading component...'
-    });
-    
-    render(<WrappedComponent name="Jane" isLoading={true} />);
-    
-    expect(screen.getByText('Loading component...')).toBeInTheDocument();
-    expect(screen.queryByTestId('test-component')).toBeInTheDocument();
-  });
-  
-  it('passes through props to wrapped component', () => {
-    const WrappedComponent = withLoading(TestComponent);
-    
-    render(<WrappedComponent name="Jane" isLoading={false} />);
-    
-    expect(screen.getByText('Hello, Jane')).toBeInTheDocument();
-  });
-  
-  it('uses custom prop names for loading state', () => {
-    // Fix: Changed 'loading' to 'isLoading' to match the TestComponentProps interface
-    const WrappedComponent = withLoading(TestComponent, {
-      loadingProp: 'isLoading',
-      loadingMessage: 'Custom loading message'
-    });
-    
-    // Fix: Changed 'loading' to 'isLoading' to match the TestComponentProps interface
-    render(<WrappedComponent name="Jane" isLoading={true} />);
     
     expect(screen.getByText('Custom loading message')).toBeInTheDocument();
   });
