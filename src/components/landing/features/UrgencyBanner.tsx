@@ -1,24 +1,38 @@
 
-import React from "react";
-import { Gift } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
+import { AlertCircle, Clock, X } from "lucide-react";
 
 export const UrgencyBanner = () => {
+  const [show, setShow] = useState(true);
+  
+  if (!show) return null;
+  
   return (
-    <div className="max-w-4xl mx-auto mb-8">
-      <div className="bg-amber-100 border border-amber-200 rounded-lg p-4 flex items-center justify-between gap-2 text-amber-700">
-        <div className="flex items-center gap-2">
-          <Gift className="w-5 h-5" />
-          <span className="font-semibold">
-            Limited time offer: Try Professional free for 7 days! No credit card required.
-          </span>
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 relative">
+      <button 
+        onClick={() => setShow(false)} 
+        className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+        aria-label="Close banner"
+      >
+        <X className="h-4 w-4" />
+      </button>
+      
+      <div className="flex items-center">
+        <div className="flex-shrink-0 mr-3">
+          <Clock className="h-5 w-5 text-amber-500" />
         </div>
-        <Button 
-          size="sm"
-          className="bg-amber-500 hover:bg-amber-600 text-white border-none"
-        >
-          Start Free Trial
-        </Button>
+        <div>
+          <p className="font-medium text-amber-800">Limited Time Offer</p>
+          <p className="text-sm text-amber-700">
+            Sign up for the Professional plan and get 2 months free. Offer ends in 7 days.
+          </p>
+          <div className="mt-2">
+            <div className="w-full bg-amber-200 rounded-full h-2.5">
+              <div className="bg-amber-500 h-2.5 rounded-full" style={{ width: "30%" }}></div>
+            </div>
+            <p className="text-xs text-amber-700 mt-1">Over 70% of promotional spots already taken</p>
+          </div>
+        </div>
       </div>
     </div>
   );

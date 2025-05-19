@@ -1,22 +1,28 @@
 
 import React from "react";
-import { Gift, Percent } from "lucide-react";
+import { Percent } from "lucide-react";
 
 interface ReferralBannerProps {
   discount?: number;
 }
 
-export const ReferralBanner = ({ discount }: ReferralBannerProps) => {
+export const ReferralBanner: React.FC<ReferralBannerProps> = ({ discount }) => {
   if (!discount) return null;
   
   return (
-    <div className="max-w-4xl mx-auto mb-8">
-      <div className="bg-green-100 border border-green-200 rounded-lg p-4 flex items-center justify-center gap-2 text-green-700">
-        <Gift className="w-5 h-5" />
-        <span className="font-semibold">
-          You have a {discount}% discount available on all plans!
-        </span>
-        <Percent className="w-4 h-4" />
+    <div className="bg-green-50 border border-green-100 rounded-lg p-4 mb-6">
+      <div className="flex items-center">
+        <div className="flex-shrink-0 mr-3">
+          <div className="bg-green-100 p-2 rounded-full">
+            <Percent className="h-5 w-5 text-green-600" />
+          </div>
+        </div>
+        <div>
+          <p className="font-medium text-green-800">Special Discount Applied!</p>
+          <p className="text-sm text-green-700">
+            Your referral code gives you {discount}% off any plan. This discount will be automatically applied at checkout.
+          </p>
+        </div>
       </div>
     </div>
   );

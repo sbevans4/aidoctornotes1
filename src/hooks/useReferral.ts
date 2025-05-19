@@ -1,161 +1,151 @@
 
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
-interface ReferralData {
+export interface ReferralData {
+  code?: string;
   activeDiscount?: number;
-  referralCode?: string;
-}
-
-interface SendReferralInviteParams {
-  email: string;
+  expiryDate?: string;
 }
 
 export const useReferral = () => {
-  const { toast } = useToast();
-
   const { data: referralData, isLoading } = useQuery({
     queryKey: ["referral-data"],
     queryFn: async (): Promise<ReferralData> => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return {};
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return {};
 
-      // Check for active referral discount
-      const { data: referral } = await supabase
-        .from("referrals")
-        .select("discount_percentage, status")
-        .eq("referred_id", user.id)
-        .eq("status", "active")
-        .single();
+        // Check for active referral discount
+        const { data, error } = await supabase
+          .from("referrals")
+          .select("discount_percentage, updated_at, subscription_duration")
+          .eq("referred_id", user.id)
+          .eq("discount_applied", true)
+          .single();
 
-      // Get user's referral code
-      const { data: referralCode } = await supabase
-        .from("referral_codes")
-        .select("code")
-        .eq("user_id", user.id)
-        .single();
+        if (error || !data) return {};
 
-      return {
-        activeDiscount: referral?.discount_percentage,
-        referralCode: referralCode?.code,
-      };
+        // Calculate if the discount is still valid based on subscription_duration
+        const discountStartDate = new Date(data.updated_at);
+        const discountDuration = data.subscription_duration; // This is stored as an interval in PostgreSQL
+        
+        // For simplicity, we'll assume the duration is in months and parse it
+        const durationMatch = discountDuration?.match(/(\d+) mons/);
+        const durationMonths = durationMatch ? parseInt(durationMatch[1]) : 0;
+        
+        const expiryDate = new Date(discountStartDate);
+        expiryDate.setMonth(expiryDate.getMonth() + durationMonths);
+
+        // Check if discount is still valid
+        if (expiryDate > new Date()) {
+          return {
+            activeDiscount: data.discount_percentage,
+            expiryDate: expiryDate.toISOString()
+          };
+        }
+
+        return {};
+      } catch (error) {
+        console.error("Error fetching referral data:", error);
+        return {};
+      }
     },
+    // Don't refetch on window focus for this query
+    refetchOnWindowFocus: false
   });
 
   const applyReferral = useMutation({
-    mutationFn: async (code: string) => {
+    mutationFn: async (referralCode: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      // First, find the referrer based on the referral code
-      const { data: referralCode, error: referralCodeError } = await supabase
+      const { data, error } = await supabase
         .from("referral_codes")
-        .select("user_id")
-        .eq("code", code)
+        .select("user_id, code")
+        .eq("code", referralCode)
         .single();
 
-      if (referralCodeError) throw new Error("Invalid referral code");
-      if (referralCode.user_id === user.id) throw new Error("You cannot use your own referral code");
+      if (error || !data) {
+        throw new Error("Invalid referral code");
+      }
 
-      // Then create the referral with both referrer and referred IDs
-      const { data: referral, error } = await supabase
+      // Make sure user is not referring themselves
+      if (data.user_id === user.id) {
+        throw new Error("You cannot use your own referral code");
+      }
+
+      // Create a new referral record
+      const { error: insertError } = await supabase
         .from("referrals")
-        .insert([
-          {
-            referred_id: user.id,
-            referrer_id: referralCode.user_id,
-            status: "active",
-            discount_percentage: 20, // Updated to 20% discount
-            discount_applied: false,
-            subscription_duration: '3 months' // Added subscription duration
-          }
-        ])
-        .select()
-        .single();
+        .insert({
+          referrer_id: data.user_id,
+          referred_id: user.id,
+          discount_applied: true,
+          status: "active"
+        });
 
-      if (error) throw error;
-      return referral;
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Referral code applied successfully!",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    },
+      if (insertError) {
+        throw new Error("Failed to apply referral code");
+      }
+
+      return "Referral code applied successfully!";
+    }
   });
 
   const sendReferralInvite = useMutation({
-    mutationFn: async ({ email }: SendReferralInviteParams) => {
+    mutationFn: async (email: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      // Get or create a referral code for the user
-      let { data: existingCode } = await supabase
+      // Get or create referral code for the user
+      let code;
+      const { data: existingCode, error: codeError } = await supabase
         .from("referral_codes")
         .select("code")
         .eq("user_id", user.id)
         .single();
 
-      if (!existingCode) {
-        const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        const { data: newReferralCode, error: createCodeError } = await supabase
+      if (codeError || !existingCode) {
+        // Generate a new code
+        code = `REF-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        
+        const { error: insertError } = await supabase
           .from("referral_codes")
-          .insert([{ user_id: user.id, code: newCode }])
-          .select()
-          .single();
-
-        if (createCodeError) throw createCodeError;
-        existingCode = newReferralCode;
+          .insert({
+            user_id: user.id,
+            code
+          });
+          
+        if (insertError) {
+          throw new Error("Failed to create referral code");
+        }
+      } else {
+        code = existingCode.code;
       }
 
-      // Create the referral invite
+      // Record the invitation
       const { error: inviteError } = await supabase
         .from("referral_invites")
-        .insert([
-          {
-            referrer_id: user.id,
-            email,
-            code: existingCode.code,
-            status: "pending"
-          }
-        ]);
+        .insert({
+          referrer_id: user.id,
+          email,
+          code
+        });
 
       if (inviteError) {
-        if (inviteError.code === '23505') { // Unique violation
-          throw new Error("You've already sent an invite to this email address");
-        }
-        throw inviteError;
+        throw new Error("Failed to send invite");
       }
 
-      return { success: true };
-    },
-    onSuccess: () => {
-      toast({
-        title: "Invite Sent",
-        description: "Referral invite has been sent successfully!",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    },
+      // In a real implementation, you'd send an email here
+      return "Referral invitation sent!";
+    }
   });
 
   return {
     referralData,
     isLoading,
     applyReferral,
-    sendReferralInvite,
+    sendReferralInvite
   };
 };
