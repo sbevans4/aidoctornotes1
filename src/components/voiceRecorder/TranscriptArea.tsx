@@ -3,13 +3,14 @@ import { useTranscription } from "@/contexts/TranscriptionContext";
 import { useState, useEffect } from "react";
 import TranscriptDisplay from "../TranscriptDisplay";
 import ProcedureCodeValidator from "../procedure-codes/ProcedureCodeValidator";
+import ProcedureCodeSuggestions from "../procedure-codes/ProcedureCodeSuggestions";
 import { Button } from "@/components/ui/button";
 import { Edit, Save, RotateCcw } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 const TranscriptArea = () => {
-  const { transcript, speakers, segments, isProcessing, setProcedureCodes, setTranscript } = useTranscription();
+  const { transcript, speakers, segments, isProcessing, setProcedureCodes, setTranscript, procedureCodes } = useTranscription();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTranscript, setEditedTranscript] = useState("");
   const [originalTranscript, setOriginalTranscript] = useState("");
@@ -40,6 +41,14 @@ const TranscriptArea = () => {
     console.log("Canceling transcript edit");
     setEditedTranscript(originalTranscript);
     setIsEditing(false);
+  };
+
+  const handleSelectCode = (code: string) => {
+    if (procedureCodes.includes(code)) {
+      setProcedureCodes(procedureCodes.filter(c => c !== code));
+    } else {
+      setProcedureCodes([...procedureCodes, code]);
+    }
   };
 
   if (!transcript || isProcessing) {
@@ -108,6 +117,13 @@ const TranscriptArea = () => {
               segments={segments}
             />
           )}
+          
+          {/* Show suggested procedure codes based on transcript */}
+          <ProcedureCodeSuggestions 
+            transcript={transcript}
+            onSelectCode={handleSelectCode}
+            selectedCodes={procedureCodes}
+          />
         </CardContent>
       </Card>
       

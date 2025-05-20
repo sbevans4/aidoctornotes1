@@ -52,6 +52,9 @@ api_url = 'https://your-project-url.supabase.co'
     
   [functions.generate-soap-deepseek]
     verify_jwt = true
+
+  [functions.generate-soap-pdf]
+    verify_jwt = true
     
   [functions.get-referral-stats]
     verify_jwt = true
@@ -63,6 +66,9 @@ api_url = 'https://your-project-url.supabase.co'
     verify_jwt = true
     
   [functions.send-referral-email]
+    verify_jwt = true
+
+  [functions.suggest-procedure-codes]
     verify_jwt = true
     
   [functions.square]
