@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
@@ -12,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RecordingProvider, { RecordingContextValue } from "./recording/RecordingProvider";
 import { processAudioBlob } from "@/utils/audioProcessing";
 import ProcedureCodeValidator from "./procedure-codes/ProcedureCodeValidator";
+import SoapNoteGenerator from "./SoapNoteGenerator";
 
 interface Speaker {
   id: string;
