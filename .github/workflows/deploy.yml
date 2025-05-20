@@ -14,9 +14,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build project
         run: npm run build
@@ -30,4 +31,6 @@ jobs:
           local-dir: ./dist/
           server-dir: ""
           delete-removed: true
-
+          dangerous-clean-slate: false
+          timeout: 60000
+          log-level: verbose

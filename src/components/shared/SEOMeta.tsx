@@ -10,7 +10,8 @@ interface SEOMetaProps {
   ogType?: "website" | "article";
   ogImage?: string;
   twitterCard?: "summary" | "summary_large_image";
-  structuredData?: Record<string, any>;
+  structuredData?: Record<string, any>[];
+  noindex?: boolean;
 }
 
 export const SEOMeta: React.FC<SEOMetaProps> = ({
@@ -21,13 +22,15 @@ export const SEOMeta: React.FC<SEOMetaProps> = ({
   ogType = "website",
   ogImage = "/og-image.png",
   twitterCard = "summary_large_image",
-  structuredData,
+  structuredData = [],
+  noindex = false,
 }) => {
   return (
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
       {keywords && <meta name="keywords" content={keywords} />}
+      {noindex && <meta name="robots" content="noindex,nofollow" />}
       
       {/* Canonical URL */}
       <link rel="canonical" href={canonical} />
@@ -46,11 +49,11 @@ export const SEOMeta: React.FC<SEOMetaProps> = ({
       <meta name="twitter:image" content={ogImage} />
       
       {/* Schema.org markup for Google */}
-      {structuredData && (
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
+      {structuredData.map((data, index) => (
+        <script key={index} type="application/ld+json">
+          {JSON.stringify(data)}
         </script>
-      )}
+      ))}
     </Helmet>
   );
 };

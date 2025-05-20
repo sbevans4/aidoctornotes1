@@ -2,33 +2,29 @@
 #!/bin/bash
 # Make deployment scripts executable with error handling
 
-# Set up error handling
+# Exit immediately if a command exits with a non-zero status
 set -e
 
 echo "Making deployment scripts executable..."
 
-# Check if files exist before making them executable
-if [ -f "deploy.sh" ]; then
-  chmod +x deploy.sh
-  echo "✅ deploy.sh is now executable"
-else
-  echo "⚠️ Warning: deploy.sh not found"
-fi
+# Function to make a file executable with error handling
+make_executable() {
+  local file=$1
+  if [ -f "$file" ]; then
+    chmod +x "$file" || { echo "❌ Error: Failed to make $file executable"; exit 1; }
+    echo "✅ $file is now executable"
+  else
+    echo "⚠️ Warning: $file not found"
+  fi
+}
 
-if [ -f "deploy-ftp.sh" ]; then
-  chmod +x deploy-ftp.sh
-  echo "✅ deploy-ftp.sh is now executable"
-else
-  echo "⚠️ Warning: deploy-ftp.sh not found"
-fi
+# Make deployment scripts executable
+make_executable "deploy.sh"
+make_executable "deploy-ftp.sh"
+make_executable "server-setup.sh"
 
-# Make the server setup script executable
-if [ -f "server-setup.sh" ]; then
-  chmod +x server-setup.sh
-  echo "✅ server-setup.sh is now executable"
-else
-  echo "⚠️ Warning: server-setup.sh not found"
-fi
+# Make sure scripts have correct line endings for Unix systems
+find . -name "*.sh" -type f -exec sed -i 's/\r$//' {} \;
 
 echo "Script execution completed"
 
@@ -44,4 +40,3 @@ for script in deploy.sh deploy-ftp.sh server-setup.sh; do
 done
 
 echo "All found deployment scripts are now executable"
-

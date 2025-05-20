@@ -4,9 +4,21 @@ import { WifiOff, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-export function OfflineNotification() {
+interface OfflineNotificationProps {
+  onRetry?: () => void;
+}
+
+export function OfflineNotification({ onRetry }: OfflineNotificationProps) {
+  const handleRetry = () => {
+    if (onRetry) {
+      onRetry();
+    } else {
+      window.location.reload();
+    }
+  };
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-4">
+    <div className="min-h-[50vh] flex items-center justify-center bg-white p-4">
       <div className="max-w-md w-full">
         <Alert variant="destructive" className="mb-6">
           <div className="flex items-center gap-3">
@@ -20,7 +32,7 @@ export function OfflineNotification() {
           </div>
         </Alert>
         <Button 
-          onClick={() => window.location.reload()} 
+          onClick={handleRetry} 
           className="w-full flex items-center justify-center gap-2"
           aria-label="Retry connection"
         >
