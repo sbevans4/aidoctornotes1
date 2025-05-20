@@ -1,21 +1,20 @@
 
-import React from 'react';
-import { Route } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { Route } from "react-router-dom";
+import { Layout } from "@/components/layout/Layout";
+import { PrivateRoute } from "./PrivateRoute";
 import { lazyWithFallback } from "@/utils/lazyWithFallback";
 import { PageLoading } from "@/components/ui/page-loading";
-import { PrivateRoute } from './PrivateRoute';
 
 // Lazy loading with fallback
 const PageLoadingFallback = () => <PageLoading isLoading={true} centered={true} />;
 
-// Lazy load service-related pages
-const DoctorNotes = lazyWithFallback(() => import('@/pages/Services/AIDoctorNotes'), PageLoadingFallback);
-const TherapyNotes = lazyWithFallback(() => import('@/pages/Services/AITherapyNotes'), PageLoadingFallback);
-const Transcription = lazyWithFallback(() => import('@/pages/Services/AIMedicalTranscription'), PageLoadingFallback);
+// Service pages
+const DoctorNotes = lazyWithFallback(() => import('../pages/Services/AIDoctorNotes'), PageLoadingFallback);
+const TherapyNotes = lazyWithFallback(() => import('../pages/Services/AITherapyNotes'), PageLoadingFallback);
+const Transcription = lazyWithFallback(() => import('../pages/Services/AIMedicalTranscription'), PageLoadingFallback);
 const ImageAnalysis = lazyWithFallback(() => import('@/components/ImageAnalyzer'), PageLoadingFallback);
 
-export const ServiceRoutes = () => {
+export function ServiceRoutes() {
   return (
     <>
       <Route
@@ -54,4 +53,4 @@ export const ServiceRoutes = () => {
       />
     </>
   );
-};
+}
