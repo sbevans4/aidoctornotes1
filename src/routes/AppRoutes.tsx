@@ -29,6 +29,10 @@ const PaymentCanceled = lazyWithFallback(() => import("../pages/PaymentCanceled"
 const NotFound = lazyWithFallback(() => import("../pages/NotFound"), PageLoadingFallback);
 const Dashboard = lazyWithFallback(() => import("../pages/Dashboard"), PageLoadingFallback);
 
+// Blog pages
+const Blog = lazyWithFallback(() => import("../pages/Blog"), PageLoadingFallback);
+const BlogPost = lazyWithFallback(() => import("../pages/BlogPost"), PageLoadingFallback);
+
 export function AppRoutes() {
   const { isLoading } = useAuth();
 
@@ -42,6 +46,10 @@ export function AppRoutes() {
       <Route path="/" element={<Layout><Index /></Layout>} />
       <Route path="/enterprise" element={<Layout><Enterprise /></Layout>} />
       <Route path="/contact" element={<Layout><Contact /></Layout>} />
+      
+      {/* Blog Routes */}
+      <Route path="/blog" element={<Layout><Blog /></Layout>} />
+      <Route path="/blog/:slug" element={<Layout><BlogPost /></Layout>} />
       
       {/* Auth Routes */}
       <Route path="/auth" element={<Auth />} />
