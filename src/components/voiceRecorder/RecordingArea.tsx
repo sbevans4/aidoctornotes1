@@ -82,10 +82,10 @@ const RecordingArea = ({ onAudioProcessed }: RecordingAreaProps) => {
             recordingContext.startRecording();
           }}
           onStopRecording={async () => {
-            const blob = await recordingContext.stopRecording();
-            // Only process the blob if it's not undefined or null
-            if (blob instanceof Blob) {
-              handleRecordingStop(blob);
+            const result = await recordingContext.stopRecording();
+            // Check if the result is a valid Blob before processing
+            if (result && typeof result === 'object' && 'size' in result && 'type' in result) {
+              handleRecordingStop(result as Blob);
             }
           }}
           onPauseRecording={recordingContext.pauseRecording}
