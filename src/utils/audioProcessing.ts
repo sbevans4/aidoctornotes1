@@ -20,50 +20,25 @@ interface TranscriptionResult {
   segments: Segment[];
 }
 
-interface SoapNote {
-  subjective: string;
-  objective: string;
-  assessment: string;
-  plan: string;
-}
-
 export const processAudioBlob = async (
   audioBlob: Blob,
   onTranscriptionComplete?: (text: string, speakers: Speaker[], segments: Segment[]) => void,
-  onSoapNoteGenerated?: (soapNote: SoapNote) => void,
-  onProcessingStateChange?: (isProcessing: boolean) => void,
-  templateId: string = "general"
+  onProcessingStateChange?: (isProcessing: boolean) => void
 ): Promise<TranscriptionResult | undefined> => {
   try {
-    // Convert audio blob to base64
-    const reader = new FileReader();
-    const audioBase64Promise = new Promise<string>((resolve, reject) => {
-      reader.onload = () => {
-        const base64 = reader.result?.toString().split(',')[1];
-        if (base64) {
-          resolve(base64);
-        } else {
-          reject(new Error('Failed to convert audio to base64'));
-        }
-      };
-      reader.onerror = () => reject(reader.error);
-    });
-    
-    reader.readAsDataURL(audioBlob);
-    const audioBase64 = await audioBase64Promise;
-    
     if (onProcessingStateChange) {
       onProcessingStateChange(true);
     }
     
-    toast({
-      title: "Transcribing Audio",
-      description: "Converting your recording to text...",
-    });
+    // Prepare form data for the API call
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+    
+    console.log("Sending audio for transcription...");
     
     // Call the transcription API
     const { data: transcriptionData, error: transcriptionError } = await supabase.functions.invoke("transcribe-audio", {
-      body: { audio: audioBase64 },
+      body: formData,
     });
     
     if (transcriptionError) {
@@ -75,16 +50,13 @@ export const processAudioBlob = async (
       throw new Error("No transcription data returned");
     }
     
-    const { id, transcription, speakers, segments } = transcriptionData;
+    console.log("Transcription completed:", transcriptionData);
     
-    if (onTranscriptionComplete) {
-      onTranscriptionComplete(transcription, speakers, segments);
+    const { transcription, speakers, segments } = transcriptionData;
+    
+    if (onTranscriptionComplete && transcription) {
+      onTranscriptionComplete(transcription, speakers || [], segments || []);
     }
-    
-    toast({
-      title: "Transcription Complete", 
-      description: "Your audio has been successfully transcribed."
-    });
     
     return {
       text: transcription,
@@ -93,12 +65,6 @@ export const processAudioBlob = async (
     };
   } catch (error) {
     console.error("Error processing audio:", error);
-    toast({
-      title: "Transcription Error",
-      description: error.message || "An error occurred during transcription",
-      variant: "destructive",
-    });
-    
     if (onProcessingStateChange) {
       onProcessingStateChange(false);
     }

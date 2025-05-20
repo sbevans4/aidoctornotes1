@@ -49,9 +49,10 @@ export const useTranscription = () => {
 
 interface TranscriptionProviderProps {
   children: ReactNode;
+  initialTemplate?: string;
 }
 
-export const TranscriptionProvider = ({ children }: TranscriptionProviderProps) => {
+export const TranscriptionProvider = ({ children, initialTemplate = "general" }: TranscriptionProviderProps) => {
   const [transcript, setTranscript] = useState("");
   const [soapNote, setSoapNote] = useState<SoapNote>({
     subjective: "",
@@ -62,7 +63,7 @@ export const TranscriptionProvider = ({ children }: TranscriptionProviderProps) 
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
   const [segments, setSegments] = useState<Segment[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedTemplateId, setSelectedTemplateId] = useState("general");
+  const [selectedTemplateId, setSelectedTemplateId] = useState(initialTemplate);
   const [procedureCodes, setProcedureCodes] = useState<string[]>([]);
 
   return (

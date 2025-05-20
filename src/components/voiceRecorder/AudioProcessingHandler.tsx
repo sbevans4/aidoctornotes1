@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from "react";
 import { useTranscription } from "@/contexts/TranscriptionContext";
 import { toast } from "@/hooks/use-toast";
 import { processAudioBlob } from "@/utils/audioProcessing";
@@ -16,33 +17,13 @@ const AudioProcessingHandler = ({ audioBlob }: AudioProcessingHandlerProps) => {
     setIsProcessing,
     selectedTemplateId,
   } = useTranscription();
+  const [processingBlob, setProcessingBlob] = useState<Blob | null>(null);
 
-  const handleTranscriptionComplete = (
-    transcript: string,
-    speakers: any[],
-    segments: any[]
-  ) => {
-    setTranscript(transcript);
-    setSpeakers(speakers);
-    setSegments(segments);
-    toast({
-      title: "Transcription complete",
-      description: "Your audio has been successfully transcribed.",
-    });
-  };
-  
-  const handleSoapNoteGenerated = (soapNote: any) => {
-    setSoapNote(soapNote);
-    toast({
-      title: "SOAP note generated",
-      description: "Your clinical note is ready for review.",
-    });
-    setIsProcessing(false);
-  };
-  
-  // Process audio when blob is provided
-  if (audioBlob) {
+  useEffect(() => {
+    if (!audioBlob || processingBlob === audioBlob) return;
+    
     const processAudio = async () => {
+      setProcessingBlob(audioBlob);
       setIsProcessing(true);
       toast({
         title: "Processing audio",
@@ -61,13 +42,22 @@ const AudioProcessingHandler = ({ audioBlob }: AudioProcessingHandlerProps) => {
         setSpeakers([]);
         setSegments([]);
         
-        await processAudioBlob(
+        const result = await processAudioBlob(
           audioBlob, 
-          handleTranscriptionComplete, 
-          handleSoapNoteGenerated,
-          setIsProcessing,
-          selectedTemplateId
+          (transcript, speakers, segments) => {
+            setTranscript(transcript);
+            setSpeakers(speakers);
+            setSegments(segments);
+            toast({
+              title: "Transcription complete",
+              description: "Your audio has been successfully transcribed.",
+            });
+          }
         );
+        
+        // After processing is complete, but before SOAP generation
+        // The TranscriptionHandler component will handle SOAP generation
+        
       } catch (error) {
         console.error("Error processing audio:", error);
         toast({
@@ -80,7 +70,7 @@ const AudioProcessingHandler = ({ audioBlob }: AudioProcessingHandlerProps) => {
     };
     
     processAudio();
-  }
+  }, [audioBlob, setTranscript, setSoapNote, setSpeakers, setSegments, setIsProcessing, selectedTemplateId, processingBlob]);
 
   return null; // This is a logic component, no UI
 };

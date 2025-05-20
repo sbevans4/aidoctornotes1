@@ -7,11 +7,10 @@ import RecordingArea from "./voiceRecorder/RecordingArea";
 import TranscriptArea from "./voiceRecorder/TranscriptArea";
 import SoapNoteArea from "./voiceRecorder/SoapNoteArea";
 import AudioProcessingHandler from "./voiceRecorder/AudioProcessingHandler";
-import TranscriptionProcessor from "./TranscriptionProcessor";
 import TranscriptionHandler from "./voiceRecorder/TranscriptionHandler";
 
 const VoiceRecorder = () => {
-  const [audioBlob, setAudioBlob] = useState<Blob | undefined>(undefined);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState("general");
 
   const handleTemplateChange = (templateId: string) => {
@@ -23,7 +22,7 @@ const VoiceRecorder = () => {
   };
 
   return (
-    <TranscriptionProvider>
+    <TranscriptionProvider initialTemplate={selectedTemplateId}>
       <div className="space-y-6">
         <TemplateSelector 
           selectedTemplateId={selectedTemplateId}
@@ -36,14 +35,8 @@ const VoiceRecorder = () => {
           <SoapNoteArea />
           
           {/* Logic components - no UI */}
-          <AudioProcessingHandler audioBlob={audioBlob} />
+          <AudioProcessingHandler audioBlob={audioBlob || undefined} />
           <TranscriptionHandler />
-          <TranscriptionProcessor
-            onTranscriptionComplete={() => {}}
-            onSoapNoteGenerated={() => {}}
-            onProcessingStateChange={() => {}}
-            selectedTemplateId={selectedTemplateId}
-          />
         </Card>
       </div>
     </TranscriptionProvider>
