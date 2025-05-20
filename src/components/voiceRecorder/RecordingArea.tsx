@@ -66,7 +66,7 @@ const RecordingArea = ({ onAudioProcessed }: RecordingAreaProps) => {
     return (
       <div className="space-y-4">
         {networkError && (
-          <Alert variant="default"> {/* Changed from "warning" to "default" */}
+          <Alert variant="default">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Network Warning</AlertTitle>
             <AlertDescription>{networkError}</AlertDescription>
@@ -82,10 +82,14 @@ const RecordingArea = ({ onAudioProcessed }: RecordingAreaProps) => {
             recordingContext.startRecording();
           }}
           onStopRecording={async () => {
-            const result = await recordingContext.stopRecording();
-            // Check if the result is a valid Blob before processing
-            if (result && typeof result === 'object' && 'size' in result && 'type' in result) {
-              handleRecordingStop(result as Blob);
+            try {
+              const result = await recordingContext.stopRecording();
+              // Explicitly check for blob properties rather than using instanceof
+              if (result && typeof result === 'object' && 'size' in result && 'type' in result) {
+                handleRecordingStop(result as Blob);
+              }
+            } catch (error) {
+              console.error("Error stopping recording:", error);
             }
           }}
           onPauseRecording={recordingContext.pauseRecording}

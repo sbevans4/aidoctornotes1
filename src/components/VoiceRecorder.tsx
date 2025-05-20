@@ -140,7 +140,7 @@ const VoiceRecorder = () => {
         toast({
           title: "Performance Warning",
           description: "Your device is running low on memory. Consider closing other tabs or applications.",
-          variant: "destructive", // Changed from "warning" to "destructive"
+          variant: "destructive", 
         });
       }
     }
