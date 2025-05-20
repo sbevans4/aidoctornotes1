@@ -154,7 +154,7 @@ const MedicalDocumentationForm = () => {
     
     try {
       const { error } = await supabase
-        .from('notes')
+        .from('clinical_notes')
         .update({
           soap_note: note,
           updated_at: new Date().toISOString(),
