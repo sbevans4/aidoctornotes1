@@ -66,7 +66,7 @@ const RecordingArea = ({ onAudioProcessed }: RecordingAreaProps) => {
     return (
       <div className="space-y-4">
         {networkError && (
-          <Alert variant="warning">
+          <Alert variant="default"> {/* Changed from "warning" to "default" */}
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Network Warning</AlertTitle>
             <AlertDescription>{networkError}</AlertDescription>
@@ -83,7 +83,9 @@ const RecordingArea = ({ onAudioProcessed }: RecordingAreaProps) => {
           }}
           onStopRecording={async () => {
             const blob = await recordingContext.stopRecording();
-            if (blob) handleRecordingStop(blob);
+            if (blob) { // Added curly braces to properly handle void check
+              handleRecordingStop(blob);
+            }
           }}
           onPauseRecording={recordingContext.pauseRecording}
           onResumeRecording={recordingContext.resumeRecording}
