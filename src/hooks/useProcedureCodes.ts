@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,11 +57,11 @@ export function useProcedureCodes(transcript: string | null) {
     if (!user) return;
     
     try {
+      // Insert or update the code in the procedure_codes table
       const { error } = await supabase.from('procedure_codes').upsert(
         {
           user_id: user.id,
           code: code,
-          frequency: 1
         },
         {
           onConflict: 'user_id, code',
@@ -72,11 +71,8 @@ export function useProcedureCodes(transcript: string | null) {
       
       if (error) throw error;
       
-      // Increment frequency counter for this code
-      await supabase.rpc('increment_code_frequency', { 
-        p_user_id: user.id, 
-        p_code: code 
-      });
+      // We're removing the call to increment_code_frequency since it doesn't exist
+      // If needed, we could implement tracking usage frequency in a future update
       
     } catch (err: any) {
       console.error("Error saving procedure code:", err);

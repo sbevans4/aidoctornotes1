@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { SoapNote } from "@/contexts/TranscriptionContext";
-import { FilePdf, Loader2, Share2 } from "lucide-react";
+import { FileText, Loader2, Share2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -98,7 +98,7 @@ const SoapNoteExport = ({ soapNote, noteId }: SoapNoteExportProps) => {
         {isExporting ? (
           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
         ) : (
-          <FilePdf className="h-4 w-4 mr-2" />
+          <FileText className="h-4 w-4 mr-2" />
         )}
         Export as PDF
       </Button>
