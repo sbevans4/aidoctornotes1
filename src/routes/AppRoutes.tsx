@@ -5,6 +5,9 @@ import { PrivateRoute } from "./PrivateRoute";
 import { Layout } from "@/components/layout/Layout";
 import { PageLoading } from "@/components/ui/page-loading";
 import { lazyWithFallback } from "@/utils/lazyWithFallback";
+import { PaymentRoutes } from "./PaymentRoutes";
+import { ServiceRoutes } from "./ServiceRoutes";
+import { ReferralRoutes } from "./ReferralRoutes";
 
 // Lazy loading with fallback
 const PageLoadingFallback = () => <PageLoading isLoading={true} centered={true} />;
@@ -24,8 +27,6 @@ const DocumentHistory = lazyWithFallback(() => import("../pages/DocumentHistory"
 const AccountSettings = lazyWithFallback(() => import("../pages/AccountSettings"), PageLoadingFallback);
 const Enterprise = lazyWithFallback(() => import("../pages/Enterprise"), PageLoadingFallback);
 const Contact = lazyWithFallback(() => import("../pages/Contact"), PageLoadingFallback);
-const PaymentSuccess = lazyWithFallback(() => import("../pages/PaymentSuccess"), PageLoadingFallback);
-const PaymentCanceled = lazyWithFallback(() => import("../pages/PaymentCanceled"), PageLoadingFallback);
 const NotFound = lazyWithFallback(() => import("../pages/NotFound"), PageLoadingFallback);
 const Dashboard = lazyWithFallback(() => import("../pages/Dashboard"), PageLoadingFallback);
 
@@ -95,8 +96,13 @@ export function AppRoutes() {
       } />
       
       {/* Payment Routes */}
-      <Route path="/payment-success" element={<Layout><PaymentSuccess /></Layout>} />
-      <Route path="/payment-canceled" element={<Layout><PaymentCanceled /></Layout>} />
+      {PaymentRoutes()}
+      
+      {/* Service Routes */}
+      {ServiceRoutes()}
+
+      {/* Referral Routes */}
+      {ReferralRoutes()}
       
       {/* Fallback route */}
       <Route path="*" element={<Layout><NotFound /></Layout>} />

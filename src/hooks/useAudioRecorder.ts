@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -32,11 +33,12 @@ export const useAudioRecorder = () => {
         description: "Could not access microphone. Please check permissions.",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
   const stopRecording = async () => {
-    if (!mediaRecorder.current || !isRecording) return;
+    if (!mediaRecorder.current || !isRecording) return null;
 
     return new Promise<Blob>((resolve) => {
       if (!mediaRecorder.current) return;
