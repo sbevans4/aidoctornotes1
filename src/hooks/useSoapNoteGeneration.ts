@@ -15,6 +15,7 @@ export function useSoapNoteGeneration() {
   const [soapNote, setSoapNote] = useState<SoapNote | null>(null);
   const [soapError, setSoapError] = useState<string | null>(null);
   const [procedureCodes, setProcedureCodes] = useState<string[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("general");
 
   const generateSoapNote = async (transcriptText: string, noteId: string | null = null) => {
     if (!transcriptText) {
@@ -25,12 +26,13 @@ export function useSoapNoteGeneration() {
     setSoapError(null);
     
     try {
-      // Call the Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('generate-soap', {
+      // Call the Supabase Edge Function for DeepSeek
+      const { data, error } = await supabase.functions.invoke('generate-soap-deepseek', {
         body: { 
           transcription: transcriptText,
           noteId: noteId,
           procedureCodes: procedureCodes,
+          templateId: selectedTemplateId
         },
       });
       
@@ -114,6 +116,8 @@ export function useSoapNoteGeneration() {
     soapError,
     procedureCodes,
     setProcedureCodes,
+    selectedTemplateId,
+    setSelectedTemplateId,
     generateSoapNote,
     saveSoapNote,
     emailSoapNote,

@@ -27,12 +27,14 @@ interface TranscriptionProcessorProps {
   onTranscriptionComplete: (transcript: string, speakers: Speaker[], segments: Segment[]) => void;
   onSoapNoteGenerated: (soapNote: SoapNote) => void;
   onProcessingStateChange: (isProcessing: boolean) => void;
+  selectedTemplateId?: string;
 }
 
 const TranscriptionProcessor = ({
   onTranscriptionComplete,
   onSoapNoteGenerated,
   onProcessingStateChange,
+  selectedTemplateId = "general",
 }: TranscriptionProcessorProps) => {
   const [transcript, setTranscript] = useState<string>("");
   const [procedureCodes, setProcedureCodes] = useState<string[]>([]);
@@ -53,7 +55,8 @@ const TranscriptionProcessor = ({
         audioBlob,
         handleTranscriptionComplete,
         onSoapNoteGenerated,
-        onProcessingStateChange
+        onProcessingStateChange,
+        selectedTemplateId
       );
       
       if (result) {
@@ -71,13 +74,14 @@ const TranscriptionProcessor = ({
         await SoapNoteGenerator({
           transcript,
           procedureCodes,
+          templateId: selectedTemplateId,
           onSoapNoteGenerated,
         });
         setIsGeneratingSoapNote(false);
       };
       generateNote();
     }
-  }, [transcript, procedureCodes, onSoapNoteGenerated]);
+  }, [transcript, procedureCodes, onSoapNoteGenerated, selectedTemplateId]);
 
   return (
     <>

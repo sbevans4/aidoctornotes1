@@ -30,7 +30,8 @@ export const processAudioBlob = async (
   audioBlob: Blob,
   onTranscriptionComplete?: (text: string, speakers: Speaker[], segments: Segment[]) => void,
   onSoapNoteGenerated?: (soapNote: SoapNote) => void,
-  onProcessingStateChange?: (isProcessing: boolean) => void
+  onProcessingStateChange?: (isProcessing: boolean) => void,
+  templateId: string = "general"
 ): Promise<TranscriptionResult | undefined> => {
   try {
     // Convert audio blob to base64
@@ -75,9 +76,13 @@ export const processAudioBlob = async (
       onTranscriptionComplete(transcription, speakers, segments);
     }
     
-    // Generate SOAP note
-    const { data: soapData, error: soapError } = await supabase.functions.invoke("generate-soap", {
-      body: { transcription, noteId: id },
+    // Generate SOAP note using DeepSeek
+    const { data: soapData, error: soapError } = await supabase.functions.invoke("generate-soap-deepseek", {
+      body: { 
+        transcription, 
+        noteId: id,
+        templateId: templateId
+      },
       method: "POST",
     });
     

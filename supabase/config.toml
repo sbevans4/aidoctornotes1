@@ -1,62 +1,81 @@
 
-project_id = "otvgheqffehoykaerckl"
-organization_id = "1"
+# A string that describes your project
+name = 'AIDoctorNotes'
+
+# The port and hostname to serve from
+[serve]
+  port = 54321
+  hostname = 'localhost'
+
+# The URL of your deployed project
+# Used to generate URLs to your tables
+api_url = 'https://your-project-url.supabase.co'
 
 [api]
-port = 54321
-schemas = ["public", "storage", "extensions"]
-extra_search_path = ["public", "extensions"]
-max_rows = 1000
-
-[db]
-port = 54322
-major_version = 15
-
-[studio]
-port = 54323
-
-[inbucket]
-port = 54324
-smtp_port = 54325
-pop3_port = 54326
-
-[storage]
-file_size_limit = "50MiB"
-
-[auth]
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://localhost:3000"]
-jwt_expiry = 3600
-enable_signup = true
-
-[auth.email]
-enable_signup = true
-double_confirm_changes = true
-enable_confirmations = false
-
-[auth.external.apple]
-enabled = false
-client_id = ""
-secret = ""
-redirect_uri = ""
-url = ""
-
-[auth.external.google]
-enabled = true
-client_id = "your-google-client-id"
-secret = "your-google-secret"
-redirect_uri = "http://localhost:3000/auth/callback"
-url = ""
+  # The URL of your custom API from the project dashboard
+  # This defaults to your API_URL if not set
+  url = 'https://your-project-url.supabase.co'
+  
+  # The anon key from your project dashboard
+  anon_key = 'your-anon-key'
+  
+  # The service_role key from your project dashboard
+  service_role_key = 'your-service-role-key'
 
 [functions]
-[functions.generate-soap]
-verify_jwt = true
-
-[functions.transcribe-audio]
-verify_jwt = true
-
-[extensions]
-[extensions.uuid-ossp]
-enabled = true
-[extensions.http]
-enabled = true
+  # The path to your functions directory
+  path = 'functions'
+  
+  [functions.analyze-image]
+    verify_jwt = true
+    
+  [functions.anonymize-note]
+    verify_jwt = true
+    
+  [functions.check-feature-access]
+    verify_jwt = true
+    
+  [functions.check-referral-limit]
+    verify_jwt = true
+    
+  [functions.cleanup-expired-data]
+    verify_jwt = true
+    
+  [functions.contact-form]
+    verify_jwt = false
+    
+  [functions.create-checkout]
+    verify_jwt = true
+    
+  [functions.generate-soap]
+    verify_jwt = true
+    
+  [functions.generate-soap-deepseek]
+    verify_jwt = true
+    
+  [functions.get-referral-stats]
+    verify_jwt = true
+    
+  [functions.paypal-payment]
+    verify_jwt = true
+    
+  [functions.paypal]
+    verify_jwt = true
+    
+  [functions.send-referral-email]
+    verify_jwt = true
+    
+  [functions.square]
+    verify_jwt = true
+    
+  [functions.stripe-webhook]
+    verify_jwt = false
+    
+  [functions.stripe]
+    verify_jwt = true
+    
+  [functions.transcribe-audio]
+    verify_jwt = true
+    
+  [functions.verify-referral]
+    verify_jwt = true

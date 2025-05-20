@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
@@ -97,7 +98,8 @@ const VoiceRecorder = () => {
         audioBlob, 
         handleTranscriptionComplete, 
         handleSoapNoteGenerated,
-        handleProcessingStateChange
+        handleProcessingStateChange,
+        selectedTemplateId  // Pass the selected template ID
       );
     } catch (error) {
       console.error("Error processing audio:", error);
@@ -159,6 +161,7 @@ const VoiceRecorder = () => {
           onTranscriptionComplete={handleTranscriptionComplete}
           onSoapNoteGenerated={handleSoapNoteGenerated}
           onProcessingStateChange={handleProcessingStateChange}
+          selectedTemplateId={selectedTemplateId}
         />
       </Card>
     </div>

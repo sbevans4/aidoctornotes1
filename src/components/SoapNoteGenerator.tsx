@@ -1,4 +1,5 @@
-import { generateSoapNote } from "@/services/openaiService";
+
+import { generateSoapNote } from "@/services/deepseekService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Json } from "@/integrations/supabase/types";
@@ -6,16 +7,18 @@ import { Json } from "@/integrations/supabase/types";
 interface SoapNoteGeneratorProps {
   transcript: string;
   procedureCodes: string[];
+  templateId?: string;
   onSoapNoteGenerated: (soapNote: any) => void;
 }
 
 const SoapNoteGenerator = async ({
   transcript,
   procedureCodes,
+  templateId = "general",
   onSoapNoteGenerated,
 }: SoapNoteGeneratorProps) => {
   try {
-    const generatedNote = await generateSoapNote(transcript, procedureCodes);
+    const generatedNote = await generateSoapNote(transcript, procedureCodes, templateId);
     
     const {
       data: { user },
@@ -32,6 +35,7 @@ const SoapNoteGenerator = async ({
         content: generatedNote as Json,
         suggested_codes: procedureCodes as Json,
         status: 'completed',
+        template_id: templateId,
         user_id: user.id
       })
       .select()
