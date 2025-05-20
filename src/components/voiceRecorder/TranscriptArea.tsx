@@ -7,6 +7,7 @@ const TranscriptArea = () => {
   const { transcript, speakers, segments, isProcessing, setProcedureCodes } = useTranscription();
   
   const handleProcedureCodesValidated = (codes: string[]) => {
+    console.log("Procedure codes validated:", codes);
     setProcedureCodes(codes);
   };
 

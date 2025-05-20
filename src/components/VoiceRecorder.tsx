@@ -18,6 +18,7 @@ const VoiceRecorder = () => {
   };
 
   const handleAudioProcessed = (blob: Blob) => {
+    console.log("Audio processed in VoiceRecorder component", blob);
     setAudioBlob(blob);
   };
 

@@ -4,11 +4,7 @@ import { useTranscription } from "@/contexts/TranscriptionContext";
 import { toast } from "@/hooks/use-toast";
 import { generateSoapNote } from "@/services/deepseekService";
 
-interface TranscriptionHandlerProps {
-  onProcedureCodesValidated?: (codes: string[]) => void;
-}
-
-const TranscriptionHandler = ({ onProcedureCodesValidated }: TranscriptionHandlerProps) => {
+const TranscriptionHandler = () => {
   const {
     transcript,
     selectedTemplateId,
