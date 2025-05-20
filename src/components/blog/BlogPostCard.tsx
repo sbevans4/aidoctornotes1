@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BlogPost } from "@/types/blog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +14,7 @@ interface BlogPostCardProps {
 
 export const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = false }) => {
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
   
   const formattedDate = new Date(post.publishedAt).toLocaleDateString("en-US", {
     year: "numeric",
@@ -23,6 +24,10 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = fal
   
   const handleCardClick = () => {
     navigate(`/blog/${post.slug}`);
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
   };
   
   return (
@@ -38,15 +43,15 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = fal
           featured ? "h-64" : "h-48" 
         )}
         onClick={handleCardClick}
+        role="img"
+        aria-label={`Featured image for article: ${post.title}`}
       >
         <img 
-          src={post.featuredImage} 
-          alt={post.title} 
+          src={imageError ? "/placeholder.svg" : post.featuredImage} 
+          alt={`${post.title} - Featured Image`}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = "/placeholder.svg";
-          }}
+          onError={handleImageError}
+          loading="lazy"
         />
         <div className="absolute top-3 left-3">
           <Badge className="bg-medical-primary/90 hover:bg-medical-primary text-white">
@@ -71,11 +76,11 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = fal
           <div className="flex flex-wrap items-center justify-between">
             <div className="flex flex-wrap items-center text-sm text-gray-500 gap-x-4 gap-y-2">
               <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-1.5" />
+                <Calendar className="h-4 w-4 mr-1.5" aria-hidden="true" />
                 <span>{formattedDate}</span>
               </div>
               <div className="flex items-center">
-                <Clock className="h-4 w-4 mr-1.5" />
+                <Clock className="h-4 w-4 mr-1.5" aria-hidden="true" />
                 <span>{post.readingTime} min read</span>
               </div>
             </div>
@@ -83,9 +88,10 @@ export const BlogPostCard: React.FC<BlogPostCardProps> = ({ post, featured = fal
             <button 
               onClick={handleCardClick}
               className="flex items-center text-sm text-medical-primary font-medium mt-2 sm:mt-0 group-hover:underline"
+              aria-label={`Read more about ${post.title}`}
             >
               Read more
-              <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </button>
           </div>
         </div>

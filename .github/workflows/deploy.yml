@@ -1,3 +1,4 @@
+
 on:
   release:
     types: [created]
@@ -23,9 +24,10 @@ jobs:
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: "31.170.166.84"
-          username: "u396802645.dev"
-          password: "Wh0said1t#1982"
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
           server-dir: ""
           delete-removed: true
+

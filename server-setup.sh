@@ -1,11 +1,16 @@
 
 #!/bin/bash
-# Initial server setup script for Hostinger VPS
+# Initial server setup script for production deployment
 # Run this script once when setting up a new server
 
-# Replace with your Hostinger VPS details
-SERVER_IP="217.15.175.191"
-SERVER_USER="root"
+# Use environment variables or prompt for credentials
+if [ -z "$SERVER_IP" ]; then
+    read -p "Enter server IP: " SERVER_IP
+fi
+
+if [ -z "$SERVER_USER" ]; then
+    read -p "Enter server username: " SERVER_USER
+fi
 
 echo "Setting up server at $SERVER_IP..."
 
@@ -43,22 +48,24 @@ ssh $SERVER_USER@$SERVER_IP << 'EOF'
 
   # Configure Nginx
   echo "Configuring Nginx..."
-  sudo cat > /etc/nginx/sites-available/convonotes << 'EOL'
+  read -p "Enter your domain name (e.g., example.com): " DOMAIN_NAME
+  
+  sudo cat > /etc/nginx/sites-available/convonotes << EOL
 server {
     listen 80;
-    server_name 217.15.175.191;
+    server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};
 
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
     }
 
     # Cache static assets
-    location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js)\$ {
         expires 1y;
         add_header Cache-Control "public, max-age=31536000";
     }
@@ -84,6 +91,17 @@ EOL
   echo "Starting Nginx..."
   sudo systemctl enable nginx
   sudo systemctl restart nginx
+
+  # Install Certbot for HTTPS
+  echo "Installing Certbot for HTTPS..."
+  sudo apt install -y certbot python3-certbot-nginx
+  
+  # Prompt for SSL setup
+  read -p "Would you like to set up SSL now? (y/n): " SETUP_SSL
+  if [ "$SETUP_SSL" = "y" ]; then
+    sudo certbot --nginx -d ${DOMAIN_NAME} -d www.${DOMAIN_NAME}
+    sudo systemctl reload nginx
+  fi
 
   echo "Server setup completed!"
 EOF
