@@ -5,7 +5,7 @@ import VoiceRecorder from "@/components/VoiceRecorder";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { ExclamationTriangleIcon } from "lucide-react";
+import { AlertTriangle } from "lucide-react"; // Changed from ExclamationTriangleIcon
 import { useNavigate } from "react-router-dom";
 
 export default function MedicalDocumentation() {
@@ -35,8 +35,8 @@ export default function MedicalDocumentation() {
         
         {/* Subscription Status Alert */}
         {!subscriptionStatus.isSubscribed && (
-          <Alert variant="warning" className="mb-6">
-            <ExclamationTriangleIcon className="h-4 w-4 mr-2" />
+          <Alert variant="default" className="mb-6 bg-amber-50 border-amber-200"> {/* Changed from "warning" to "default" */}
+            <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" /> {/* Changed from ExclamationTriangleIcon */}
             <AlertDescription>
               You are currently using the free trial version. 
               <Button 
@@ -53,8 +53,8 @@ export default function MedicalDocumentation() {
         
         {/* Trial Expiration Alert */}
         {subscriptionStatus.isSubscribed && daysRemaining !== null && daysRemaining <= 7 && (
-          <Alert variant="warning" className="mb-6">
-            <ExclamationTriangleIcon className="h-4 w-4 mr-2" />
+          <Alert variant="default" className="mb-6 bg-amber-50 border-amber-200"> {/* Changed from "warning" to "default" */}
+            <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" /> {/* Changed from ExclamationTriangleIcon */}
             <AlertDescription>
               Your subscription will expire in {daysRemaining} day{daysRemaining !== 1 ? 's' : ''}. 
               <Button 

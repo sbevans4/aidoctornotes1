@@ -36,12 +36,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+// Updated to handle JSON type for suggested_codes
 interface ClinicalNote {
   id: string;
   created_at: string;
   content: any;
   status: string;
-  suggested_codes: string[];
+  suggested_codes: string[] | any; // Updated to accept both string[] and Json type
 }
 
 export default function DocumentHistory() {
@@ -85,7 +86,20 @@ export default function DocumentHistory() {
 
       if (error) throw error;
 
-      setNotes(data || []);
+      // Convert data to match ClinicalNote interface
+      const formattedNotes: ClinicalNote[] = data?.map(note => ({
+        id: note.id,
+        created_at: note.created_at,
+        content: note.content,
+        status: note.status,
+        suggested_codes: Array.isArray(note.suggested_codes) 
+          ? note.suggested_codes 
+          : typeof note.suggested_codes === 'string'
+            ? [note.suggested_codes]
+            : []
+      })) || [];
+
+      setNotes(formattedNotes);
       setTotalPages(Math.ceil((count || 0) / notesPerPage));
     } catch (error: any) {
       console.error("Error fetching notes:", error);
@@ -269,8 +283,8 @@ export default function DocumentHistory() {
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious 
-                          onClick={() => setPage(p => Math.max(1, p - 1))}
-                          disabled={page === 1}
+                          onClick={() => page > 1 && setPage(p => p - 1)}
+                          className={page === 1 ? "pointer-events-none opacity-50" : ""}
                         />
                       </PaginationItem>
                       <PaginationItem>
@@ -278,8 +292,8 @@ export default function DocumentHistory() {
                       </PaginationItem>
                       <PaginationItem>
                         <PaginationNext 
-                          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                          disabled={page === totalPages}
+                          onClick={() => page < totalPages && setPage(p => p + 1)}
+                          className={page === totalPages ? "pointer-events-none opacity-50" : ""}
                         />
                       </PaginationItem>
                     </PaginationContent>

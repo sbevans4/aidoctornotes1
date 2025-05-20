@@ -3,7 +3,8 @@ import React from 'react';
 import { Route } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { PrivateRoute } from './PrivateRoute';
-import { DefaultLoadingFallback, lazyWithFallback } from "@/utils/lazyWithFallback";
+import { lazyWithFallback } from "@/utils/lazyWithFallback";
+import { PageLoading } from '@/components/ui/page-loading';
 
 // Enhanced loading fallback with size customization
 const PageLoadingFallback = () => (
