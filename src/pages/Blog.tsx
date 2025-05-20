@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { 
   getAllBlogPosts, 
   getRecentBlogPosts,
@@ -20,24 +20,57 @@ import { ChevronLeft } from "lucide-react";
 
 const Blog = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [recentPosts, setRecentPosts] = useState<BlogPost[]>([]);
   const [popularTags, setPopularTags] = useState<string[]>([]);
   const [activeFilter, setActiveFilter] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(6);
   const [totalPages, setTotalPages] = useState(1);
   const [displayedPosts, setDisplayedPosts] = useState<BlogPost[]>([]);
+
+  // Get structured data for blog listing
+  const getStructuredDataJSON = () => {
+    const blogData = {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "headline": "Healthcare Documentation Blog | ConvoNotes Genius",
+      "description": "Explore insights on AI medical documentation, HIPAA compliance, and how AI is transforming healthcare documentation workflows.",
+      "publisher": {
+        "@type": "Organization",
+        "name": "ConvoNotes Genius",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "/logo.png"
+        }
+      },
+      "blogPost": displayedPosts.map(post => ({
+        "@type": "BlogPosting",
+        "headline": post.title,
+        "description": post.excerpt,
+        "datePublished": post.publishedAt,
+        "image": post.featuredImage,
+        "author": {
+          "@type": "Person",
+          "name": post.author.name
+        }
+      }))
+    };
+    
+    return JSON.stringify(blogData);
+  };
   
   // Initial data load
   useEffect(() => {
+    setIsLoading(true);
     const allPosts = getAllBlogPosts();
-    setPosts(allPosts);
-    setCategories(getAllCategories());
-    setRecentPosts(getRecentBlogPosts(4));
+    const categoriesData = getAllCategories();
+    const recentPostsData = getRecentBlogPosts(4);
     
     // Extract and count tags from all posts
     const tagCount: Record<string, number> = {};
@@ -53,8 +86,37 @@ const Blog = () => {
       .slice(0, 10)
       .map(([tag]) => tag);
     
+    // Check if we have query params to filter by
+    const categoryParam = searchParams.get('category');
+    const tagParam = searchParams.get('tag');
+    const searchParam = searchParams.get('search');
+    
+    if (categoryParam) {
+      const category = categoriesData.find(cat => cat.slug === categoryParam);
+      if (category) {
+        const filteredPosts = getBlogPostsByCategory(category.id);
+        setPosts(filteredPosts);
+        setActiveFilter(`Category: ${category.name}`);
+      } else {
+        setPosts(allPosts);
+      }
+    } else if (tagParam) {
+      const filteredPosts = getBlogPostsByTag(tagParam);
+      setPosts(filteredPosts);
+      setActiveFilter(`Tag: ${tagParam}`);
+    } else if (searchParam) {
+      const results = searchBlogPosts(searchParam);
+      setPosts(results);
+      setActiveFilter(`Search: "${searchParam}"`);
+    } else {
+      setPosts(allPosts);
+    }
+    
+    setCategories(categoriesData);
+    setRecentPosts(recentPostsData);
     setPopularTags(sortedTags);
-  }, []);
+    setIsLoading(false);
+  }, [searchParams]);
   
   // Update pagination whenever posts change
   useEffect(() => {
@@ -77,10 +139,12 @@ const Blog = () => {
     if (!query.trim()) {
       setPosts(getAllBlogPosts());
       setActiveFilter("");
+      navigate("/blog");
     } else {
       const results = searchBlogPosts(query);
       setPosts(results);
       setActiveFilter(`Search: "${query}"`);
+      navigate(`/blog?search=${encodeURIComponent(query)}`);
     }
     setCurrentPage(1);
   };
@@ -91,6 +155,7 @@ const Blog = () => {
       const filteredPosts = getBlogPostsByCategory(categoryId);
       setPosts(filteredPosts);
       setActiveFilter(`Category: ${category.name}`);
+      navigate(`/blog?category=${encodeURIComponent(category.slug)}`);
       setCurrentPage(1);
     }
   };
@@ -99,12 +164,14 @@ const Blog = () => {
     const filteredPosts = getBlogPostsByTag(tag);
     setPosts(filteredPosts);
     setActiveFilter(`Tag: ${tag}`);
+    navigate(`/blog?tag=${encodeURIComponent(tag)}`);
     setCurrentPage(1);
   };
   
   const handleClearFilters = () => {
     setPosts(getAllBlogPosts());
     setActiveFilter("");
+    navigate("/blog");
     setCurrentPage(1);
   };
   
@@ -123,6 +190,19 @@ const Blog = () => {
         <meta property="og:title" content="Healthcare Documentation Blog | ConvoNotes Genius" />
         <meta property="og:description" content="Insights on AI medical documentation and healthcare efficiency" />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:image" content="/og-image.png" />
+        
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Healthcare Documentation Blog | ConvoNotes Genius" />
+        <meta name="twitter:description" content="Insights on AI medical documentation and healthcare efficiency" />
+        <meta name="twitter:image" content="/og-image.png" />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href={window.location.origin + "/blog"} />
+        
+        {/* JSON-LD Structured Data */}
+        <script type="application/ld+json">{getStructuredDataJSON()}</script>
       </Helmet>
       
       <div className="bg-gradient-to-b from-medical-primary/10 to-white py-16">
@@ -157,8 +237,21 @@ const Blog = () => {
               </div>
             )}
             
-            {posts.length === 0 ? (
-              <div className="text-center py-12">
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {Array(6).fill(null).map((_, index) => (
+                  <div key={index} className="animate-pulse bg-white rounded-lg shadow-sm border border-gray-200 h-80">
+                    <div className="h-48 bg-gray-200 rounded-t-lg"></div>
+                    <div className="p-4">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-100">
                 <h2 className="text-2xl font-semibold mb-4">No articles found</h2>
                 <p className="text-gray-500 mb-6">Try changing your search terms or clearing filters</p>
                 <Button onClick={handleClearFilters}>View all articles</Button>
@@ -188,6 +281,7 @@ const Blog = () => {
               popularTags={popularTags}
               onSelectCategory={handleSelectCategory}
               onSelectTag={handleSelectTag}
+              isLoading={isLoading}
             />
           </div>
         </div>
