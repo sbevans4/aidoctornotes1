@@ -1,214 +1,218 @@
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from "react";
+import { Helmet } from "react-helmet";
 import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
-import { useSubscription } from "@/hooks/useSubscription";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, User as UserIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface ProfileData {
-  id: string;
-  email: string;
-  full_name: string | null;
-  has_used_trial: boolean;
-  purchase_date: string | null;
-  refund_requested: boolean;
-  refund_request_date: string | null;
-  created_at: string;
-  updated_at: string;
-}
+const profileSchema = z.object({
+  fullName: z.string().min(1, "Name is required"),
+  practiceName: z.string().optional(),
+  specialty: z.string().optional(),
+});
 
-const UserProfile = () => {
-  const { user, refreshProfile } = useAuth();
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const { currentSubscription } = useSubscription();
+type ProfileFormValues = z.infer<typeof profileSchema>;
 
-  // Form states
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [organization, setOrganization] = useState("");
-
+export default function UserProfile() {
+  const { user, profile, refreshProfile } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      fullName: profile?.full_name || "",
+      practiceName: profile?.practice_name || "",
+      specialty: profile?.specialty || "",
+    },
+  });
+  
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        if (!user) return;
-
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-
-        if (error) throw error;
-        setProfile(data);
-        
-        // Initialize form values
-        setFullName(data.full_name || "");
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load profile data",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [user]);
-
-  const handleProfileUpdate = async () => {
+    if (profile) {
+      form.reset({
+        fullName: profile.full_name || "",
+        practiceName: profile.practice_name || "",
+        specialty: profile.specialty || "",
+      });
+    }
+  }, [profile, form]);
+  
+  const onSubmit = async (values: ProfileFormValues) => {
     if (!user) return;
-
+    
+    setIsLoading(true);
+    
     try {
-      setIsSaving(true);
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: fullName,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
-
+      const { error } = await supabase.from("profiles").update({
+        full_name: values.fullName,
+        practice_name: values.practiceName,
+        specialty: values.specialty,
+        updated_at: new Date().toISOString(),
+      }).eq("id", user.id);
+      
       if (error) throw error;
-
+      
+      await refreshProfile();
+      
       toast({
         title: "Profile updated",
         description: "Your profile information has been updated successfully.",
       });
-      
-      refreshProfile();
-    } catch (error) {
-      console.error("Error updating profile:", error);
+    } catch (error: any) {
       toast({
-        title: "Update failed",
-        description: "Failed to update profile information",
         variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update profile. Please try again.",
       });
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Skeleton className="h-10 w-48 mb-2" />
-          <Skeleton className="h-5 w-64" />
-        </div>
-        <div className="max-w-3xl mx-auto">
-          <Skeleton className="h-64 w-full" />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">User Profile</h1>
-        <p className="text-gray-600 mt-1">
-          Manage your account information and preferences
-        </p>
-      </div>
-
-      <div className="max-w-3xl mx-auto">
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="subscription">Subscription</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>
-                  Update your personal details and preferences.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={user?.email || ""}
-                    disabled
-                    className="bg-gray-50"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-                </div>
-                <div>
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                  />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button onClick={handleProfileUpdate} disabled={isSaving}>
-                  {isSaving ? "Saving..." : "Save Changes"}
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="subscription">
-            <Card>
-              <CardHeader>
-                <CardTitle>Subscription Details</CardTitle>
-                <CardDescription>
-                  View and manage your subscription details.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {currentSubscription ? (
-                  <div className="space-y-4">
-                    <div>
-                      <p className="font-medium">Current Plan:</p>
-                      <p>{currentSubscription.subscription_plans?.name || "No active subscription"}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Status:</p>
-                      <p className={`capitalize ${currentSubscription.status === 'active' ? 'text-green-600' : ''}`}>
-                        {currentSubscription.status}
-                      </p>
-                    </div>
-                    {currentSubscription.current_period_end && (
-                      <div>
-                        <p className="font-medium">Next Billing Date:</p>
-                        <p>{new Date(currentSubscription.current_period_end).toLocaleDateString()}</p>
-                      </div>
+    <>
+      <Helmet>
+        <title>User Profile | AIDoctorNotes</title>
+      </Helmet>
+      
+      <div className="container mx-auto py-8">
+        <h1 className="text-3xl font-bold mb-8">User Profile</h1>
+        
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Personal Information</CardTitle>
+              <CardDescription>Update your personal and practice information.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Dr. Jane Smith" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 mb-4">You don't have an active subscription</p>
-                    <Button onClick={() => window.location.href = '/subscription-plans'}>
-                      View Subscription Plans
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="practiceName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Practice Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Woodland Medical Center" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="specialty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Medical Specialty</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a specialty" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="cardiology">Cardiology</SelectItem>
+                            <SelectItem value="dermatology">Dermatology</SelectItem>
+                            <SelectItem value="emergency">Emergency Medicine</SelectItem>
+                            <SelectItem value="family">Family Medicine</SelectItem>
+                            <SelectItem value="internal">Internal Medicine</SelectItem>
+                            <SelectItem value="neurology">Neurology</SelectItem>
+                            <SelectItem value="pediatrics">Pediatrics</SelectItem>
+                            <SelectItem value="psychiatry">Psychiatry</SelectItem>
+                            <SelectItem value="surgery">Surgery</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save Changes"
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+              <CardDescription>Your account details and subscription status.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col items-center justify-center mb-6">
+                <div className="h-24 w-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <UserIcon className="h-12 w-12 text-primary" />
+                </div>
+                <h3 className="text-lg font-medium">{profile?.full_name || "User"}</h3>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <Label className="text-muted-foreground">Account ID</Label>
+                  <span className="text-sm font-mono">{user?.id?.slice(0, 8)}...</span>
+                </div>
+                <div className="flex justify-between">
+                  <Label className="text-muted-foreground">Account Created</Label>
+                  <span className="text-sm">
+                    {profile?.created_at
+                      ? new Date(profile.created_at).toLocaleDateString()
+                      : "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <Label className="text-muted-foreground">Email Verified</Label>
+                  <span className="text-sm">{user?.email_confirmed_at ? "Yes" : "No"}</span>
+                </div>
+              </div>
+              
+              <Button variant="outline" className="w-full" onClick={() => refreshProfile()}>
+                Refresh Profile
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
-};
-
-export default UserProfile;
+}

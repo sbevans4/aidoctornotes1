@@ -4,12 +4,24 @@ import { SubscriptionTier } from "@/hooks/useSubscription";
 
 export interface UserProfile {
   id: string;
-  full_name: string | null;
   email: string;
+  full_name?: string;
   has_used_trial: boolean;
-  purchase_date: string | null;
+  purchase_date?: string | null;
   refund_requested: boolean;
-  refund_request_date: string | null;
+  refund_request_date?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  account_type?: string;
+  practice_name?: string;
+  specialty?: string;
+  settings?: Record<string, any>;
+}
+
+export interface SubscriptionStatus {
+  isSubscribed: boolean;
+  tier: SubscriptionTier | null;
+  expiresAt: Date | null;
 }
 
 export interface AuthContextProps {
@@ -24,7 +36,7 @@ export interface AuthContextProps {
     expiresAt: Date | null;
   };
   signOut: () => Promise<void>;
-  logout: () => Promise<void>; // Alias for backward compatibility
+  logout: () => Promise<void>;
   checkHasFeature: (featureName: string) => boolean;
   refreshProfile: () => Promise<void>;
 }

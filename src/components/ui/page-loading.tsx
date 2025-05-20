@@ -1,77 +1,37 @@
 
 import React from 'react';
-import { LoadingOverlay } from './loading-overlay';
+import { Loader2 } from 'lucide-react';
 
 interface PageLoadingProps {
-  /**
-   * Whether the page is in a loading state
-   */
   isLoading: boolean;
-  
-  /**
-   * Optional loading message to display
-   */
-  message?: string;
-  
-  /**
-   * Child elements that will be rendered when not loading
-   */
-  children?: React.ReactNode;
-  
-  /**
-   * Optional CSS classes
-   */
-  className?: string;
-  
-  /**
-   * Center the loading indicator on the page
-   */
   centered?: boolean;
-  
-  /**
-   * Show a full-page loading overlay instead of just the indicator
-   */
-  fullPage?: boolean;
+  size?: 'small' | 'medium' | 'large';
 }
 
-/**
- * A page-level loading component that displays a centered loading indicator
- * Can be used as a wrapper for page content or as a standalone component
- */
-export function PageLoading({
-  isLoading,
-  message = 'Loading page content...',
-  children,
-  className,
-  centered = true,
-  fullPage = false
+export function PageLoading({ 
+  isLoading, 
+  centered = false,
+  size = 'medium' 
 }: PageLoadingProps) {
-  if (!isLoading && children) {
-    return <>{children}</>;
-  }
+  if (!isLoading) return null;
   
-  if (fullPage) {
+  const getSizeClass = () => {
+    switch(size) {
+      case 'small': return 'h-4 w-4';
+      case 'large': return 'h-12 w-12';
+      default: return 'h-8 w-8';
+    }
+  };
+  
+  const sizeClass = getSizeClass();
+  
+  if (centered) {
     return (
-      <div className={`min-h-screen w-full ${centered ? 'flex items-center justify-center' : ''} ${className || ''}`}>
-        <LoadingOverlay 
-          loading={isLoading} 
-          message={message}
-          fullOverlay={false}
-        />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className={`${sizeClass} animate-spin text-primary`} />
       </div>
     );
   }
   
-  return (
-    <LoadingOverlay 
-      loading={isLoading} 
-      message={message}
-      fullOverlay={false}
-      className={`${centered ? 'flex items-center justify-center min-h-[200px]' : ''} ${className || ''}`}
-    >
-      {children}
-    </LoadingOverlay>
-  );
+  return <Loader2 className={`${sizeClass} animate-spin text-primary`} />;
 }
-
-export default PageLoading;
