@@ -58,12 +58,11 @@ const TranscriptionProcessor = ({
     try {
       onProcessingStateChange(true);
       
+      // Update the call to match the function signature in audioProcessing.ts
       const result = await processAudioBlob(
         audioBlob,
         handleTranscriptionComplete,
-        onSoapNoteGenerated,
-        onProcessingStateChange,
-        selectedTemplateId
+        onProcessingStateChange
       );
       
       if (result) {
