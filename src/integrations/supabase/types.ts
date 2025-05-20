@@ -515,14 +515,20 @@ export type Database = {
     Views: {
       user_features: {
         Row: {
+          created_at: string | null
+          enabled: boolean | null
           feature: string | null
           user_id: string | null
         }
         Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
           feature?: string | null
           user_id?: string | null
         }
         Update: {
+          created_at?: string | null
+          enabled?: boolean | null
           feature?: string | null
           user_id?: string | null
         }

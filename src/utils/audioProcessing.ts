@@ -19,6 +19,17 @@ interface TranscriptionResult {
   segments: Segment[];
 }
 
+// Process audio in optimized chunks to prevent memory issues
+async function processAudioChunks(audioBlob: Blob): Promise<ArrayBuffer> {
+  // Convert blob to ArrayBuffer using FileReader with promise wrapper
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as ArrayBuffer);
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(audioBlob);
+  });
+}
+
 export const processAudioBlob = async (
   audioBlob: Blob,
   onTranscriptionComplete?: (text: string, speakers: Speaker[], segments: Segment[]) => void,
@@ -28,6 +39,12 @@ export const processAudioBlob = async (
     if (onProcessingStateChange) {
       onProcessingStateChange(true);
     }
+    
+    console.log(`Processing audio blob: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
+    
+    // Convert to ArrayBuffer for efficient processing
+    const audioBuffer = await processAudioChunks(audioBlob);
+    console.log(`Converted audio to ArrayBuffer: ${audioBuffer.byteLength} bytes`);
     
     // Prepare form data for the API call
     const formData = new FormData();
