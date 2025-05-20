@@ -28,12 +28,12 @@ const SoapNoteGenerator = async ({
       throw new Error("User not authenticated");
     }
 
-    // Save the note to the database
+    // Save the note to the database - cast to Json type to fix the TypeScript error
     const { data: noteData, error: saveError } = await supabase
       .from('clinical_notes')
       .insert({
-        content: generatedNote as Json,
-        suggested_codes: procedureCodes as Json,
+        content: generatedNote as unknown as Json,
+        suggested_codes: procedureCodes as unknown as Json,
         status: 'completed',
         template_id: templateId,
         user_id: user.id
