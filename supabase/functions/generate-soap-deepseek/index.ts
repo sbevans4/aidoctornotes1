@@ -95,7 +95,7 @@ serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'deepseek-chat', // Update with the appropriate DeepSeek model
+        model: 'deepseek-chat',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -125,9 +125,9 @@ serve(async (req) => {
     // Update the note with the SOAP note content if noteId is provided
     if (noteId) {
       const { error: updateError } = await supabase
-        .from('notes')
+        .from('clinical_notes')
         .update({ 
-          soap_note: soapNote,
+          content: soapNote,
           status: 'completed',
           updated_at: new Date().toISOString()
         })
@@ -137,22 +137,6 @@ serve(async (req) => {
       if (updateError) {
         console.error('Error updating note:', updateError);
         throw updateError;
-      }
-    } else {
-      // If no noteId, create a new note
-      const { error: insertError } = await supabase
-        .from('notes')
-        .insert({ 
-          user_id: user.id,
-          title: "Medical Note - " + new Date().toLocaleString(),
-          transcription: transcription,
-          soap_note: soapNote,
-          status: 'completed'
-        });
-
-      if (insertError) {
-        console.error('Error creating note:', insertError);
-        throw insertError;
       }
     }
 

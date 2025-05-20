@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface Speaker {
   id: string;
@@ -55,10 +56,14 @@ export const processAudioBlob = async (
       onProcessingStateChange(true);
     }
     
+    toast({
+      title: "Transcribing Audio",
+      description: "Converting your recording to text...",
+    });
+    
     // Call the transcription API
     const { data: transcriptionData, error: transcriptionError } = await supabase.functions.invoke("transcribe-audio", {
       body: { audio: audioBase64 },
-      method: "POST",
     });
     
     if (transcriptionError) {
@@ -76,36 +81,24 @@ export const processAudioBlob = async (
       onTranscriptionComplete(transcription, speakers, segments);
     }
     
-    // Generate SOAP note using DeepSeek
-    const { data: soapData, error: soapError } = await supabase.functions.invoke("generate-soap-deepseek", {
-      body: { 
-        transcription, 
-        noteId: id,
-        templateId: templateId
-      },
-      method: "POST",
+    toast({
+      title: "Transcription Complete", 
+      description: "Your audio has been successfully transcribed."
     });
-    
-    if (soapError) {
-      console.error("Error generating SOAP note:", soapError);
-      throw soapError;
-    }
-    
-    if (soapData?.soap_note && onSoapNoteGenerated) {
-      onSoapNoteGenerated(soapData.soap_note);
-    }
-    
-    if (onProcessingStateChange) {
-      onProcessingStateChange(false);
-    }
     
     return {
       text: transcription,
-      speakers: speakers,
-      segments: segments,
+      speakers: speakers || [],
+      segments: segments || [],
     };
   } catch (error) {
     console.error("Error processing audio:", error);
+    toast({
+      title: "Transcription Error",
+      description: error.message || "An error occurred during transcription",
+      variant: "destructive",
+    });
+    
     if (onProcessingStateChange) {
       onProcessingStateChange(false);
     }

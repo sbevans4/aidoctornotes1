@@ -11,6 +11,7 @@ import TemplateSelector from "./advanced-documentation/TemplateSelector";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecordingProvider, { RecordingContextValue } from "./recording/RecordingProvider";
 import { processAudioBlob } from "@/utils/audioProcessing";
+import ProcedureCodeValidator from "./procedure-codes/ProcedureCodeValidator";
 
 interface Speaker {
   id: string;
@@ -43,6 +44,7 @@ const VoiceRecorder = () => {
   const [segments, setSegments] = useState<Segment[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState("general");
+  const [procedureCodes, setProcedureCodes] = useState<string[]>([]);
   
   const handleTranscriptionComplete = (
     transcript: string,
@@ -75,6 +77,41 @@ const VoiceRecorder = () => {
     setSelectedTemplateId(templateId);
   };
   
+  const handleProcedureCodesValidated = (codes: string[]) => {
+    setProcedureCodes(codes);
+    if (transcript && codes.length > 0) {
+      // Once we have both transcript and procedure codes, generate SOAP note
+      generateSoapNote(transcript, codes);
+    }
+  };
+  
+  const generateSoapNote = async (transcriptText: string, codes: string[]) => {
+    if (!transcriptText || codes.length === 0) return;
+    
+    setIsProcessing(true);
+    toast({
+      title: "Generating SOAP note",
+      description: "Please wait while we analyze the transcription...",
+    });
+    
+    try {
+      await SoapNoteGenerator({
+        transcript: transcriptText,
+        procedureCodes: codes,
+        templateId: selectedTemplateId,
+        onSoapNoteGenerated: handleSoapNoteGenerated,
+      });
+    } catch (error) {
+      console.error("Error generating SOAP note:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate the SOAP note. Please try again.",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+    }
+  };
+  
   const handleAudioProcessed = async (audioBlob: Blob) => {
     setIsProcessing(true);
     toast({
@@ -99,7 +136,7 @@ const VoiceRecorder = () => {
         handleTranscriptionComplete, 
         handleSoapNoteGenerated,
         handleProcessingStateChange,
-        selectedTemplateId  // Pass the selected template ID
+        selectedTemplateId
       );
     } catch (error) {
       console.error("Error processing audio:", error);
@@ -146,15 +183,27 @@ const VoiceRecorder = () => {
         )}
         
         {transcript && !isProcessing && (
-          <TranscriptDisplay
-            transcript={transcript}
-            speakers={speakers}
-            segments={segments}
-          />
+          <div className="mt-6">
+            <TranscriptDisplay
+              transcript={transcript}
+              speakers={speakers}
+              segments={segments}
+            />
+            
+            <div className="mt-6">
+              <h3 className="text-lg font-medium mb-2">Enter Procedure Codes</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Enter the relevant procedure codes to ensure accurate SOAP note generation
+              </p>
+              <ProcedureCodeValidator onValidate={handleProcedureCodesValidated} />
+            </div>
+          </div>
         )}
         
         {soapNote.subjective && !isProcessing && (
-          <SoapNoteDisplay soapNote={soapNote} />
+          <div className="mt-6">
+            <SoapNoteDisplay soapNote={soapNote} />
+          </div>
         )}
         
         <TranscriptionProcessor
