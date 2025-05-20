@@ -1,6 +1,5 @@
 
 import { Routes, Route, Navigate } from "react-router-dom";
-import { PaymentRoutes } from "./PaymentRoutes";
 import { useAuth } from "@/contexts/AuthContext";
 import { PrivateRoute } from "./PrivateRoute";
 import { Layout } from "@/components/layout/Layout";
@@ -23,6 +22,12 @@ const UserProfile = lazyWithFallback(() => import("../pages/UserProfile"), PageL
 const SubscriptionPlans = lazyWithFallback(() => import("../pages/SubscriptionPlans"), PageLoadingFallback);
 const DocumentHistory = lazyWithFallback(() => import("../pages/DocumentHistory"), PageLoadingFallback);
 const AccountSettings = lazyWithFallback(() => import("../pages/AccountSettings"), PageLoadingFallback);
+const Enterprise = lazyWithFallback(() => import("../pages/Enterprise"), PageLoadingFallback);
+const Contact = lazyWithFallback(() => import("../pages/Contact"), PageLoadingFallback);
+const PaymentSuccess = lazyWithFallback(() => import("../pages/PaymentSuccess"), PageLoadingFallback);
+const PaymentCanceled = lazyWithFallback(() => import("../pages/PaymentCanceled"), PageLoadingFallback);
+const NotFound = lazyWithFallback(() => import("../pages/NotFound"), PageLoadingFallback);
+const Dashboard = lazyWithFallback(() => import("../pages/Dashboard"), PageLoadingFallback);
 
 export function AppRoutes() {
   const { isLoading } = useAuth();
@@ -35,6 +40,8 @@ export function AppRoutes() {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Layout><Index /></Layout>} />
+      <Route path="/enterprise" element={<Layout><Enterprise /></Layout>} />
+      <Route path="/contact" element={<Layout><Contact /></Layout>} />
       
       {/* Auth Routes */}
       <Route path="/auth" element={<Auth />} />
@@ -43,6 +50,12 @@ export function AppRoutes() {
       <Route path="/auth/verify" element={<EmailVerification />} />
       
       {/* Protected Routes */}
+      <Route path="/dashboard" element={
+        <PrivateRoute>
+          <Layout><Dashboard /></Layout>
+        </PrivateRoute>
+      } />
+      
       <Route path="/medical-documentation" element={
         <PrivateRoute>
           <Layout><MedicalDocumentation /></Layout>
@@ -74,10 +87,11 @@ export function AppRoutes() {
       } />
       
       {/* Payment Routes */}
-      <PaymentRoutes />
+      <Route path="/payment-success" element={<Layout><PaymentSuccess /></Layout>} />
+      <Route path="/payment-canceled" element={<Layout><PaymentCanceled /></Layout>} />
       
       {/* Fallback route */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Layout><NotFound /></Layout>} />
     </Routes>
   );
 }

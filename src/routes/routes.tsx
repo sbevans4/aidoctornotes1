@@ -19,6 +19,10 @@ const PageLoadingFallback = () => (
   </div>
 );
 
+// This file is kept for reference but is no longer actively used.
+// All routes are now defined in AppRoutes.tsx
+// This file will be deprecated in future updates.
+
 // Lazy load pages with custom loading states
 const Index = lazyWithFallback(() => import("../pages/Index"), PageLoadingFallback);
 const Enterprise = lazyWithFallback(() => import("../pages/Enterprise"), PageLoadingFallback);
@@ -36,7 +40,10 @@ const UserProfile = lazyWithFallback(() => import("../pages/UserProfile"), PageL
 const PaymentSuccess = lazyWithFallback(() => import("../pages/PaymentSuccess"), PageLoadingFallback);
 const PaymentCanceled = lazyWithFallback(() => import("../pages/PaymentCanceled"), PageLoadingFallback);
 
-// Index Routes
+// Deprecated Route definitions - for reference only
+// These export functions are no longer used directly in the app
+// All routes are now defined in AppRoutes.tsx
+
 export const IndexRoutes = () => (
   <>
     <Route
@@ -58,7 +65,6 @@ export const IndexRoutes = () => (
   </>
 );
 
-// Auth Routes
 export const AuthRoutes = () => (
   <>
     <Route path="/auth" element={<Auth />} />
