@@ -1,18 +1,11 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader, Save, Mail, Copy, Check, AlertCircle } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-
-interface SoapNote {
-  subjective: string;
-  objective: string;
-  assessment: string;
-  plan: string;
-}
+import { Loader, AlertCircle } from "lucide-react";
+import { SoapNote } from "@/hooks/useSoapNoteGeneration";
+import SoapNoteTab from "./soap-note/SoapNoteTab";
+import SoapNoteFooter from "./soap-note/SoapNoteFooter";
 
 interface SoapNoteDisplayProps {
   soapNote?: SoapNote;
@@ -37,7 +30,6 @@ const SoapNoteDisplay = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isEmailing, setIsEmailing] = useState(false);
-  const [copied, setCopied] = useState(false);
   
   // Update local state when prop changes
   React.useEffect(() => {
@@ -92,16 +84,8 @@ const SoapNoteDisplay = ({
       setIsSaving(true);
       await onSave(editedNote);
       setIsEditing(false);
-      toast({
-        title: "Note Saved",
-        description: "Your SOAP note has been saved successfully.",
-      });
     } catch (error) {
-      toast({
-        title: "Save Error",
-        description: "Failed to save the note. Please try again.",
-        variant: "destructive",
-      });
+      // Error handling is done in the onSave function
     } finally {
       setIsSaving(false);
     }
@@ -113,54 +97,16 @@ const SoapNoteDisplay = ({
     try {
       setIsEmailing(true);
       await onEmail(editedNote);
-      toast({
-        title: "Email Sent",
-        description: "Your SOAP note has been emailed successfully.",
-      });
     } catch (error) {
-      toast({
-        title: "Email Error",
-        description: "Failed to send the email. Please try again.",
-        variant: "destructive",
-      });
+      // Error handling is done in the onEmail function
     } finally {
       setIsEmailing(false);
     }
   };
-  
-  const handleCopyFull = async () => {
-    if (!editedNote) return;
-    
-    const fullNote = `
-SOAP NOTE
 
-SUBJECTIVE:
-${editedNote.subjective}
-
-OBJECTIVE:
-${editedNote.objective}
-
-ASSESSMENT:
-${editedNote.assessment}
-
-PLAN:
-${editedNote.plan}
-    `.trim();
-    
-    try {
-      await navigator.clipboard.writeText(fullNote);
-      setCopied(true);
-      toast({
-        title: "Copied",
-        description: "SOAP note copied to clipboard",
-      });
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast({
-        title: "Copy Failed",
-        description: "Could not copy to clipboard",
-        variant: "destructive",
-      });
+  const handleContentChange = (section: keyof SoapNote, value: string) => {
+    if (editedNote) {
+      setEditedNote({...editedNote, [section]: value});
     }
   };
 
@@ -182,114 +128,54 @@ ${editedNote.plan}
           </TabsList>
           
           <TabsContent value="subjective">
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium">Subjective</h3>
-              {isEditing ? (
-                <Textarea
-                  value={editedNote.subjective}
-                  onChange={(e) => setEditedNote({...editedNote, subjective: e.target.value})}
-                  rows={10}
-                  className="font-mono"
-                />
-              ) : (
-                <div className="bg-gray-50 p-4 rounded-md whitespace-pre-wrap">{editedNote.subjective}</div>
-              )}
-            </div>
+            <SoapNoteTab
+              title="Subjective"
+              content={editedNote.subjective}
+              isEditing={isEditing}
+              onChange={(value) => handleContentChange("subjective", value)}
+            />
           </TabsContent>
           
           <TabsContent value="objective">
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium">Objective</h3>
-              {isEditing ? (
-                <Textarea
-                  value={editedNote.objective}
-                  onChange={(e) => setEditedNote({...editedNote, objective: e.target.value})}
-                  rows={10}
-                  className="font-mono"
-                />
-              ) : (
-                <div className="bg-gray-50 p-4 rounded-md whitespace-pre-wrap">{editedNote.objective}</div>
-              )}
-            </div>
+            <SoapNoteTab
+              title="Objective"
+              content={editedNote.objective}
+              isEditing={isEditing}
+              onChange={(value) => handleContentChange("objective", value)}
+            />
           </TabsContent>
           
           <TabsContent value="assessment">
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium">Assessment</h3>
-              {isEditing ? (
-                <Textarea
-                  value={editedNote.assessment}
-                  onChange={(e) => setEditedNote({...editedNote, assessment: e.target.value})}
-                  rows={10}
-                  className="font-mono"
-                />
-              ) : (
-                <div className="bg-gray-50 p-4 rounded-md whitespace-pre-wrap">{editedNote.assessment}</div>
-              )}
-            </div>
+            <SoapNoteTab
+              title="Assessment"
+              content={editedNote.assessment}
+              isEditing={isEditing}
+              onChange={(value) => handleContentChange("assessment", value)}
+            />
           </TabsContent>
           
           <TabsContent value="plan">
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium">Plan</h3>
-              {isEditing ? (
-                <Textarea
-                  value={editedNote.plan}
-                  onChange={(e) => setEditedNote({...editedNote, plan: e.target.value})}
-                  rows={10}
-                  className="font-mono"
-                />
-              ) : (
-                <div className="bg-gray-50 p-4 rounded-md whitespace-pre-wrap">{editedNote.plan}</div>
-              )}
-            </div>
+            <SoapNoteTab
+              title="Plan"
+              content={editedNote.plan}
+              isEditing={isEditing}
+              onChange={(value) => handleContentChange("plan", value)}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>
       
-      <CardFooter className="flex flex-wrap gap-2">
-        {editable && (
-          <>
-            {isEditing ? (
-              <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving ? <Loader className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
-            ) : (
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
-                Edit Note
-              </Button>
-            )}
-          </>
-        )}
-        
-        <Button 
-          variant={copied ? "default" : "secondary"} 
-          onClick={handleCopyFull}
-        >
-          {copied ? (
-            <>
-              <Check className="h-4 w-4 mr-2" />
-              Copied!
-            </>
-          ) : (
-            <>
-              <Copy className="h-4 w-4 mr-2" />
-              Copy Note
-            </>
-          )}
-        </Button>
-        
-        {onEmail && (
-          <Button 
-            variant="outline" 
-            onClick={handleEmail} 
-            disabled={isEmailing}
-          >
-            {isEmailing ? <Loader className="h-4 w-4 animate-spin mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
-            {isEmailing ? "Sending..." : "Email Note"}
-          </Button>
-        )}
+      <CardFooter>
+        <SoapNoteFooter
+          soapNote={editedNote}
+          isEditing={isEditing}
+          isSaving={isSaving}
+          isEmailing={isEmailing}
+          editable={editable}
+          onEdit={() => setIsEditing(true)}
+          onSave={handleSave}
+          onEmail={onEmail ? handleEmail : undefined}
+        />
       </CardFooter>
     </Card>
   );
