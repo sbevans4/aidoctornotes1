@@ -1,33 +1,14 @@
 
 project_id = "otvgheqffehoykaerckl"
 
-[functions.contact-form]
-verify_jwt = false
-
-[functions.transcribe-audio]
+[functions.get-referral-stats]
 verify_jwt = true
-
-[functions.generate-soap]
-verify_jwt = true
-
-[functions.analyze-image]
-verify_jwt = true
-
-[functions.cleanup-expired-data]
-verify_jwt = false
-
-[functions.stripe]
-verify_jwt = true
-
-[functions.stripe-webhook]
-verify_jwt = false
-
-[functions.check-feature-access]
-verify_jwt = false
 
 [functions.send-referral-email]
 verify_jwt = true
 
-[functions.get-referral-stats]
-verify_jwt = true
+[functions.verify-referral]
+verify_jwt = false
 
+[functions.check-referral-limit]
+verify_jwt = true

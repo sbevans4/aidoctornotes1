@@ -1,16 +1,52 @@
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export const useReferralInvite = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Check rate limits for the user
+  const checkReferralLimit = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const { data, error } = await supabase.functions.invoke('check-referral-limit', {
+      body: { userId: user.id }
+    });
+
+    if (error) {
+      console.error("Error checking rate limit:", error);
+      throw new Error("Failed to check rate limits");
+    }
+
+    return data;
+  };
+
+  // Get current rate limit status
+  const { data: rateLimits, refetch: refetchRateLimits } = useQuery({
+    queryKey: ["referral-rate-limits"],
+    queryFn: checkReferralLimit,
+    enabled: false, // Only fetch when needed
+    staleTime: 1000 * 60 * 5 // 5 minutes
+  });
+
   const sendReferralInvite = useMutation({
     mutationFn: async (email: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
+
+      // Check rate limits first
+      const limits = await checkReferralLimit();
+
+      if (!limits.canSendMore) {
+        if (limits.dailyRemaining <= 0) {
+          throw new Error(`Daily invite limit reached. You can send more invites tomorrow.`);
+        } else {
+          throw new Error(`Monthly invite limit reached. You can send more invites next month.`);
+        }
+      }
 
       // Get or create referral code for the user
       let code: string;
@@ -52,8 +88,7 @@ export const useReferralInvite = () => {
         throw new Error("Failed to send invite");
       }
 
-      // In a real implementation, you would send an email here
-      // For now, we'll just trigger a webhook to handle the email sending
+      // Send the email via edge function
       try {
         await supabase.functions.invoke('send-referral-email', {
           body: { 
@@ -69,11 +104,12 @@ export const useReferralInvite = () => {
 
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["referral-data"] });
+      queryClient.invalidateQueries({ queryKey: ["referral-rate-limits"] });
       
       return "Referral invitation sent!";
     },
     onSuccess: (_, email) => {
-      toast({
+      toast.success({
         title: "Invitation Sent!",
         description: `Invitation email sent to ${email}`,
       });
@@ -88,6 +124,8 @@ export const useReferralInvite = () => {
   });
 
   return {
-    sendReferralInvite
+    sendReferralInvite,
+    checkReferralLimit: refetchRateLimits,
+    rateLimits
   };
 };

@@ -36,6 +36,10 @@ const TherapyNotes = lazyWithFallback(() => import('./pages/Services/AITherapyNo
 const Transcription = lazyWithFallback(() => import('./pages/Services/AIMedicalTranscription'), PageLoadingFallback);
 const ImageAnalysis = lazyWithFallback(() => import('@/components/ImageAnalyzer'), PageLoadingFallback);
 
+// New Referral Pages
+const ReferralDashboard = lazyWithFallback(() => import('./pages/ReferralDashboard'), PageLoadingFallback);
+const ReferralAdmin = lazyWithFallback(() => import('./pages/admin/ReferralAdmin'), PageLoadingFallback);
+
 // Create a QueryClient instance with improved error handling
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -170,6 +174,28 @@ function AppContent() {
           <PrivateRoute>
             <Layout>
               <UserProfile />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+
+      {/* New Referral Routes */}
+      <Route
+        path="/referrals"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <ReferralDashboard />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/referrals"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <ReferralAdmin />
             </Layout>
           </PrivateRoute>
         }

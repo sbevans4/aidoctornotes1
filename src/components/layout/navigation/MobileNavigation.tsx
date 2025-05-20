@@ -1,110 +1,133 @@
 
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { NavLink, Separator } from "@/components/ui/nav-link";
-import { LayoutDashboard, User, FileText, CreditCard, LogOut, LogIn } from "lucide-react";
-
-interface MobileNavigationProps {
-  isMenuOpen: boolean;
-  session: any;
-  handleLogin: () => Promise<void>;
-  handleLogout: () => Promise<void>;
-}
+import { Link } from "react-router-dom";
+import { User, Users } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export const MobileNavigation = ({
   isMenuOpen,
   session,
   handleLogin,
-  handleLogout
-}: MobileNavigationProps) => {
-  const navigate = useNavigate();
-  
+  handleLogout,
+}: {
+  isMenuOpen: boolean;
+  session: any;
+  handleLogin: () => void;
+  handleLogout: () => void;
+}) => {
   if (!isMenuOpen) return null;
-  
+
   return (
-    <div className="md:hidden border-t">
-      <div className="container px-4 py-3">
-        <nav className="flex flex-col space-y-3">
-          <NavLink 
-            to="/" 
-            className="py-2 hover:text-blue-600"
-            end
-          >
-            Home
-          </NavLink>
-          <NavLink 
-            to="/services" 
-            className="py-2 hover:text-blue-600"
-            end
-          >
-            Services
-          </NavLink>
-          <NavLink 
-            to="/blog" 
-            className="py-2 hover:text-blue-600"
-          >
-            Blog
-          </NavLink>
-          <NavLink 
-            to="/contact" 
-            className="py-2 hover:text-blue-600"
-          >
-            Contact
-          </NavLink>
-          <NavLink 
-            to="/security" 
-            className="py-2 hover:text-blue-600"
-          >
-            Security
-          </NavLink>
-          
-          {session ? (
-            <>
-              <Separator />
-              <NavLink 
-                to="/dashboard" 
-                className="py-2 hover:text-blue-600 flex items-center gap-2"
-              >
-                <LayoutDashboard className="h-4 w-4" /> Dashboard
-              </NavLink>
-              <NavLink 
-                to="/profile" 
-                className="py-2 hover:text-blue-600 flex items-center gap-2"
-              >
-                <User className="h-4 w-4" /> Profile
-              </NavLink>
-              <NavLink 
-                to="/medical-documentation" 
-                className="py-2 hover:text-blue-600 flex items-center gap-2"
-              >
-                <FileText className="h-4 w-4" /> Documentation
-              </NavLink>
-              <NavLink 
-                to="/subscription-plans" 
-                className="py-2 hover:text-blue-600 flex items-center gap-2"
-              >
-                <CreditCard className="h-4 w-4" /> Subscription
-              </NavLink>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 py-2 text-left text-red-500 hover:text-red-600"
-              >
-                <LogOut className="h-4 w-4" /> Log out
-              </button>
-            </>
-          ) : (
-            <>
-              <Separator />
-              <button
-                onClick={handleLogin}
-                className="flex items-center gap-2 py-2 text-blue-600 hover:text-blue-700"
-              >
-                <LogIn className="h-4 w-4" /> Sign in
-              </button>
-            </>
-          )}
-        </nav>
+    <div className="md:hidden p-4 bg-white shadow-lg">
+      <div className="flex flex-col space-y-3">
+        <Link
+          to="/services"
+          className="px-3 py-2 rounded-md hover:bg-gray-100 font-medium"
+        >
+          Services
+        </Link>
+        
+        <Separator />
+        <div className="px-3 font-semibold text-sm text-gray-500">Resources</div>
+        
+        <Link
+          to="/services/doctor-notes"
+          className="px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700"
+        >
+          Doctor Notes
+        </Link>
+        <Link
+          to="/services/therapy-notes"
+          className="px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700"
+        >
+          Therapy Notes
+        </Link>
+        <Link
+          to="/services/transcription"
+          className="px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700"
+        >
+          Transcription
+        </Link>
+        <Link
+          to="/contact"
+          className="px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700"
+        >
+          Contact Us
+        </Link>
+
+        <Separator />
+
+        {session ? (
+          <>
+            <Link
+              to="/dashboard"
+              className="px-3 py-2 rounded-md hover:bg-gray-100 font-medium"
+            >
+              Dashboard
+            </Link>
+
+            <Link
+              to="/referrals"
+              className="px-3 py-2 rounded-md hover:bg-gray-100 font-medium flex items-center"
+            >
+              <Users className="mr-2 h-4 w-4" /> Referral Program
+            </Link>
+
+            <Separator />
+            <div className="px-3 font-semibold text-sm text-gray-500 flex items-center">
+              <User className="mr-2 h-4 w-4" /> My Account
+            </div>
+
+            <Link
+              to="/profile"
+              className="px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700"
+            >
+              Profile
+            </Link>
+            <Link
+              to="/subscription-plans"
+              className="px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700"
+            >
+              Subscription
+            </Link>
+            
+            {session?.user?.user_metadata?.is_admin && (
+              <>
+                <Separator />
+                <div className="px-3 font-semibold text-sm text-gray-500">Admin</div>
+                <Link
+                  to="/admin/referrals"
+                  className="px-3 py-2 rounded-md hover:bg-gray-100 text-gray-700"
+                >
+                  Manage Referrals
+                </Link>
+              </>
+            )}
+            
+            <Separator />
+            <button
+              onClick={handleLogout}
+              className="px-3 py-2 text-left rounded-md hover:bg-gray-100 text-red-600 font-medium"
+            >
+              Log out
+            </button>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/enterprise"
+              className="px-3 py-2 rounded-md hover:bg-gray-100 font-medium"
+            >
+              Enterprise
+            </Link>
+            <button
+              onClick={handleLogin}
+              className="mt-2 px-3 py-2 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+            >
+              Login
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

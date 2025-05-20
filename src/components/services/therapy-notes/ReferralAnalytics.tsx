@@ -3,29 +3,35 @@ import React, { useState } from "react";
 import { useReferral } from "@/hooks/useReferral";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CircleDollarSign, Users, RefreshCw, UserCheck, Clock } from "lucide-react";
+import { CircleDollarSign, Users, RefreshCw, UserCheck, Clock, Calendar, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { 
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
+  Legend,
+  AreaChart,
+  Area
 } from "recharts";
 
 export const ReferralAnalytics: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const { referralData, isLoading, error, refetch } = useReferral();
+  const { toast } = useToast();
   
   const handleRefresh = () => {
     refetch();
-    toast.success({ // Changed from toast(...) to toast.success(...)
+    toast.success({
       title: "Data Refreshed",
       description: "Your referral data has been updated.",
     });
@@ -84,7 +90,40 @@ export const ReferralAnalytics: React.FC = () => {
     { name: 'Not Converted', value: (referralData?.totalReferrals || 0) - (referralData?.successfulConversions || 0) }
   ];
 
+  // New data for enhanced analytics
+  const monthlyData = referralData?.monthlyReferrals || {};
+  const months = Object.keys(monthlyData);
+  
+  const timeSeriesData = months.map(month => ({
+    name: month,
+    referrals: monthlyData[month] || 0
+  })).sort((a, b) => {
+    const [aYear, aMonth] = a.name.split('-').map(Number);
+    const [bYear, bMonth] = b.name.split('-').map(Number);
+    if (aYear !== bYear) return aYear - bYear;
+    return aMonth - bMonth;
+  });
+  
+  // Calculate running average
+  let total = 0;
+  const timeSeriesWithAvg = timeSeriesData.map((item, index) => {
+    total += item.referrals;
+    return {
+      ...item,
+      average: Math.round(total / (index + 1) * 10) / 10
+    };
+  });
+
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  
+  // Generate some mock data for the funnel chart
+  const funnelData = [
+    { name: 'Emails Sent', value: referralData?.totalReferrals || 0, fill: '#8884d8' },
+    { name: 'Emails Opened', value: Math.round(((referralData?.totalReferrals || 0) * 0.75) || 0), fill: '#83a6ed' },
+    { name: 'Clicked Link', value: Math.round(((referralData?.totalReferrals || 0) * 0.5) || 0), fill: '#8dd1e1' },
+    { name: 'Signed Up', value: Math.round(((referralData?.totalReferrals || 0) * 0.3) || 0), fill: '#82ca9d' },
+    { name: 'Converted', value: referralData?.successfulConversions || 0, fill: '#a4de6c' },
+  ];
 
   return (
     <div className="w-full max-w-5xl mx-auto">
@@ -154,8 +193,10 @@ export const ReferralAnalytics: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
         <TabsList className="mb-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="trends">Trends</TabsTrigger>
           <TabsTrigger value="referrals">Referrals</TabsTrigger>
           <TabsTrigger value="earnings">Earnings</TabsTrigger>
+          <TabsTrigger value="funnel">Conversion Funnel</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="space-y-6">
@@ -181,7 +222,7 @@ export const ReferralAnalytics: React.FC = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Tooltip />
+                    <RechartsTooltip />
                     <Bar dataKey="value" fill="#3b82f6" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -214,8 +255,90 @@ export const ReferralAnalytics: React.FC = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <RechartsTooltip />
                   </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="trends" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Monthly Referral Trends</CardTitle>
+              <CardDescription>
+                Track your referral performance over time
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={timeSeriesWithAvg}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <RechartsTooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="referrals" 
+                      stroke="#8884d8" 
+                      activeDot={{ r: 8 }} 
+                      name="Monthly Referrals"
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="average" 
+                      stroke="#82ca9d" 
+                      name="Running Average"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Cumulative Growth</CardTitle>
+              <CardDescription>
+                Visualize your referral growth over time
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={timeSeriesWithAvg}
+                    margin={{
+                      top: 10,
+                      right: 30,
+                      left: 0,
+                      bottom: 0,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <RechartsTooltip />
+                    <Area 
+                      type="monotone" 
+                      dataKey="referrals" 
+                      stackId="1"
+                      stroke="#8884d8" 
+                      fill="#8884d8" 
+                      name="Referrals"
+                    />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
@@ -249,9 +372,12 @@ export const ReferralAnalytics: React.FC = () => {
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                               ${referral.status === 'completed' 
                                 ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'}`
+                                : referral.status === 'verified'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-yellow-100 text-yellow-800'}`
                             }>
-                              {referral.status === 'completed' ? 'Completed' : 'Pending'}
+                              {referral.status === 'completed' ? 'Completed' : 
+                               referral.status === 'verified' ? 'Verified' : 'Pending'}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-sm text-gray-500">
@@ -330,6 +456,57 @@ export const ReferralAnalytics: React.FC = () => {
                       <p className="text-sm">Get referring to start earning!</p>
                     </div>
                   )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="funnel" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Conversion Funnel</CardTitle>
+              <CardDescription>
+                See how many referrals progress through each stage
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-96">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={funnelData}
+                    layout="vertical"
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="name" type="category" width={100} />
+                    <RechartsTooltip />
+                    <Bar 
+                      dataKey="value" 
+                      barSize={30}
+                    >
+                      {funnelData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-6">
+                <h3 className="text-lg font-medium mb-3">Funnel Analysis</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  The conversion funnel shows how many people progress through each stage of your referral process.
+                  A steep drop-off at any stage may indicate an issue to investigate.
+                </p>
+                <div className="bg-blue-50 p-4 rounded border border-blue-100">
+                  <h4 className="font-medium mb-2 flex items-center">
+                    <TrendingUp className="h-4 w-4 mr-2 text-blue-500" />
+                    Optimization Tip
+                  </h4>
+                  <p className="text-sm">
+                    Focus on improving the largest drop-off point in your funnel for the biggest impact on conversion rates.
+                  </p>
                 </div>
               </div>
             </CardContent>

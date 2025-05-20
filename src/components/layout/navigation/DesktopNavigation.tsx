@@ -1,103 +1,129 @@
 
 import React from "react";
-import { useNavigate, useLocation, NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  UserCircle,
-  LayoutDashboard,
-  FileText,
-  CreditCard,
-  LogOut,
-  User,
-  LogIn,
-} from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { User, ChevronDown, Users } from "lucide-react";
 
-interface DesktopNavigationProps {
+export const DesktopNavigation = ({ 
+  textColor, 
+  buttonVariant, 
+  session, 
+  handleLogin, 
+  handleLogout 
+}: { 
   textColor: string;
-  buttonVariant: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive" | "outlineWhite";
+  buttonVariant: string;
   session: any;
-  handleLogin: () => Promise<void>;
-  handleLogout: () => Promise<void>;
-}
-
-export const DesktopNavigation = ({
-  textColor,
-  buttonVariant,
-  session,
-  handleLogin,
-  handleLogout,
-}: DesktopNavigationProps) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  
+  handleLogin: () => void;
+  handleLogout: () => void;
+}) => {
   return (
-    <div className="hidden md:flex items-center gap-6">
-      <nav className="flex gap-6">
-        <NavLink to="/" className={`${textColor} hover:opacity-80`}>
-          Home
-        </NavLink>
-        <NavLink to="/services" className={`${textColor} hover:opacity-80`}>
-          Services
-        </NavLink>
-        <NavLink to="/blog" className={`${textColor} hover:opacity-80`}>
-          Blog
-        </NavLink>
-        <NavLink to="/contact" className={`${textColor} hover:opacity-80`}>
-          Contact
-        </NavLink>
-        <NavLink to="/security" className={`${textColor} hover:opacity-80`}>
-          Security
-        </NavLink>
-      </nav>
+    <div className="hidden md:flex items-center space-x-6">
+      <NavLink
+        to="/services"
+        className={({ isActive }) =>
+          `font-medium ${textColor} hover:text-primary ${
+            isActive ? "text-primary" : ""
+          }`
+        }
+      >
+        Services
+      </NavLink>
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className={`font-medium ${textColor} hover:text-primary flex items-center`}>
+            Resources <ChevronDown className="ml-1 h-4 w-4" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem asChild>
+            <Link to="/services/doctor-notes">Doctor Notes</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/services/therapy-notes">Therapy Notes</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/services/transcription">Transcription</Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link to="/contact">Contact Us</Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <div className="flex items-center gap-3">
-        {session ? (
+      {session ? (
+        <>
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              `font-medium ${textColor} hover:text-primary ${
+                isActive ? "text-primary" : ""
+              }`
+            }
+          >
+            Dashboard
+          </NavLink>
+
+          <NavLink
+            to="/referrals"
+            className={({ isActive }) =>
+              `font-medium ${textColor} hover:text-primary flex items-center ${
+                isActive ? "text-primary" : ""
+              }`
+            }
+          >
+            <Users className="mr-1 h-4 w-4" /> Referrals
+          </NavLink>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className={textColor}>
-                <UserCircle className="h-5 w-5" />
-                <span className="sr-only">User menu</span>
-              </Button>
+              <button className={`font-medium ${textColor} hover:text-primary flex items-center`}>
+                <User className="mr-1 h-4 w-4" /> Account <ChevronDown className="ml-1 h-4 w-4" />
+              </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                Dashboard
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/profile">Profile</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/profile')}>
-                <User className="mr-2 h-4 w-4" />
-                Profile
+              <DropdownMenuItem asChild>
+                <Link to="/subscription-plans">Subscription</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/medical-documentation')}>
-                <FileText className="mr-2 h-4 w-4" />
-                Documentation
+              <DropdownMenuItem asChild>
+                <Link to="/referrals">Referral Program</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/subscription-plans')}>
-                <CreditCard className="mr-2 h-4 w-4" />
-                Subscription
-              </DropdownMenuItem>
+              {session?.user?.user_metadata?.is_admin && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Admin</DropdownMenuLabel>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/referrals">Manage Referrals</Link>
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
                 Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        ) : (
-          <Button variant={buttonVariant} onClick={handleLogin}>
-            Sign in
+        </>
+      ) : (
+        <>
+          <Link to="/enterprise">
+            <span className={`font-medium ${textColor} hover:text-primary`}>
+              Enterprise
+            </span>
+          </Link>
+          <Button onClick={handleLogin} variant={buttonVariant}>
+            Login
           </Button>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 };
