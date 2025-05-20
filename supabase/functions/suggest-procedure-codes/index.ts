@@ -60,30 +60,36 @@ serve(async (req) => {
       );
     }
     
-    // First check if we have cached procedure codes for this user
-    const { data: cachedCodes, error: cacheError } = await supabase
-      .from('procedure_codes')
-      .select('code, frequency')
-      .eq('user_id', user.id)
-      .order('frequency', { ascending: false })
-      .limit(5);
-    
-    if (cachedCodes && cachedCodes.length > 0) {
-      console.log("Using cached procedure codes for user");
-      return new Response(
-        JSON.stringify({ 
-          success: true,
-          codes: cachedCodes.map(item => item.code),
-          source: 'cache'
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
-        }
-      );
+    // Special handling for "refresh" request
+    if (transcription === 'refresh') {
+      // Force a new code generation even if we have cached codes
+      console.log("Forced refresh of procedure codes requested");
+    } else {
+      // First check if we have cached procedure codes for this user
+      const { data: cachedCodes, error: cacheError } = await supabase
+        .from('procedure_codes')
+        .select('code, frequency')
+        .eq('user_id', user.id)
+        .order('frequency', { ascending: false })
+        .limit(5);
+      
+      if (!cacheError && cachedCodes && cachedCodes.length > 0) {
+        console.log("Using cached procedure codes for user");
+        return new Response(
+          JSON.stringify({ 
+            success: true,
+            codes: cachedCodes.map(item => item.code),
+            source: 'cache'
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200 
+          }
+        );
+      }
     }
     
-    // No cached codes found, call DeepSeek API to suggest codes
+    // No cached codes found or refresh requested, call DeepSeek API to suggest codes
     const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
     if (!deepseekApiKey) {
       throw new Error('DeepSeek API key not found in environment variables');

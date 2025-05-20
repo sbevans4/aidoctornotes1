@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -52,7 +53,7 @@ export function useProcedureCodes(transcript: string | null) {
     }
   };
 
-  // Function to save a specific code
+  // Function to save a specific code and increment its frequency
   const saveCode = async (code: string) => {
     if (!user) return;
     
@@ -71,11 +72,39 @@ export function useProcedureCodes(transcript: string | null) {
       
       if (error) throw error;
       
-      // We're removing the call to increment_code_frequency since it doesn't exist
-      // If needed, we could implement tracking usage frequency in a future update
+      // Increment frequency counter for this code using the new RPC function
+      const { error: rpcError } = await supabase.rpc('increment_code_frequency', { 
+        p_user_id: user.id, 
+        p_code: code 
+      });
+      
+      if (rpcError) {
+        console.error("Error incrementing code frequency:", rpcError);
+      }
       
     } catch (err: any) {
       console.error("Error saving procedure code:", err);
+    }
+  };
+
+  // Function to get frequently used codes 
+  const getFrequentCodes = async () => {
+    if (!user) return [];
+    
+    try {
+      const { data, error } = await supabase
+        .from('procedure_codes')
+        .select('code, frequency')
+        .eq('user_id', user.id)
+        .order('frequency', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      
+      return data.map(item => item.code);
+    } catch (err: any) {
+      console.error("Error fetching frequent codes:", err);
+      return [];
     }
   };
 
@@ -92,6 +121,7 @@ export function useProcedureCodes(transcript: string | null) {
     isLoading,
     error,
     getSuggestedCodes,
-    saveCode
+    saveCode,
+    getFrequentCodes
   };
 }

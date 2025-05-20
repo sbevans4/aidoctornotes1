@@ -230,6 +230,7 @@ export type Database = {
         Row: {
           code: string
           created_at: string | null
+          frequency: number | null
           id: string
           updated_at: string | null
           user_id: string | null
@@ -237,6 +238,7 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string | null
+          frequency?: number | null
           id?: string
           updated_at?: string | null
           user_id?: string | null
@@ -244,6 +246,7 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string | null
+          frequency?: number | null
           id?: string
           updated_at?: string | null
           user_id?: string | null
@@ -556,6 +559,10 @@ export type Database = {
       has_role: {
         Args: { role_name: string }
         Returns: boolean
+      }
+      increment_code_frequency: {
+        Args: { p_user_id: string; p_code: string }
+        Returns: undefined
       }
     }
     Enums: {
