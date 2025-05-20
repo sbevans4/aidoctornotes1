@@ -5,10 +5,25 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Logo } from './Logo';
 import { useAuth } from '@/contexts/AuthContext';
+import { Session } from '@supabase/supabase-js';
 
-export const DesktopNavigation = () => {
+export interface DesktopNavigationProps {
+  textColor: string;
+  buttonVariant: string;
+  session: Session | null;
+  handleLogin: () => Promise<void>;
+  handleLogout: () => Promise<void>;
+}
+
+export const DesktopNavigation: React.FC<DesktopNavigationProps> = ({
+  textColor,
+  buttonVariant,
+  session,
+  handleLogin,
+  handleLogout
+}) => {
   const location = useLocation();
-  const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const { isAuthenticated, isLoading, user, signOut } = useAuth();
   
   const isActive = (path: string) => {
     if (path === '/' && location.pathname !== '/') return false;
@@ -37,7 +52,7 @@ export const DesktopNavigation = () => {
     <header className="border-b border-gray-200 bg-white px-4 lg:px-8">
       <div className="flex h-16 items-center justify-between">
         <div className="flex items-center">
-          <Logo />
+          <Logo textColor={textColor} />
           
           <nav className="ml-8 hidden space-x-1 lg:flex">
             {/* Primary Navigation Links */}
@@ -96,8 +111,8 @@ export const DesktopNavigation = () => {
               </nav>
               
               <Button
-                onClick={logout}
-                variant="outline"
+                onClick={signOut}
+                variant={buttonVariant as any}
                 size="sm"
               >
                 Sign Out
@@ -108,7 +123,7 @@ export const DesktopNavigation = () => {
             <>
               <Link to="/auth">
                 <Button
-                  variant="outline"
+                  variant={buttonVariant as any}
                   size="sm"
                   className="hidden sm:inline-flex"
                 >

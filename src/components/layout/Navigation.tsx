@@ -81,13 +81,15 @@ export const Navigation = () => {
           <Logo textColor={textColor} />
 
           {/* Desktop Navigation */}
-          <DesktopNavigation 
-            textColor={textColor}
-            buttonVariant={buttonVariant}
-            session={session}
-            handleLogin={handleLogin}
-            handleLogout={handleLogout}
-          />
+          <div className="hidden md:block">
+            <DesktopNavigation 
+              textColor={textColor}
+              buttonVariant={buttonVariant}
+              session={session}
+              handleLogin={handleLogin}
+              handleLogout={handleLogout}
+            />
+          </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden">

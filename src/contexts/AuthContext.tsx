@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,8 +16,9 @@ interface AuthContextProps {
     expiresAt: Date | null;
   };
   signOut: () => Promise<void>;
+  logout: () => Promise<void>; // Added for backward compatibility
   checkHasFeature: (featureName: string) => boolean;
-  refreshProfile: () => Promise<void>; // Added this function
+  refreshProfile: () => Promise<void>;
 }
 
 interface UserProfile {
@@ -189,6 +189,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Add logout as an alias to signOut for backward compatibility
+  const logout = signOut;
+
   return (
     <AuthContext.Provider
       value={{
@@ -199,8 +202,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         subscriptionStatus,
         signOut,
+        logout, // Added for backward compatibility
         checkHasFeature,
-        refreshProfile, // Added this to the context value
+        refreshProfile,
       }}
     >
       {children}
