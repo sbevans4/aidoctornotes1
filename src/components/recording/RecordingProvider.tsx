@@ -14,7 +14,7 @@ export interface RecordingContextValue {
   isPaused: boolean;
   elapsedTime: number;
   startRecording: () => void;
-  stopRecording: () => void;
+  stopRecording: () => Promise<void>; // Updated to return Promise<void>
   pauseRecording: () => void;
   resumeRecording: () => void;
 }
@@ -65,40 +65,62 @@ const RecordingProvider = ({ children, onAudioProcessed }: RecordingProviderProp
     }
   };
   
-  const stopRecording = async () => {
+  const stopRecording = async (): Promise<void> => {
     if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      
-      // Clear timer
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-      
-      // Save recording metadata to Supabase
-      if (user) {
-        try {
-          await supabase.from("recordings").insert({
-            user_id: user.id,
-            title: `Recording ${new Date().toLocaleString()}`,
-            duration: Math.floor(elapsedTime) // In seconds
-          });
-        } catch (error) {
-          console.error("Error saving recording metadata:", error);
+      return new Promise<void>((resolve) => {
+        if (!mediaRecorderRef.current) {
+          resolve();
+          return;
         }
-      }
-      
-      // Reset state
-      setIsRecording(false);
-      setIsPaused(false);
-      setElapsedTime(0);
-      
-      // Process audio
-      mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        onAudioProcessed(audioBlob);
-      };
+        
+        // Process audio when stopped
+        mediaRecorderRef.current.onstop = () => {
+          // Clear timer
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          
+          // Save recording metadata to Supabase
+          if (user) {
+            try {
+              supabase.from("recordings").insert({
+                user_id: user.id,
+                title: `Recording ${new Date().toLocaleString()}`,
+                duration: Math.floor(elapsedTime) // In seconds
+              }).then(() => {
+                console.log("Recording metadata saved to database");
+              }).catch(error => {
+                console.error("Error saving recording metadata:", error);
+              });
+            } catch (error) {
+              console.error("Error saving recording metadata:", error);
+            }
+          }
+          
+          // Process audio
+          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+          onAudioProcessed(audioBlob);
+          
+          // Reset state
+          setIsRecording(false);
+          setIsPaused(false);
+          setElapsedTime(0);
+          
+          resolve();
+        };
+        
+        // Stop recording
+        mediaRecorderRef.current.stop();
+        
+        // Stop all tracks in the stream
+        if (mediaRecorderRef.current.stream) {
+          mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+        }
+      });
     }
+    
+    return Promise.resolve();
   };
   
   const pauseRecording = () => {

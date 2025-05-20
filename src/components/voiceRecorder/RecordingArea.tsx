@@ -83,11 +83,11 @@ const RecordingArea = ({ onAudioProcessed }: RecordingAreaProps) => {
           }}
           onStopRecording={async () => {
             try {
-              const result = await recordingContext.stopRecording();
-              // Explicitly check for blob properties rather than using instanceof
-              if (result && typeof result === 'object' && 'size' in result && 'type' in result) {
-                handleRecordingStop(result as Blob);
-              }
+              // Call stopRecording without assigning it to a variable since we don't need to check it
+              await recordingContext.stopRecording();
+              
+              // For MediaRecorder, the onstop event should trigger the blob creation
+              // So we don't need to check the return value here
             } catch (error) {
               console.error("Error stopping recording:", error);
             }
