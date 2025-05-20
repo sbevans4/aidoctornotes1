@@ -84,15 +84,27 @@ const RecordingProvider = ({ children, onAudioProcessed }: RecordingProviderProp
           // Save recording metadata to Supabase
           if (user) {
             try {
-              supabase.from("recordings").insert({
-                user_id: user.id,
-                title: `Recording ${new Date().toLocaleString()}`,
-                duration: Math.floor(elapsedTime) // In seconds
-              }).then(() => {
-                console.log("Recording metadata saved to database");
-              }).catch(error => {
-                console.error("Error saving recording metadata:", error);
-              });
+              // Fix: Convert the Supabase Promise to a standard Promise with then/catch
+              const saveRecordingMetadata = async () => {
+                try {
+                  const { error } = await supabase.from("recordings").insert({
+                    user_id: user.id,
+                    title: `Recording ${new Date().toLocaleString()}`,
+                    duration: Math.floor(elapsedTime) // In seconds
+                  });
+                  
+                  if (error) {
+                    console.error("Error saving recording metadata:", error);
+                  } else {
+                    console.log("Recording metadata saved to database");
+                  }
+                } catch (error) {
+                  console.error("Error saving recording metadata:", error);
+                }
+              };
+              
+              // Execute the async function
+              saveRecordingMetadata();
             } catch (error) {
               console.error("Error saving recording metadata:", error);
             }
