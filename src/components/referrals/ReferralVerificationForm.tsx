@@ -31,7 +31,7 @@ export const ReferralVerificationForm: React.FC<ReferralVerificationFormProps> =
       return response.data;
     },
     onSuccess: (data) => {
-      toast.success({
+      toast({
         title: "Verification Successful",
         description: "Your referral code has been verified!"
       });

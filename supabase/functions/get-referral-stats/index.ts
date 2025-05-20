@@ -7,119 +7,173 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type ReferralStats = {
-  total_referrals: number;
-  pending_referrals: number;
-  completed_referrals: number;
-  successful_conversions: number;
-  earnings: number;
-  recent_referrals: Array<{
-    id: string;
-    email: string;
-    status: string;
-    created_at: string;
-  }>;
-  monthly_referrals?: {
-    [month: string]: number;
-  };
-  conversion_rate?: number;
-};
-
-serve(async (req) => {
+serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
   
   try {
-    // Create Supabase client using service role key to bypass RLS
+    // Get JWT token from request
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: "Missing or invalid authorization token" }),
+        { 
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    // Create Supabase clients
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    // Client for authenticated user operations
+    const userToken = authHeader.split(' ')[1];
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${userToken}` } }
+    });
+    
+    // Client with admin privileges for cross-user lookups
+    const adminSupabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { persistSession: false }
     });
 
-    // Get user ID from request body
-    const { user_id } = await req.json();
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    if (!user_id) {
+    if (userError || !user) {
+      console.error('[GET-REFERRAL-STATS] Auth error:', userError);
       return new Response(
-        JSON.stringify({ error: "User ID is required" }),
+        JSON.stringify({ error: "Authentication failed" }),
         { 
-          status: 400,
+          status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         }
       );
     }
 
-    // Call the database function to get referral stats
-    const { data, error } = await supabase.rpc('get_referral_stats', { user_id });
-    
-    if (error) {
-      console.error(`[GET-REFERRAL-STATS] Error calling function:`, error);
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        { 
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      );
-    }
-
-    // Fetch additional referral data to calculate monthly stats
-    const { data: referralInvites, error: invitesError } = await supabase
+    // Count total referrals
+    const { count: totalReferrals, error: countError } = await supabase
       .from('referral_invites')
-      .select('id, created_at, status')
-      .eq('referrer_id', user_id);
+      .select('*', { count: 'exact', head: true })
+      .eq('referrer_id', user.id);
 
-    if (invitesError) {
-      console.error(`[GET-REFERRAL-STATS] Error fetching invites:`, invitesError);
+    if (countError) {
+      console.error('[GET-REFERRAL-STATS] Error counting referrals:', countError);
+      throw new Error("Failed to count referrals");
     }
 
-    // Calculate monthly referrals for the past 6 months
-    const monthlyReferrals: { [key: string]: number } = {};
-    const now = new Date();
+    // Count pending referrals
+    const { count: pendingReferrals, error: pendingError } = await supabase
+      .from('referral_invites')
+      .select('*', { count: 'exact', head: true })
+      .eq('referrer_id', user.id)
+      .eq('status', 'pending');
+
+    if (pendingError) {
+      console.error('[GET-REFERRAL-STATS] Error counting pending:', pendingError);
+      throw new Error("Failed to count pending referrals");
+    }
+
+    // Count completed referrals
+    const { count: completedReferrals, error: completedError } = await supabase
+      .from('referral_invites')
+      .select('*', { count: 'exact', head: true })
+      .eq('referrer_id', user.id)
+      .eq('status', 'completed');
+
+    if (completedError) {
+      console.error('[GET-REFERRAL-STATS] Error counting completed:', completedError);
+      throw new Error("Failed to count completed referrals");
+    }
     
-    // Initialize the last 6 months with zero values
-    for (let i = 0; i < 6; i++) {
-      const d = new Date();
-      d.setMonth(now.getMonth() - i);
-      const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      monthlyReferrals[monthKey] = 0;
-    }
-    
-    // Populate with actual data
-    if (referralInvites) {
-      referralInvites.forEach(invite => {
-        const date = new Date(invite.created_at);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        
-        // Only count months in our tracking period
-        if (monthlyReferrals[monthKey] !== undefined) {
-          monthlyReferrals[monthKey]++;
-        }
-      });
+    // Count successful conversions and calculate earnings
+    const { count: successfulConversions, error: conversionError } = await supabase
+      .from('referrals')
+      .select('*', { count: 'exact', head: true })
+      .eq('referrer_id', user.id)
+      .eq('status', 'completed')
+      .eq('discount_applied', true);
+
+    if (conversionError) {
+      console.error('[GET-REFERRAL-STATS] Error counting conversions:', conversionError);
+      throw new Error("Failed to count conversions");
     }
 
-    // Calculate conversion rate
-    const conversionRate = data.total_referrals > 0 
-      ? (data.successful_conversions / data.total_referrals) * 100
-      : 0;
+    // Get recent referrals
+    const { data: recentReferrals, error: recentError } = await supabase
+      .from('referral_invites')
+      .select('id, email, status, created_at')
+      .eq('referrer_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
 
-    // Enhance the stats with additional data
-    const enhancedStats: ReferralStats = {
-      ...data,
-      monthly_referrals: monthlyReferrals,
-      conversion_rate: parseFloat(conversionRate.toFixed(2))
-    };
+    if (recentError) {
+      console.error('[GET-REFERRAL-STATS] Error getting recent referrals:', recentError);
+      throw new Error("Failed to get recent referrals");
+    }
 
-    // Return the stats with additional metadata
+    // Calculate monthly referrals for charts
+    const { data: monthlyData, error: monthlyError } = await supabase
+      .from('referral_invites')
+      .select('created_at')
+      .eq('referrer_id', user.id);
+
+    if (monthlyError) {
+      console.error('[GET-REFERRAL-STATS] Error getting monthly data:', monthlyError);
+      throw new Error("Failed to get monthly referral data");
+    }
+
+    // Process monthly data
+    const monthlyReferrals: Record<string, number> = {};
+    monthlyData?.forEach(item => {
+      const date = new Date(item.created_at);
+      const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
+      
+      if (monthlyReferrals[monthYear]) {
+        monthlyReferrals[monthYear]++;
+      } else {
+        monthlyReferrals[monthYear] = 1;
+      }
+    });
+
+    // Get user's referral code if it exists
+    const { data: codeData, error: codeError } = await supabase
+      .from('referral_codes')
+      .select('code')
+      .eq('user_id', user.id)
+      .single();
+
+    const code = codeData?.code || null;
+
+    // Get active discount if exists
+    const { data: discountData, error: discountError } = await supabase
+      .from('referrals')
+      .select('discount_percentage, expires_at')
+      .eq('referred_id', user.id)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    // Return all stats in a combined response
     return new Response(
       JSON.stringify({
-        ...enhancedStats,
-        retrieved_at: new Date().toISOString(),
-        version: '1.2'
+        userId: user.id,
+        totalReferrals: totalReferrals || 0,
+        pendingReferrals: pendingReferrals || 0,
+        completedReferrals: completedReferrals || 0,
+        successfulConversions: successfulConversions || 0,
+        earnings: successfulConversions ? successfulConversions * 10 : 0, // $10 per successful referral
+        recentReferrals: recentReferrals || [],
+        monthlyReferrals,
+        code,
+        activeDiscount: discountData?.discount_percentage || null,
+        expiryDate: discountData?.expires_at || null,
       }),
       { 
         status: 200,
@@ -127,8 +181,8 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error(`[GET-REFERRAL-STATS] Unexpected error:`, error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error('[GET-REFERRAL-STATS] Unexpected error:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     
     return new Response(
       JSON.stringify({ error: errorMessage }),

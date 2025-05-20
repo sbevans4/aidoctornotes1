@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useReferral } from "@/hooks/useReferral";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +30,7 @@ export const ReferralAnalytics: React.FC = () => {
   
   const handleRefresh = () => {
     refetch();
-    toast.success({
+    toast({
       title: "Data Refreshed",
       description: "Your referral data has been updated.",
     });

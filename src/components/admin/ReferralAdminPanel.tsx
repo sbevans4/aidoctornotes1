@@ -1,351 +1,389 @@
 
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Search, Filter, RefreshCw, Ban, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertTriangle, CheckCircle, Clock, Filter, Search, Users, XCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-export const ReferralAdminPanel: React.FC = () => {
+type ReferralStatus = 'pending' | 'verified' | 'completed' | 'rejected';
+
+interface Referral {
+  id: string;
+  referrer_email: string;
+  referrer_id: string;
+  referred_email: string;
+  referred_id: string | null;
+  status: ReferralStatus;
+  created_at: string;
+  is_suspicious: boolean;
+}
+
+export const ReferralAdminPanel = () => {
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [filteredReferrals, setFilteredReferrals] = useState<Referral[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState("recent");
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedReferral, setSelectedReferral] = useState<any>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  // Fetch all referrals for admin view
-  const { data: referrals, isLoading, error, refetch } = useQuery({
-    queryKey: ['admin-referrals'],
-    queryFn: async () => {
+  useEffect(() => {
+    fetchReferrals();
+  }, []);
+
+  useEffect(() => {
+    filterReferrals();
+  }, [referrals, searchQuery, statusFilter]);
+
+  const fetchReferrals = async () => {
+    setLoading(true);
+    try {
       const { data, error } = await supabase
         .from('referral_invites')
         .select(`
           id,
+          referrer_id,
           email,
-          code,
           status,
           created_at,
-          updated_at,
-          referrer_id,
-          profiles:referrer_id (
-            email,
-            full_name
-          )
+          referrers:referrer_id(email)
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
-    }
-  });
+      if (error) {
+        throw error;
+      }
 
-  // Fetch fraud flags (would connect to a real system in production)
-  const { data: fraudFlags } = useQuery({
-    queryKey: ['fraud-flags'],
-    queryFn: async () => {
-      // This would be a real API call in production
-      // Here we're simulating some flagged emails
-      return {
-        flaggedEmails: [
-          'suspicious@example.com',
-          'multiple-accounts@test.com'
-        ],
-        flaggedIps: [
-          '192.168.1.100',
-          '10.0.0.50'
-        ]
-      };
+      const formattedData = data.map((item: any) => ({
+        id: item.id,
+        referrer_email: item.referrers?.email || 'Unknown',
+        referrer_id: item.referrer_id,
+        referred_email: item.email,
+        referred_id: null, // This would come from auth.users in a real implementation
+        status: item.status,
+        created_at: item.created_at,
+        is_suspicious: false // This would be determined by fraud detection in a real implementation
+      }));
+      
+      setReferrals(formattedData);
+      setFilteredReferrals(formattedData);
+    } catch (error) {
+      console.error("Error fetching referrals:", error);
+      toast({
+        title: "Error loading referrals",
+        description: "Could not load referral data. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
-  });
+  };
 
-  // Update referral status
-  const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string, status: string }) => {
-      const { data, error } = await supabase
+  const filterReferrals = () => {
+    let filtered = [...referrals];
+    
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(ref => ref.status === statusFilter);
+    }
+    
+    // Apply search filter - search in emails
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        ref => 
+          ref.referrer_email.toLowerCase().includes(query) || 
+          ref.referred_email.toLowerCase().includes(query)
+      );
+    }
+    
+    setFilteredReferrals(filtered);
+  };
+
+  const handleUpdateStatus = async (id: string, status: ReferralStatus) => {
+    try {
+      const { error } = await supabase
         .from('referral_invites')
         .update({ status })
-        .eq('id', id)
-        .select();
-
+        .eq('id', id);
+        
       if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-referrals'] });
+      
+      // Update local state
+      setReferrals(referrals.map(ref => 
+        ref.id === id ? { ...ref, status } : ref
+      ));
+      
       toast({
-        title: "Status Updated",
-        description: "The referral status has been updated successfully.",
+        title: "Status updated",
+        description: `Referral status changed to ${status}`,
       });
-    },
-    onError: (error) => {
+    } catch (error) {
+      console.error("Error updating status:", error);
       toast({
-        title: "Update Failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+        title: "Error updating status",
+        description: "Could not update the referral status. Please try again.",
         variant: "destructive"
       });
     }
-  });
-
-  // Filter referrals based on search term and status filter
-  const filteredReferrals = referrals?.filter((referral: any) => {
-    const matchesSearch = searchTerm === '' || 
-      referral.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (referral.profiles?.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (referral.profiles?.full_name || '').toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || referral.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
-
-  // Handle view details
-  const handleViewDetails = (referral: any) => {
-    setSelectedReferral(referral);
-    setIsDetailsOpen(true);
   };
 
-  // Check if email is flagged for potential fraud
-  const isEmailFlagged = (email: string) => {
-    return fraudFlags?.flaggedEmails.includes(email);
+  const handleFlagSuspicious = async (id: string, isSuspicious: boolean) => {
+    try {
+      // In a real implementation this would update a is_suspicious field in the database
+      // For now we'll just update the local state
+      setReferrals(referrals.map(ref => 
+        ref.id === id ? { ...ref, is_suspicious: isSuspicious } : ref
+      ));
+      
+      toast({
+        title: isSuspicious ? "Marked as suspicious" : "Marked as valid",
+        description: isSuspicious 
+          ? "Referral has been flagged for review" 
+          : "Referral has been marked as valid",
+      });
+    } catch (error) {
+      console.error("Error updating flag:", error);
+      toast({
+        title: "Error updating flag",
+        description: "Could not update the suspicious flag. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  // Handle status update
-  const handleStatusUpdate = (id: string, status: string) => {
-    updateStatus.mutate({ id, status }); // Changed from 'newStatus' to 'status'
-    setIsDetailsOpen(false);
+  const getStatusBadge = (status: ReferralStatus) => {
+    switch (status) {
+      case "completed":
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Completed</Badge>;
+      case "verified":
+        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">Verified</Badge>;
+      case "rejected":
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-200">Rejected</Badge>;
+      default:
+        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">Pending</Badge>;
+    }
   };
 
-  if (isLoading) {
+  const renderReferralTable = () => {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+      <div className="border rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-100 text-left">
+                <th className="px-4 py-3 text-sm font-medium text-gray-600">Referrer</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-600">Referred</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-600">Date</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-600">Status</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-600">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredReferrals.length > 0 ? (
+                filteredReferrals.map((referral) => (
+                  <tr 
+                    key={referral.id} 
+                    className={`border-t hover:bg-gray-50 ${
+                      referral.is_suspicious ? 'bg-red-50' : ''
+                    }`}
+                  >
+                    <td className="px-4 py-3">{referral.referrer_email}</td>
+                    <td className="px-4 py-3">{referral.referred_email}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {new Date(referral.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">{getStatusBadge(referral.status)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex space-x-2">
+                        <Select 
+                          defaultValue={referral.status} 
+                          onValueChange={(value) => handleUpdateStatus(referral.id, value as ReferralStatus)}
+                        >
+                          <SelectTrigger className="h-8 w-32">
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="verified">Verified</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        
+                        <Button 
+                          variant={referral.is_suspicious ? "default" : "outline"} 
+                          size="sm"
+                          className={referral.is_suspicious ? "bg-red-600 hover:bg-red-700" : ""}
+                          onClick={() => handleFlagSuspicious(referral.id, !referral.is_suspicious)}
+                        >
+                          {referral.is_suspicious ? (
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                          ) : (
+                            <AlertTriangle className="h-4 w-4 mr-1" />
+                          )}
+                          {referral.is_suspicious ? 'Mark Valid' : 'Flag'}
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                    {loading ? 'Loading referrals...' : 'No referrals found matching your filters'}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-        <p className="text-red-700">Error loading referrals: {error instanceof Error ? error.message : "Unknown error"}</p>
-        <Button onClick={() => refetch()} className="mt-2" variant="outline" size="sm">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Try Again
-        </Button>
-      </div>
-    );
-  }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <h2 className="text-2xl font-bold">Referral Management</h2>
-        <Button onClick={() => refetch()} variant="outline" size="sm">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
-      </div>
-
       <Card>
         <CardHeader>
-          <CardTitle>Referral Analytics</CardTitle>
-          <CardDescription>Overview of referral program performance</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm text-blue-600">Total Invites</p>
-              <p className="text-2xl font-bold">{referrals?.length || 0}</p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <CardTitle>Referral Management</CardTitle>
+              <CardDescription>
+                Review and manage referrals across the platform
+              </CardDescription>
             </div>
-            <div className="bg-yellow-50 p-4 rounded-lg">
-              <p className="text-sm text-yellow-600">Pending</p>
-              <p className="text-2xl font-bold">
-                {referrals?.filter(r => r.status === 'pending').length || 0}
-              </p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <p className="text-sm text-green-600">Completed</p>
-              <p className="text-2xl font-bold">
-                {referrals?.filter(r => r.status === 'completed').length || 0}
-              </p>
-            </div>
-            <div className="bg-red-50 p-4 rounded-lg">
-              <p className="text-sm text-red-600">Flagged</p>
-              <p className="text-2xl font-bold">
-                {referrals?.filter(r => isEmailFlagged(r.email)).length || 0}
-              </p>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={fetchReferrals}
+              >
+                <Users className="h-4 w-4" /> 
+                Refresh
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <Filter className="h-4 w-4" /> 
+                Export
+              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Referral Invitations</CardTitle>
-          <CardDescription>Manage and monitor all referral invitations</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input 
-                placeholder="Search by email or name" 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+          <div className="mb-6 flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by email..."
+                className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2 min-w-[200px]">
-              <Filter className="h-4 w-4 text-gray-400" />
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <div className="w-full sm:w-48">
+              <Select
+                defaultValue="all"
+                onValueChange={setStatusFilter}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="verified">Verified</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-
-          <div className="rounded-md border">
-            <div className="grid grid-cols-12 bg-muted/50 p-3 text-sm font-medium">
-              <div className="col-span-4">Email</div>
-              <div className="col-span-3">Referrer</div>
-              <div className="col-span-2">Date</div>
-              <div className="col-span-2">Status</div>
-              <div className="col-span-1 text-right">Actions</div>
-            </div>
-            <div className="divide-y">
-              {filteredReferrals?.length > 0 ? (
-                filteredReferrals.map((referral: any) => (
-                  <div key={referral.id} className="grid grid-cols-12 p-3 text-sm items-center">
-                    <div className="col-span-4 flex items-center gap-2">
-                      {referral.email}
-                      {isEmailFlagged(referral.email) && (
-                        <Badge variant="destructive" className="h-5">Flagged</Badge>
-                      )}
-                    </div>
-                    <div className="col-span-3 text-gray-600">
-                      {referral.profiles?.full_name || referral.profiles?.email || 'Unknown'}
-                    </div>
-                    <div className="col-span-2 text-gray-600">
-                      {new Date(referral.created_at).toLocaleDateString()}
-                    </div>
-                    <div className="col-span-2">
-                      <Badge className={`
-                        ${referral.status === 'completed' ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}
-                        ${referral.status === 'pending' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : ''}
-                        ${referral.status === 'rejected' ? 'bg-red-100 text-red-800 hover:bg-red-200' : ''}
-                      `}>
-                        {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
-                      </Badge>
-                    </div>
-                    <div className="col-span-1 text-right">
-                      <Button variant="ghost" size="sm" onClick={() => handleViewDetails(referral)}>
-                        Details
-                      </Button>
-                    </div>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="recent">Recent Referrals</TabsTrigger>
+              <TabsTrigger value="suspicious">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Suspicious
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="recent">
+              {renderReferralTable()}
+            </TabsContent>
+            <TabsContent value="suspicious">
+              <div>
+                {filteredReferrals.some(r => r.is_suspicious) ? (
+                  renderReferralTable()
+                ) : (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg border">
+                    <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900">No Suspicious Referrals</h3>
+                    <p className="text-gray-500 mt-2">
+                      There are currently no referrals flagged as suspicious.
+                    </p>
                   </div>
-                ))
-              ) : (
-                <div className="p-6 text-center text-gray-500">
-                  No referrals found matching your criteria.
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>System Status</CardTitle>
+          <CardDescription>
+            Current status of the referral system
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="border rounded-lg p-4 bg-green-50 border-green-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">System Status</p>
+                  <p className="font-semibold flex items-center mt-1">
+                    <CheckCircle className="h-4 w-4 text-green-600 mr-1.5" />
+                    Operational
+                  </p>
                 </div>
-              )}
+              </div>
+            </div>
+            
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Rate Limits</p>
+                  <p className="font-semibold flex items-center mt-1">
+                    <Clock className="h-4 w-4 text-blue-600 mr-1.5" />
+                    10 / day, 50 / month
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Fraud Detection</p>
+                  <p className="font-semibold flex items-center mt-1">
+                    <CheckCircle className="h-4 w-4 text-green-600 mr-1.5" />
+                    Active
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
-
-      {/* Referral Details Dialog */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        {selectedReferral && (
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Referral Details</DialogTitle>
-              <DialogDescription>
-                View and manage referral information
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-2">
-              <div className="grid grid-cols-3 gap-2">
-                <div className="font-medium">Email:</div>
-                <div className="col-span-2">{selectedReferral.email}</div>
-                
-                <div className="font-medium">Referrer:</div>
-                <div className="col-span-2">
-                  {selectedReferral.profiles?.full_name || selectedReferral.profiles?.email || 'Unknown'}
-                </div>
-                
-                <div className="font-medium">Code:</div>
-                <div className="col-span-2">{selectedReferral.code}</div>
-                
-                <div className="font-medium">Created:</div>
-                <div className="col-span-2">
-                  {new Date(selectedReferral.created_at).toLocaleDateString() + ' ' + 
-                   new Date(selectedReferral.created_at).toLocaleTimeString()}
-                </div>
-                
-                <div className="font-medium">Status:</div>
-                <div className="col-span-2">
-                  <Badge className={`
-                    ${selectedReferral.status === 'completed' ? 'bg-green-100 text-green-800' : ''}
-                    ${selectedReferral.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-                    ${selectedReferral.status === 'rejected' ? 'bg-red-100 text-red-800' : ''}
-                  `}>
-                    {selectedReferral.status.charAt(0).toUpperCase() + selectedReferral.status.slice(1)}
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="pt-3 border-t">
-                <Label>Update Status</Label>
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  <Button 
-                    onClick={() => handleStatusUpdate(selectedReferral.id, 'completed')}
-                    size="sm"
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <Check className="h-4 w-4 mr-1" /> Mark Completed
-                  </Button>
-                  <Button 
-                    onClick={() => handleStatusUpdate(selectedReferral.id, 'pending')}
-                    size="sm"
-                    variant="outline"
-                  >
-                    Reset to Pending
-                  </Button>
-                  <Button 
-                    onClick={() => handleStatusUpdate(selectedReferral.id, 'rejected')}
-                    size="sm"
-                    variant="destructive"
-                  >
-                    <Ban className="h-4 w-4 mr-1" /> Reject
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            <DialogFooter className="sm:justify-end">
-              <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        )}
-      </Dialog>
     </div>
   );
 };

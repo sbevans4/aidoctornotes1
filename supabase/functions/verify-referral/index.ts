@@ -7,11 +7,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface VerifyReferralRequest {
-  email: string;
-  code: string;
-}
-
 serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -19,7 +14,19 @@ serve(async (req: Request) => {
   }
   
   try {
-    // Create Supabase client using service role key to bypass RLS
+    const { email, code } = await req.json();
+    
+    if (!email || !code) {
+      return new Response(
+        JSON.stringify({ error: "Email and verification code are required" }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    // Create Supabase client using service role key to bypass RLS policies
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     
@@ -27,93 +34,49 @@ serve(async (req: Request) => {
       auth: { persistSession: false }
     });
 
-    // Get request data
-    const { email, code }: VerifyReferralRequest = await req.json();
-    
-    if (!email || !code) {
-      return new Response(
-        JSON.stringify({ error: "Email and code are required" }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      );
-    }
-
-    // Check rate limiting
-    const ipAddress = req.headers.get("x-forwarded-for") || "unknown";
-    
-    // Check attempts in the last hour
-    const oneHourAgo = new Date();
-    oneHourAgo.setHours(oneHourAgo.getHours() - 1);
-    
-    const { data: attemptData, error: attemptError } = await supabase
-      .from('referral_verification_attempts')
-      .select('count')
-      .eq('ip_address', ipAddress)
-      .gt('created_at', oneHourAgo.toISOString())
-      .single();
-
-    if (attemptError && attemptError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-      console.error('Error checking verification attempts:', attemptError);
-    }
-    
-    const attempts = attemptData?.count || 0;
-    if (attempts >= 10) {
-      return new Response(
-        JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-        { 
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      );
-    }
-    
-    // Record this attempt
-    await supabase
-      .from('referral_verification_attempts')
-      .insert({ ip_address: ipAddress });
-    
-    // Verify the referral code against the database
+    // Check if the invite exists and matches the email and code
     const { data: invite, error: inviteError } = await supabase
       .from('referral_invites')
-      .select('id, referrer_id, status, code')
-      .eq('email', email.toLowerCase())
+      .select('id, referrer_id, code')
+      .eq('email', email)
       .eq('code', code)
+      .eq('status', 'pending')
       .single();
 
     if (inviteError || !invite) {
+      console.error('[VERIFY-REFERRAL] No matching invite found:', inviteError);
       return new Response(
-        JSON.stringify({ error: "Invalid referral code or email" }),
+        JSON.stringify({ error: "Invalid or expired verification code" }),
         { 
-          status: 404,
+          status: 404, 
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         }
       );
     }
 
-    if (invite.status === 'completed') {
-      return new Response(
-        JSON.stringify({ error: "This referral has already been used" }),
-        { 
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      );
-    }
-
-    // Update the invite status
-    await supabase
+    // Mark the invitation as verified
+    const { error: updateError } = await supabase
       .from('referral_invites')
-      .update({ status: 'verified', updated_at: new Date().toISOString() })
+      .update({ status: 'verified' })
       .eq('id', invite.id);
+
+    if (updateError) {
+      console.error('[VERIFY-REFERRAL] Error updating invite status:', updateError);
+      return new Response(
+        JSON.stringify({ error: "Failed to verify the invitation" }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
+    }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Referral code verified successfully",
+        message: "Referral code verified successfully", 
         referrerId: invite.referrer_id,
-        inviteId: invite.id 
+        code: invite.code
       }),
       { 
         status: 200,
@@ -121,8 +84,8 @@ serve(async (req: Request) => {
       }
     );
   } catch (error) {
-    console.error(`[VERIFY-REFERRAL] Unexpected error:`, error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error('[VERIFY-REFERRAL] Unexpected error:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     
     return new Response(
       JSON.stringify({ error: errorMessage }),

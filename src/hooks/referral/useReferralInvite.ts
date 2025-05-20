@@ -109,7 +109,7 @@ export const useReferralInvite = () => {
       return "Referral invitation sent!";
     },
     onSuccess: (_, email) => {
-      toast.success({
+      toast({
         title: "Invitation Sent!",
         description: `Invitation email sent to ${email}`,
       });

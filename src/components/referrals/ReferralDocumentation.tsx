@@ -1,164 +1,239 @@
 
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CircleDollarSign, Users, Link, Mail, AlertTriangle, FileCheck, ArrowRight } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { FileDown, Gift, Users, DollarSign, Mail, Link, AlertTriangle } from "lucide-react";
 
 export const ReferralDocumentation: React.FC = () => {
+  const handleDownloadGuide = () => {
+    // In a real implementation, this would generate a PDF or download a pre-generated file
+    alert("In a production environment, this would download a PDF guide.");
+  };
+
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
-      <section>
-        <h2 className="text-2xl font-bold mb-4">How Our Referral Program Works</h2>
-        <p className="text-gray-700 mb-6">
-          Our referral program rewards you for sharing AIDoctorNotes with your colleagues and professional network. Here's everything you need to know.
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold mb-2">How the Referral Program Works</h2>
+        <p className="text-gray-600">
+          Our referral program is designed to reward you for bringing new users to AIDoctorNotes.
+          Learn how to maximize your rewards below.
         </p>
-        
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="mb-4 flex justify-center">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Users className="h-8 w-8 text-blue-600" />
-                </div>
-              </div>
-              <h3 className="text-lg font-medium text-center mb-2">1. Send Invitations</h3>
-              <p className="text-sm text-gray-600 text-center">
-                Send referrals via email or share your unique referral link with colleagues.
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="mb-4 flex justify-center">
-                <div className="bg-green-100 p-3 rounded-full">
-                  <FileCheck className="h-8 w-8 text-green-600" />
-                </div>
-              </div>
-              <h3 className="text-lg font-medium text-center mb-2">2. They Subscribe</h3>
-              <p className="text-sm text-gray-600 text-center">
-                When your referral signs up and becomes a paying subscriber.
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="mb-4 flex justify-center">
-                <div className="bg-purple-100 p-3 rounded-full">
-                  <CircleDollarSign className="h-8 w-8 text-purple-600" />
-                </div>
-              </div>
-              <h3 className="text-lg font-medium text-center mb-2">3. You Get Rewarded</h3>
-              <p className="text-sm text-gray-600 text-center">
-                Earn $10 credit for each successful referral, automatically applied to your next bill.
-              </p>
-            </CardContent>
-          </Card>
+        <div className="mt-4">
+          <Button 
+            variant="outline" 
+            onClick={handleDownloadGuide}
+            className="flex items-center gap-2"
+          >
+            <FileDown className="h-4 w-4" />
+            Download Complete Guide
+          </Button>
         </div>
-      </section>
-      
-      <section>
-        <Card>
-          <CardHeader>
-            <CardTitle>Referral Methods</CardTitle>
-            <CardDescription>Two easy ways to refer colleagues</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex gap-4">
-              <div className="shrink-0 bg-blue-100 p-2 rounded-full h-10 w-10 flex items-center justify-center">
-                <Mail className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-medium mb-1">Email Invitation</h3>
-                <p className="text-gray-600 text-sm">
-                  Enter your colleague's email address to send them a personal invitation with your referral code automatically included.
-                </p>
-              </div>
+      </div>
+
+      <Card className="border border-blue-100">
+        <CardHeader className="bg-blue-50 border-b border-blue-100">
+          <div className="flex items-center gap-3">
+            <Gift className="h-6 w-6 text-blue-600" />
+            <CardTitle>Referral Benefits</CardTitle>
+          </div>
+          <CardDescription>What you and your colleagues receive</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="border border-green-100 rounded-lg p-4 bg-green-50">
+              <h3 className="font-medium text-lg mb-2 flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-green-600" />
+                Your Benefits
+              </h3>
+              <ul className="space-y-2">
+                <li className="flex gap-2 items-baseline">
+                  <span className="text-green-600 font-bold">•</span>
+                  <span>$10 off your next bill for each successful referral</span>
+                </li>
+                <li className="flex gap-2 items-baseline">
+                  <span className="text-green-600 font-bold">•</span>
+                  <span>Earn up to 10 referral bonuses per month ($100 total)</span>
+                </li>
+                <li className="flex gap-2 items-baseline">
+                  <span className="text-green-600 font-bold">•</span>
+                  <span>Credits automatically applied to your next invoice</span>
+                </li>
+              </ul>
             </div>
-            
-            <div className="flex gap-4">
-              <div className="shrink-0 bg-blue-100 p-2 rounded-full h-10 w-10 flex items-center justify-center">
-                <Link className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-medium mb-1">Referral Link</h3>
-                <p className="text-gray-600 text-sm">
-                  Copy your personal referral link and share it through messaging apps, social media, or in person.
-                </p>
-              </div>
+
+            <div className="border border-blue-100 rounded-lg p-4 bg-blue-50">
+              <h3 className="font-medium text-lg mb-2 flex items-center gap-2">
+                <Users className="h-5 w-5 text-blue-600" />
+                Your Colleague's Benefits
+              </h3>
+              <ul className="space-y-2">
+                <li className="flex gap-2 items-baseline">
+                  <span className="text-blue-600 font-bold">•</span>
+                  <span>20% discount on their first 3 months of subscription</span>
+                </li>
+                <li className="flex gap-2 items-baseline">
+                  <span className="text-blue-600 font-bold">•</span>
+                  <span>Full access to all features of their chosen plan</span>
+                </li>
+                <li className="flex gap-2 items-baseline">
+                  <span className="text-blue-600 font-bold">•</span>
+                  <span>Ability to participate in the referral program themselves</span>
+                </li>
+              </ul>
             </div>
-          </CardContent>
-        </Card>
-      </section>
-      
-      <section>
-        <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
-        
-        <div className="space-y-4">
-          <Card>
-            <CardHeader className="py-4">
-              <CardTitle className="text-lg">How much can I earn from referrals?</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700">
-                You earn $10 for each successful referral. There's no limit to how many colleagues you can refer, so your earning potential is unlimited.
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="py-4">
-              <CardTitle className="text-lg">When do I receive my referral credit?</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700">
-                Referral credits are applied automatically to your next billing cycle after your referral becomes a paid subscriber.
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="py-4">
-              <CardTitle className="text-lg">What happens if my referral doesn't sign up immediately?</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700">
-                Your referral link remains valid for 30 days. As long as they sign up within that period, you'll receive credit for the referral.
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="py-4">
-              <CardTitle className="text-lg">What do my referred colleagues get?</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700">
-                Your referred colleagues receive a special 10% discount on their first 3 months of subscription.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-      
-      <section>
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
-              Important Notes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 list-disc list-inside text-gray-700">
-              <li>Referrals must be new users who have not previously held an account.</li>
-              <li>Credits can only be applied to active subscriptions and cannot be redeemed for cash.</li>
-              <li>We reserve the right to refuse rewards for suspected fraudulent activity.</li>
-              <li>Terms and conditions of the referral program are subject to change with notice.</li>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>How to Refer Colleagues</CardTitle>
+          <CardDescription>Two simple ways to invite colleagues</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="border rounded-lg p-5">
+              <h3 className="font-medium text-lg mb-3 flex items-center gap-2">
+                <Mail className="h-5 w-5 text-indigo-600" />
+                Option 1: Send Email Invitation
+              </h3>
+              <ol className="space-y-4 ml-4">
+                <li className="relative pl-6">
+                  <span className="absolute left-0 font-bold">1.</span>
+                  Navigate to the "Referral Program" tab in your dashboard
+                </li>
+                <li className="relative pl-6">
+                  <span className="absolute left-0 font-bold">2.</span>
+                  Enter your colleague's email address in the invitation form
+                </li>
+                <li className="relative pl-6">
+                  <span className="absolute left-0 font-bold">3.</span>
+                  Click "Send Invitation" and we'll send them an email with your referral code
+                </li>
+              </ol>
+            </div>
+
+            <div className="border rounded-lg p-5">
+              <h3 className="font-medium text-lg mb-3 flex items-center gap-2">
+                <Link className="h-5 w-5 text-indigo-600" />
+                Option 2: Share Your Referral Link
+              </h3>
+              <ol className="space-y-4 ml-4">
+                <li className="relative pl-6">
+                  <span className="absolute left-0 font-bold">1.</span>
+                  Click "Copy Referral Link" in your dashboard
+                </li>
+                <li className="relative pl-6">
+                  <span className="absolute left-0 font-bold">2.</span>
+                  Share the link via messaging apps, social media, or email
+                </li>
+                <li className="relative pl-6">
+                  <span className="absolute left-0 font-bold">3.</span>
+                  When colleagues click your link and sign up, they'll be connected to your account
+                </li>
+              </ol>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Frequently Asked Questions</CardTitle>
+          <CardDescription>Common questions about our referral program</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+              <AccordionTrigger>When do I receive my referral credit?</AccordionTrigger>
+              <AccordionContent>
+                <p>
+                  You receive your $10 credit once your referred colleague signs up for a paid subscription plan. 
+                  The credit is automatically applied to your next billing cycle. If your credits exceed your 
+                  subscription amount, the remaining balance will roll over to future months.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-2">
+              <AccordionTrigger>Is there a limit to how many colleagues I can refer?</AccordionTrigger>
+              <AccordionContent>
+                <p>
+                  You can refer as many colleagues as you'd like, but there's a daily limit of 10 invitations 
+                  to prevent spam. You can earn up to 10 referral bonuses per month ($100 total). 
+                  This limit resets at the beginning of each month.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-3">
+              <AccordionTrigger>How long does the referral link remain valid?</AccordionTrigger>
+              <AccordionContent>
+                <p>
+                  Your referral links and codes never expire, but the 20% discount offer for your colleagues 
+                  is valid for 30 days after they receive the invitation. After that, they can still use your 
+                  referral link to sign up, but the discount may no longer apply.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-4">
+              <AccordionTrigger>Can I refer myself using another email address?</AccordionTrigger>
+              <AccordionContent>
+                <div className="flex items-start gap-3 bg-amber-50 p-3 rounded-md border border-amber-100">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
+                  <p className="text-amber-800">
+                    No. Self-referrals are strictly prohibited and will result in the forfeit of any referral credits. 
+                    Our system has measures to detect self-referrals based on IP addresses, payment methods, and other factors.
+                  </p>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-5">
+              <AccordionTrigger>How can I track my referral status?</AccordionTrigger>
+              <AccordionContent>
+                <p>
+                  You can track all your referrals in the Analytics tab of the Referral Dashboard. 
+                  This includes pending invitations, completed signups, and successful conversions that resulted in credits. 
+                  You can also see your total earnings and conversion rate.
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Referral Program Terms</CardTitle>
+          <CardDescription>Important policies and guidelines</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <h3 className="font-semibold">Eligibility</h3>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>You must have an active AIDoctorNotes subscription to receive referral credits</li>
+              <li>Referrals must be unique individuals with their own accounts and payment methods</li>
+              <li>Self-referrals and fraudulent referrals are prohibited and will result in forfeiture of credits</li>
             </ul>
-          </CardContent>
-        </Card>
-      </section>
+
+            <h3 className="font-semibold">Credit Application</h3>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>Credits are applied automatically to your next billing cycle</li>
+              <li>Referral credits cannot be exchanged for cash or other rewards</li>
+              <li>Credits expire after 12 months if not used</li>
+            </ul>
+
+            <h3 className="font-semibold">Program Changes</h3>
+            <p className="text-sm text-gray-600">
+              AIDoctorNotes reserves the right to modify or terminate the referral program at any time. 
+              Any earned credits will be honored regardless of program changes.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
