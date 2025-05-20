@@ -17,8 +17,16 @@ const ProcedureCodeSuggestions = ({
   onSelectCode,
   selectedCodes 
 }: ProcedureCodeSuggestionsProps) => {
-  const { procedureCodes, isLoading, error, getSuggestedCodes, saveCode, getFrequentCodes } = useProcedureCodes(transcript);
-  const [refreshing, setRefreshing] = useState(false);
+  const { 
+    procedureCodes, 
+    isLoading, 
+    error, 
+    isRefreshing,
+    refreshSuggestedCodes, 
+    saveCode, 
+    getFrequentCodes 
+  } = useProcedureCodes(transcript);
+  
   const [activeTab, setActiveTab] = useState("suggested");
   const [frequentCodes, setFrequentCodes] = useState<string[]>([]);
   const [loadingFrequent, setLoadingFrequent] = useState(false);
@@ -41,6 +49,11 @@ const ProcedureCodeSuggestions = ({
     saveCode(code);
   };
 
+  const handleRefreshCodes = async () => {
+    if (!transcript) return;
+    await refreshSuggestedCodes(transcript);
+  };
+
   const isCodeSelected = (code: string) => {
     return selectedCodes.includes(code);
   };
@@ -60,15 +73,10 @@ const ProcedureCodeSuggestions = ({
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={async () => {
-            if (!transcript) return;
-            setRefreshing(true);
-            await getSuggestedCodes(transcript);
-            setRefreshing(false);
-          }}
-          disabled={refreshing || !transcript || isLoading}
+          onClick={handleRefreshCodes}
+          disabled={isRefreshing || !transcript || isLoading}
         >
-          {refreshing ? (
+          {isRefreshing ? (
             <span className="flex items-center">
               <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
               Refreshing...

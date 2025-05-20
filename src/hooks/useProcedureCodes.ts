@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -9,9 +9,10 @@ export function useProcedureCodes(transcript: string | null) {
   const [isLoading, setIsLoading] = useState(false);
   const [procedureCodes, setProcedureCodes] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Function to fetch suggested procedure codes based on transcript
-  const getSuggestedCodes = async (transcriptText: string) => {
+  const getSuggestedCodes = useCallback(async (transcriptText: string, forceRefresh: boolean = false) => {
     if (!transcriptText || !user) return;
     
     setIsLoading(true);
@@ -20,7 +21,10 @@ export function useProcedureCodes(transcript: string | null) {
     try {
       // Call the Supabase Edge Function to get code suggestions
       const { data, error } = await supabase.functions.invoke('suggest-procedure-codes', {
-        body: { transcription: transcriptText }
+        body: { 
+          transcription: transcriptText,
+          refresh: forceRefresh 
+        }
       });
       
       if (error) throw error;
@@ -51,10 +55,23 @@ export function useProcedureCodes(transcript: string | null) {
     } finally {
       setIsLoading(false);
     }
+  }, [user]);
+
+  // Function to refresh code suggestions
+  const refreshSuggestedCodes = async (transcriptText: string) => {
+    if (!transcriptText || !user) return;
+    
+    setIsRefreshing(true);
+    
+    try {
+      await getSuggestedCodes(transcriptText, true);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   // Function to save a specific code and increment its frequency
-  const saveCode = async (code: string) => {
+  const saveCode = useCallback(async (code: string) => {
     if (!user) return;
     
     try {
@@ -85,10 +102,10 @@ export function useProcedureCodes(transcript: string | null) {
     } catch (err: any) {
       console.error("Error saving procedure code:", err);
     }
-  };
+  }, [user]);
 
   // Function to get frequently used codes 
-  const getFrequentCodes = async () => {
+  const getFrequentCodes = useCallback(async () => {
     if (!user) return [];
     
     try {
@@ -106,21 +123,23 @@ export function useProcedureCodes(transcript: string | null) {
       console.error("Error fetching frequent codes:", err);
       return [];
     }
-  };
+  }, [user]);
 
   // Initialize code suggestions when transcript is available
   useEffect(() => {
     if (transcript) {
       getSuggestedCodes(transcript);
     }
-  }, [transcript]);
+  }, [transcript, getSuggestedCodes]);
 
   return {
     procedureCodes,
     setProcedureCodes,
     isLoading,
     error,
+    isRefreshing,
     getSuggestedCodes,
+    refreshSuggestedCodes,
     saveCode,
     getFrequentCodes
   };

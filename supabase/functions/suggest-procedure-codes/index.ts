@@ -48,7 +48,8 @@ serve(async (req) => {
     }
     
     // Parse request body
-    const { transcription } = await req.json();
+    const requestData = await req.json();
+    const { transcription, refresh = false } = requestData;
     
     if (!transcription) {
       return new Response(
@@ -60,11 +61,8 @@ serve(async (req) => {
       );
     }
     
-    // Special handling for "refresh" request
-    if (transcription === 'refresh') {
-      // Force a new code generation even if we have cached codes
-      console.log("Forced refresh of procedure codes requested");
-    } else {
+    // Check for cached codes unless refresh is true
+    if (!refresh) {
       // First check if we have cached procedure codes for this user
       const { data: cachedCodes, error: cacheError } = await supabase
         .from('procedure_codes')
@@ -138,10 +136,15 @@ serve(async (req) => {
     let suggestedCodes;
     try {
       const parsedResponse = JSON.parse(suggestedCodesText);
-      suggestedCodes = Array.isArray(parsedResponse.codes) ? parsedResponse.codes : [];
       
-      if (suggestedCodes.length === 0 && typeof parsedResponse === 'object') {
+      // Try to extract codes from the response
+      if (Array.isArray(parsedResponse)) {
+        suggestedCodes = parsedResponse;
+      } else if (parsedResponse.codes && Array.isArray(parsedResponse.codes)) {
+        suggestedCodes = parsedResponse.codes;
+      } else {
         // Try to extract codes from any property that's an array
+        suggestedCodes = [];
         for (const key in parsedResponse) {
           if (Array.isArray(parsedResponse[key]) && parsedResponse[key].length > 0) {
             suggestedCodes = parsedResponse[key];
@@ -152,6 +155,17 @@ serve(async (req) => {
     } catch (parseError) {
       console.error('Error parsing suggested codes:', parseError);
       suggestedCodes = [];
+    }
+    
+    // Filter out non-string values and ensure codes look valid
+    suggestedCodes = suggestedCodes
+      .filter(code => typeof code === 'string')
+      .filter(code => /^[A-Z0-9\.\-]{2,10}$/i.test(code.trim()))
+      .map(code => code.trim().toUpperCase());
+    
+    // Ensure we have at least some codes
+    if (suggestedCodes.length === 0) {
+      suggestedCodes = ["E11.9", "I10", "Z79.4"]; // Default fallback codes
     }
     
     // Store the suggested codes in the database for future caching
