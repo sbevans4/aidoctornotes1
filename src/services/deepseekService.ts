@@ -12,8 +12,7 @@ export async function generateSoapNote(
   templateId: string = "general"
 ): Promise<SoapNote> {
   try {
-    // Instead of fetching from a secrets table, we'll call the edge function
-    // which already has access to the DeepSeek API key
+    // Call the edge function which already has access to the DeepSeek API key
     const { data, error } = await supabase.functions.invoke('generate-soap-deepseek', {
       body: { 
         transcription: transcript, 

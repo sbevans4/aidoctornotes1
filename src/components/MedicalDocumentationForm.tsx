@@ -1,109 +1,43 @@
 
-import React from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNetworkStatus } from "@/hooks/use-network-status";
-import { useMedicalTranscription } from "@/hooks/useMedicalTranscription";
-import { useSoapNoteGeneration, SoapNote } from "@/hooks/useSoapNoteGeneration";
-import AudioRecorder from "@/components/AudioRecorder";
-import TranscriptDisplay from "@/components/TranscriptDisplay";
-import SoapNoteDisplay from "@/components/SoapNoteDisplay";
-import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
-import { OfflineNotification } from "@/components/ui/offline-notification";
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import VoiceRecorder from './VoiceRecorder';
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const MedicalDocumentationForm = () => {
-  const { isOnline } = useNetworkStatus();
-  const { user } = useAuth();
-  
-  const { 
-    audioBlob,
-    isTranscribing,
-    transcript,
-    speakers,
-    segments,
-    noteId,
-    transcriptionError,
-    handleRecordingComplete,
-    resetTranscription
-  } = useMedicalTranscription();
-  
-  const {
-    isGeneratingSoap,
-    soapNote,
-    soapError,
-    generateSoapNote,
-    saveSoapNote,
-    emailSoapNote,
-    resetSoapNote
-  } = useSoapNoteGeneration();
-
-  // Generate SOAP note when transcript is available
-  React.useEffect(() => {
-    if (transcript && noteId) {
-      generateSoapNote(transcript, noteId);
-    }
-  }, [transcript, noteId]);
-
-  const handleReset = () => {
-    resetTranscription();
-    resetSoapNote();
-  };
-
-  const handleSaveSoapNote = async (note: SoapNote) => {
-    if (!noteId) return;
-    await saveSoapNote(note, noteId);
-  };
-
-  if (!isOnline) {
-    return <OfflineNotification />;
-  }
-
   return (
-    <div className="container mx-auto p-4 max-w-5xl">
-      <div className="grid gap-6 md:gap-8">
-        {/* Step 1: Record Audio */}
-        <div className={transcript ? "opacity-50" : ""}>
-          <AudioRecorder 
-            onRecordingComplete={handleRecordingComplete} 
-            className="w-full"
-          />
-        </div>
-        
-        {/* Step 2: Transcription */}
-        {(isTranscribing || transcript || transcriptionError) && (
-          <TranscriptDisplay 
-            transcript={transcript || undefined}
-            speakers={speakers}
-            segments={segments}
-            isLoading={isTranscribing}
-            error={transcriptionError || undefined}
-          />
-        )}
-        
-        {/* Step 3: SOAP Note */}
-        {(isGeneratingSoap || soapNote || soapError) && (
-          <SoapNoteDisplay 
-            soapNote={soapNote || undefined}
-            isLoading={isGeneratingSoap}
-            error={soapError || undefined}
-            onSave={handleSaveSoapNote}
-            onEmail={emailSoapNote}
-          />
-        )}
-        
-        {/* Reset Button */}
-        {(transcript || soapNote) && (
-          <div className="flex justify-center">
-            <Button 
-              variant="outline" 
-              onClick={handleReset}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Start New Documentation
-            </Button>
-          </div>
-        )}
+    <div className="max-w-4xl mx-auto space-y-6">
+      <Alert>
+        <AlertCircle className="h-4 w-4 mr-2" />
+        <AlertDescription>
+          Make sure you have a DeepSeek API key configured in your Supabase project for SOAP note generation.
+        </AlertDescription>
+      </Alert>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Medical Documentation Assistant</CardTitle>
+          <CardDescription>
+            Record your patient conversation, select a template, and get an accurate SOAP note
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <VoiceRecorder />
+        </CardContent>
+      </Card>
+      
+      <div className="text-sm text-gray-500 mt-6">
+        <p>How to use this tool:</p>
+        <ol className="list-decimal pl-5 space-y-1 mt-2">
+          <li>Select a documentation template that matches your specialty</li>
+          <li>Click the red record button and have your conversation with the patient</li>
+          <li>Stop the recording when finished</li>
+          <li>Review the transcript for accuracy</li>
+          <li>Enter relevant procedure codes</li>
+          <li>Wait for your SOAP note to be generated</li>
+          <li>Review and edit the note if needed</li>
+        </ol>
       </div>
     </div>
   );
